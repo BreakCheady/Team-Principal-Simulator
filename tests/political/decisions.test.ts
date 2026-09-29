@@ -68,6 +68,31 @@ describe("conflict decisions", () => {
     expect(precedent(result.nextState).strength).toBe(86);
   });
 
+  it("rejects resolving a conflict before its start round", () => {
+    expect(() =>
+      applyConflictDecision(
+        demoState,
+        "conflict_technical_direction",
+        ConflictDecisionId.COMPROMISE,
+        13,
+      ),
+    ).toThrow(/before it started/);
+  });
+
+  it("rejects a different technical-direction conflict", () => {
+    const differentScenario = structuredClone(demoState);
+    differentScenario.conflicts[0].id = "conflict_other_technical";
+
+    expect(() =>
+      applyConflictDecision(
+        differentScenario,
+        "conflict_other_technical",
+        ConflictDecisionId.COMPROMISE,
+        14,
+      ),
+    ).toThrow(/only supports "conflict_technical_direction"/);
+  });
+
   it("refuses to resolve the same conflict twice", () => {
     const first = applyConflictDecision(
       demoState,

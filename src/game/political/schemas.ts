@@ -235,6 +235,18 @@ export const ConflictSchema = z.object({
         message: "Resolved conflicts require outcome and roundResolved.",
       });
     }
+
+    if (
+      value.roundResolved !== null &&
+      value.roundResolved !== undefined &&
+      value.roundResolved < value.roundStarted
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["roundResolved"],
+        message: "roundResolved must be greater than or equal to roundStarted.",
+      });
+    }
   } else if (value.outcome || value.roundResolved) {
     ctx.addIssue({
       code: "custom",

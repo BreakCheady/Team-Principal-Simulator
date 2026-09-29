@@ -26,6 +26,9 @@ export type ConflictDecisionResult = {
   changes: OutcomeChange[];
 };
 
+export const VANGUARD_TECHNICAL_DIRECTION_CONFLICT_ID =
+  "conflict_technical_direction";
+
 type DecisionContext = {
   round: number;
 };
@@ -91,6 +94,12 @@ function resolveConflict(
 ) {
   if (conflict.status === "RESOLVED") {
     throw new Error(`Conflict "${conflict.id}" is already resolved.`);
+  }
+
+  if (round < conflict.roundStarted) {
+    throw new Error(
+      `Conflict "${conflict.id}" cannot resolve in round ${round} before it started in round ${conflict.roundStarted}.`,
+    );
   }
 
   conflict.status = "RESOLVED";
@@ -240,17 +249,30 @@ function applySupportChen(
   };
 }
 
-export function resolveTechnicalDirectionDecision(
+export function resolveVanguardTechnicalDirectionDecision(
   sourceState: PoliticalCoreState,
   conflictId: string,
   decisionId: ConflictDecisionIdType,
   context: DecisionContext,
 ): ConflictDecisionResult {
+  if (conflictId !== VANGUARD_TECHNICAL_DIRECTION_CONFLICT_ID) {
+    throw new Error(
+      `This resolver only supports "${VANGUARD_TECHNICAL_DIRECTION_CONFLICT_ID}".`,
+    );
+  }
+
   const nextState = structuredClone(sourceState);
   const conflict = conflictById(nextState, conflictId);
 
-  if (conflict.type !== "TECHNICAL_DIRECTION") {
-    throw new Error("This resolver only supports TECHNICAL_DIRECTION conflicts.");
+  if (
+    conflict.type !== "TECHNICAL_DIRECTION" ||
+    conflict.initiatorCharacterId !== "char_moretti" ||
+    conflict.factions[0].leaderCharacterId !== "char_moretti" ||
+    conflict.factions[1].leaderCharacterId !== "char_chen"
+  ) {
+    throw new Error(
+      "The Vanguard technical-direction scenario no longer matches its expected actors.",
+    );
   }
 
   let outcome: Omit<ConflictDecisionResult, "decisionId" | "nextState">;

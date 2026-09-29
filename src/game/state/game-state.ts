@@ -1,6 +1,6 @@
 import type { ConflictDecisionId } from "@/game/political/decisions";
 import {
-  resolveTechnicalDirectionDecision,
+  resolveVanguardTechnicalDirectionDecision,
   type ConflictDecisionResult,
 } from "@/game/political/outcomes";
 import type { PoliticalCoreState } from "@/game/political/types";
@@ -17,7 +17,7 @@ export function applyConflictDecision(
     throw new Error("Cannot apply a decision to an invalid political core state.");
   }
 
-  const result = resolveTechnicalDirectionDecision(
+  const result = resolveVanguardTechnicalDirectionDecision(
     sourceValidation.data,
     conflictId,
     decisionId,

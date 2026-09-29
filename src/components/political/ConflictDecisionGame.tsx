@@ -46,7 +46,10 @@ export function ConflictDecisionGame({
   const conflict = gameState.conflicts[0];
 
   const calculation = useMemo(
-    () => calculateConflict(gameState, conflict, conflictInput),
+    () =>
+      conflict.status === "RESOLVED"
+        ? null
+        : calculateConflict(gameState, conflict, conflictInput),
     [gameState, conflict, conflictInput],
   );
 
@@ -109,9 +112,11 @@ export function ConflictDecisionGame({
                 </h2>
               </div>
               <div className="flex gap-2">
-                <span className="rounded-full border border-red-900 bg-red-950/40 px-3 py-1 text-sm text-red-300">
-                  Escalation {format(calculation.escalation)}
-                </span>
+                {calculation ? (
+                  <span className="rounded-full border border-red-900 bg-red-950/40 px-3 py-1 text-sm text-red-300">
+                    Escalation {format(calculation.escalation)}
+                  </span>
+                ) : null}
                 {conflict.outcome ? (
                   <span className="rounded-full border border-zinc-700 px-3 py-1 text-sm text-zinc-300">
                     {conflict.outcome.replaceAll("_", " ")}
@@ -122,42 +127,49 @@ export function ConflictDecisionGame({
 
             <p className="mt-5 leading-7 text-zinc-300">{conflict.issue}</p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {[factionA, factionB].map((faction, index) => {
-                const calculated =
-                  index === 0 ? calculation.factionA : calculation.factionB;
+            {calculation ? (
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                {[factionA, factionB].map((faction, index) => {
+                  const calculated =
+                    index === 0 ? calculation.factionA : calculation.factionB;
 
-                return (
-                  <div
-                    key={faction.id}
-                    className="rounded-xl border border-zinc-800 bg-black/20 p-5"
-                  >
-                    <p className="text-sm text-zinc-500">Faction</p>
-                    <h3 className="mt-1 text-xl font-medium">
-                      {nameById.get(faction.leaderCharacterId)}
-                    </h3>
-                    <dl className="mt-5 space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <dt className="text-zinc-500">Strength</dt>
-                        <dd>{format(calculated.strength)}</dd>
-                      </div>
-                      <div className="flex justify-between">
-                        <dt className="text-zinc-500">Success chance</dt>
-                        <dd>{format(calculated.successChance)}%</dd>
-                      </div>
-                      <div className="flex justify-between">
-                        <dt className="text-zinc-500">Political cost</dt>
-                        <dd>{calculated.politicalCost}</dd>
-                      </div>
-                      <div className="flex justify-between">
-                        <dt className="text-zinc-500">Legitimacy</dt>
-                        <dd>{faction.legitimacy}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                );
-              })}
-            </div>
+                  return (
+                    <div
+                      key={faction.id}
+                      className="rounded-xl border border-zinc-800 bg-black/20 p-5"
+                    >
+                      <p className="text-sm text-zinc-500">Faction</p>
+                      <h3 className="mt-1 text-xl font-medium">
+                        {nameById.get(faction.leaderCharacterId)}
+                      </h3>
+                      <dl className="mt-5 space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <dt className="text-zinc-500">Strength</dt>
+                          <dd>{format(calculated.strength)}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-zinc-500">Success chance</dt>
+                          <dd>{format(calculated.successChance)}%</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-zinc-500">Political cost</dt>
+                          <dd>{calculated.politicalCost}</dd>
+                        </div>
+                        <div className="flex justify-between">
+                          <dt className="text-zinc-500">Legitimacy</dt>
+                          <dd>{faction.legitimacy}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-8 rounded-xl border border-zinc-800 bg-black/20 p-5 text-sm text-zinc-400">
+                Pre-decision strength, success chance and escalation are hidden
+                after resolution. The result below is now the authoritative state.
+              </div>
+            )}
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {technicalDirectionDecisionOptions.map((option) => (
