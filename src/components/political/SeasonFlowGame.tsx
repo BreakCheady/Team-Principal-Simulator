@@ -3,10 +3,7 @@
 import { useMemo, useState } from "react";
 import { calculateConflict } from "@/game/political/conflicts";
 import { getConflictDecisions } from "@/game/political/decisions";
-import type {
-  ConflictDecisionResult,
-  OutcomeChange,
-} from "@/game/political/outcomes";
+import type { OutcomeChange } from "@/game/political/outcomes";
 import type { PoliticalCoreState } from "@/game/political/types";
 import {
   advanceSeason,
@@ -34,9 +31,6 @@ export function SeasonFlowGame({ initialState, steps }: Props) {
   const [season, setSeason] = useState(() =>
     createSeasonState(initialState, steps),
   );
-  const [lastResult, setLastResult] =
-    useState<ConflictDecisionResult | null>(null);
-
   const step = getCurrentSeasonStep(season);
   const conflict = season.political.conflicts.find(
     (item) => item.id === step.conflictId,
@@ -73,17 +67,14 @@ export function SeasonFlowGame({ initialState, steps }: Props) {
   function chooseDecision(decisionId: string) {
     const resolution = resolveSeasonDecision(season, decisionId);
     setSeason(resolution.seasonState);
-    setLastResult(resolution.result);
   }
 
   function continueSeason() {
     setSeason((current) => advanceSeason(current));
-    setLastResult(null);
   }
 
   function resetSeason() {
     setSeason(createSeasonState(initialState, steps));
-    setLastResult(null);
   }
 
   const [factionA, factionB] = conflict.factions;
@@ -235,20 +226,20 @@ export function SeasonFlowGame({ initialState, steps }: Props) {
             ) : null}
           </article>
 
-          {season.phase === "REVIEW" && lastResult ? (
+          {season.phase === "REVIEW" && season.pendingReview ? (
             <article className="rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-6">
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-400">
                 Consequences
               </p>
               <h2 className="mt-2 text-2xl font-semibold">
-                {lastResult.title}
+                {season.pendingReview.title}
               </h2>
               <p className="mt-4 leading-7 text-zinc-300">
-                {lastResult.summary}
+                {season.pendingReview.summary}
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {lastResult.changes.map((change, index) => (
+                {season.pendingReview.changes.map((change, index) => (
                   <div
                     key={`${change.subject}-${change.metric}-${index}`}
                     className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-black/20 p-4"
