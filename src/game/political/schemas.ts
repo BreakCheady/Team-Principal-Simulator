@@ -198,7 +198,6 @@ export const ConflictSchema = z.object({
   publicExposure: Score100Schema,
   factions: z.tuple([ConflictFactionSchema, ConflictFactionSchema]),
   swingActorIds: z.array(EntityIdSchema),
-  escalation: Score100Schema,
   roundStarted: RoundNumberSchema,
   roundResolved: RoundNumberSchema.nullable().optional(),
   outcome: ConflictOutcomeSchema.nullable().optional(),
