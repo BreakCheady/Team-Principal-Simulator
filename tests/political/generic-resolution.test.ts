@@ -7,48 +7,19 @@ import {
 } from "../../src/game/political/decisions";
 import { applyConflictDecision } from "../../src/game/state/game-state";
 
-function stateWithDriverPriorityConflict() {
+function stateWithActiveDriverPriorityConflict() {
   const source = structuredClone(demoState);
-  source.conflicts.push({
-    id: "conflict_driver_status",
-    type: "DRIVER_PRIORITY",
-    status: "ACTIVE",
-    initiatorCharacterId: "char_keller",
-    issue: "Keller challenges Moretti's privileged sporting status.",
-    stakes: 64,
-    publicExposure: 38,
-    factions: [
-      {
-        id: "faction_keller_status",
-        leaderCharacterId: "char_keller",
-        memberCharacterIds: ["char_keller"],
-        alliancePower: 42,
-        legitimacy: 69,
-        leverage: 28,
-        friction: 5,
-        momentum: 58,
-      },
-      {
-        id: "faction_moretti_status",
-        leaderCharacterId: "char_moretti",
-        memberCharacterIds: ["char_moretti"],
-        alliancePower: 70,
-        legitimacy: 61,
-        leverage: 68,
-        friction: 7,
-        momentum: 75,
-      },
-    ],
-    swingActorIds: ["char_hartmann"],
-    roundStarted: 15,
-    precedentIds: ["precedent_driver_priority"],
-  });
+  const conflict = source.conflicts.find(
+    (item) => item.id === "conflict_driver_status",
+  );
+  if (!conflict) throw new Error("Missing driver status conflict");
+  conflict.status = "ACTIVE";
   return source;
 }
 
 describe("generic conflict resolution", () => {
   it("resolves a second catalogued conflict through the public gameplay path", () => {
-    const source = stateWithDriverPriorityConflict();
+    const source = stateWithActiveDriverPriorityConflict();
     const original = structuredClone(source);
 
     expect(getConflictDecisions("conflict_driver_status").map((item) => item.id)).toEqual([
@@ -82,6 +53,17 @@ describe("generic conflict resolution", () => {
         (item) => item.id === "precedent_driver_priority",
       )?.applications,
     ).toBe(4);
+  });
+
+  it("rejects resolving a dormant conflict before the season activates it", () => {
+    expect(() =>
+      applyConflictDecision(
+        demoState,
+        "conflict_driver_status",
+        "back_keller",
+        15,
+      ),
+    ).toThrow(/must be active or escalated/);
   });
 
   it("rejects duplicate decision ids within the same conflict", () => {
