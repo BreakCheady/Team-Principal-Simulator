@@ -6,6 +6,7 @@ import {
   derivePoliticalCost,
   deriveWillingnessToAct,
 } from "./derived-politics";
+import { formDynamicFactions } from "./faction-formation";
 import {
   calculateContextualPower,
   calculateProjectedPower,
@@ -37,6 +38,11 @@ export type ConflictCalculationResult = {
     leverageB: number;
     resentment: number;
     leverageUsed: number;
+    factionAMemberIds: string[];
+    factionBMemberIds: string[];
+    swingActorIds: string[];
+    neutralActorIds: string[];
+    alignments: ReturnType<typeof formDynamicFactions>["alignments"];
   };
 };
 
@@ -157,7 +163,9 @@ export function calculateConflict(
   const characters = new Map(
     state.characters.map((character) => [character.id, character]),
   );
-  const [factionA, factionB] = conflict.factions;
+  const formation = formDynamicFactions(state, conflict);
+  const factionA = formation.factionA;
+  const factionB = formation.factionB;
   const leaderA = characters.get(factionA.leaderCharacterId);
   const leaderB = characters.get(factionB.leaderCharacterId);
 
@@ -254,6 +262,11 @@ export function calculateConflict(
       leverageB,
       resentment,
       leverageUsed,
+      factionAMemberIds: [...factionA.memberCharacterIds],
+      factionBMemberIds: [...factionB.memberCharacterIds],
+      swingActorIds: [...formation.swingActorIds],
+      neutralActorIds: [...formation.neutralActorIds],
+      alignments: formation.alignments,
     },
   };
 }
