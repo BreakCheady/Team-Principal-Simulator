@@ -264,6 +264,7 @@ export const ContractOptionSchema = z.object({
   exerciseUntilRound: RoundNumberSchema,
   extensionRounds: z.number().int().min(1).max(52),
   salaryMultiplier: z.number().min(0.5).max(3).default(1),
+  available: z.boolean().default(true),
   exercised: z.boolean().default(false),
 }).strict().superRefine((value, ctx) => {
   if (value.exerciseUntilRound < value.exerciseFromRound) {
