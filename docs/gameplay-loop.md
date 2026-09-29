@@ -5,9 +5,9 @@ The browser UI never mutates political state directly.
 ```text
 Player choice
     ↓
-Decision ID
+Decision definition
     ↓
-Pure simulation transition
+Generic effect resolver
     ↓
 Validated next source state
     ↓
@@ -16,14 +16,10 @@ Derived political calculations
 Visible consequences
 ```
 
-## Current vertical slice
+## Decision content vs engine
 
-The technical-direction conflict supports three deterministic decisions:
+Conflict-specific names and entity IDs live in declarative decision definitions. The resolver only understands generic effect types such as relationship deltas, momentum deltas, goal progress changes, and precedent changes.
 
-- Support Moretti
-- Offer compromise
-- Support Chen
+Adding a new conflict therefore does not require a new resolver function. A conflict can provide its own decision definitions and reuse the same state transition engine.
 
-Each decision resolves the conflict and can change relationships, momentum, goals, and precedent state.
-
-The transition engine clones the source state before applying changes and validates the resulting state before it is returned to the UI.
+The transition engine clones the source state before applying effects and the game-state boundary validates the resulting state before returning it to the UI.

@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  technicalDirectionDecisionOptions,
-  type ConflictDecisionId,
-} from "@/game/political/decisions";
+import { getConflictDecisions } from "@/game/political/decisions";
 import {
   calculateConflict,
   type ConflictCalculationInput,
@@ -63,8 +60,12 @@ export function ConflictDecisionGame({
 
   const [factionA, factionB] = conflict.factions;
   const isResolved = conflict.status === "RESOLVED";
+  const decisionOptions = useMemo(
+    () => getConflictDecisions(conflict.id),
+    [conflict.id],
+  );
 
-  function chooseDecision(decisionId: ConflictDecisionId) {
+  function chooseDecision(decisionId: string) {
     if (isResolved) return;
 
     const result = applyConflictDecision(
@@ -108,7 +109,7 @@ export function ConflictDecisionGame({
                   {isResolved ? "Resolved conflict" : "Active conflict"}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
-                  Technical direction
+                  {conflict.type.replaceAll("_", " ")}
                 </h2>
               </div>
               <div className="flex gap-2">
@@ -172,7 +173,7 @@ export function ConflictDecisionGame({
             )}
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {technicalDirectionDecisionOptions.map((option) => (
+              {decisionOptions.map((option) => (
                 <button
                   key={option.id}
                   type="button"

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { demoState } from "../../src/game/data/demo-state";
-import { ConflictDecisionId } from "../../src/game/political/decisions";
 import { applyConflictDecision } from "../../src/game/state/game-state";
 
 function relationship(state: typeof demoState, id: string) {
@@ -24,7 +23,7 @@ describe("conflict decisions", () => {
     const result = applyConflictDecision(
       demoState,
       "conflict_technical_direction",
-      ConflictDecisionId.SUPPORT_MORETTI,
+      "support_moretti",
       14,
     );
 
@@ -42,7 +41,7 @@ describe("conflict decisions", () => {
     const result = applyConflictDecision(
       demoState,
       "conflict_technical_direction",
-      ConflictDecisionId.COMPROMISE,
+      "offer_compromise",
       14,
     );
 
@@ -57,7 +56,7 @@ describe("conflict decisions", () => {
     const result = applyConflictDecision(
       demoState,
       "conflict_technical_direction",
-      ConflictDecisionId.SUPPORT_CHEN,
+      "support_chen",
       14,
     );
 
@@ -73,31 +72,28 @@ describe("conflict decisions", () => {
       applyConflictDecision(
         demoState,
         "conflict_technical_direction",
-        ConflictDecisionId.COMPROMISE,
+        "offer_compromise",
         13,
       ),
     ).toThrow(/before it started/);
   });
 
-  it("rejects a different technical-direction conflict", () => {
-    const differentScenario = structuredClone(demoState);
-    differentScenario.conflicts[0].id = "conflict_other_technical";
-
+  it("rejects an unknown decision for a conflict", () => {
     expect(() =>
       applyConflictDecision(
-        differentScenario,
-        "conflict_other_technical",
-        ConflictDecisionId.COMPROMISE,
+        demoState,
+        "conflict_technical_direction",
+        "does_not_exist",
         14,
       ),
-    ).toThrow(/only supports "conflict_technical_direction"/);
+    ).toThrow(/is not defined/);
   });
 
   it("refuses to resolve the same conflict twice", () => {
     const first = applyConflictDecision(
       demoState,
       "conflict_technical_direction",
-      ConflictDecisionId.COMPROMISE,
+      "offer_compromise",
       14,
     );
 
@@ -105,7 +101,7 @@ describe("conflict decisions", () => {
       applyConflictDecision(
         first.nextState,
         "conflict_technical_direction",
-        ConflictDecisionId.SUPPORT_CHEN,
+        "support_chen",
         14,
       ),
     ).toThrow(/already resolved/);
