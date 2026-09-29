@@ -34,19 +34,23 @@ function clamp(min: number, max: number, value: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function changeScore(
+type NumericKey<T> = {
+  [K in keyof T]-?: T[K] extends number ? K : never;
+}[keyof T];
+
+function changeScore<T extends object, K extends NumericKey<T>>(
   changes: OutcomeChange[],
   subject: string,
   metric: string,
-  target: Record<string, number>,
-  key: string,
+  target: T,
+  key: K,
   delta: number,
   min = 0,
   max = 100,
 ) {
-  const before = target[key];
+  const before = target[key] as number;
   const after = clamp(min, max, before + delta);
-  target[key] = after;
+  target[key] = after as T[K];
   changes.push({ subject, metric, before, after });
 }
 
