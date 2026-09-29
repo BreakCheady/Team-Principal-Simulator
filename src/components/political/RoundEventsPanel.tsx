@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { IssueDefinition } from "@/game/issues/issues";
 import { calculateConflict } from "@/game/political/conflicts";
+import { getConflictDecisions } from "@/game/political/decisions";
 import type { PoliticalCoreState } from "@/game/political/types";
 import { decodeSave, encodeSave } from "@/game/save/save-game";
 import {
@@ -10,6 +11,7 @@ import {
   createRoundFlowState,
   getNextRound,
   getOpenIssues,
+  resolveRoundConflict,
   resolveRoundIssue,
   type RoundFlowState,
 } from "@/game/season/round-flow";
@@ -79,6 +81,13 @@ export function RoundEventsPanel({
   function takeIssueAction(issueId: string, actionId: string) {
     setRoundFlow((current) =>
       resolveRoundIssue(current, issueId, actionId, issueDefinitions),
+    );
+    setSaveMessage(null);
+  }
+
+  function takeConflictDecision(conflictId: string, decisionId: string) {
+    setRoundFlow((current) =>
+      resolveRoundConflict(current, conflictId, decisionId),
     );
     setSaveMessage(null);
   }
@@ -421,6 +430,25 @@ export function RoundEventsPanel({
                     <p className="mt-4 text-xs text-red-300">
                       Escalation {format(calculation.escalation)}
                     </p>
+                    {getConflictDecisions(conflict.id).length > 0 ? (
+                      <div className="mt-5 grid gap-2">
+                        {getConflictDecisions(conflict.id).map((decision) => (
+                          <button
+                            key={decision.id}
+                            type="button"
+                            onClick={() =>
+                              takeConflictDecision(conflict.id, decision.id)
+                            }
+                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
+                          >
+                            <span className="font-medium">{decision.label}</span>
+                            <span className="mt-1 block text-xs leading-5 text-zinc-500">
+                              {decision.description}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </article>
                 );
               })
