@@ -330,7 +330,7 @@ describe("dynamic faction formation", () => {
     );
 
     expect(alignment.scoreA).toBeGreaterThan(alignment.scoreB);
-    expect(alignment.alignment).toBe("SWING");
+    expect(alignment.alignment).toBe("FACTION_A");
   });
 
   it("lets institutional legitimacy influence a rule-respecting actor", () => {
