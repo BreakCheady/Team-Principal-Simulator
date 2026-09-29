@@ -1,4 +1,12 @@
 import {
+  deriveCrossFactionResentment,
+  deriveFactionAlliancePower,
+  deriveFactionLeverage,
+  deriveFactionMomentum,
+  derivePoliticalCost,
+  deriveWillingnessToAct,
+} from "./derived-politics";
+import {
   calculateContextualPower,
   calculateProjectedPower,
   type PowerContext,
@@ -6,11 +14,11 @@ import {
 import type { Conflict, PoliticalCoreState } from "./types";
 
 export type ConflictCalculationInput = {
-  willingnessByCharacterId: Record<string, number>;
-  politicalCostA: number;
-  politicalCostB: number;
-  resentment: number;
-  leverageUsed: number;
+  willingnessByCharacterId?: Record<string, number>;
+  politicalCostA?: number;
+  politicalCostB?: number;
+  resentment?: number;
+  leverageUsed?: number;
 };
 
 export type ConflictCalculationResult = {
@@ -19,9 +27,16 @@ export type ConflictCalculationResult = {
   delta: number;
   escalation: number;
   derived: {
+    willingnessA: number;
+    willingnessB: number;
+    alliancePowerA: number;
+    alliancePowerB: number;
     factionMomentumA: number;
     factionMomentumB: number;
+    leverageA: number;
+    leverageB: number;
     resentment: number;
+    leverageUsed: number;
   };
 };
 
@@ -38,13 +53,17 @@ function requireScore100(value: number, label: string): void {
 export function validateConflictCalculationInput(
   input: ConflictCalculationInput,
 ): void {
-  requireScore100(input.politicalCostA, "politicalCostA");
-  requireScore100(input.politicalCostB, "politicalCostB");
-  requireScore100(input.resentment, "resentment");
-  requireScore100(input.leverageUsed, "leverageUsed");
+  for (const [label, value] of [
+    ["politicalCostA", input.politicalCostA],
+    ["politicalCostB", input.politicalCostB],
+    ["resentment", input.resentment],
+    ["leverageUsed", input.leverageUsed],
+  ] as const) {
+    if (value !== undefined) requireScore100(value, label);
+  }
 
   for (const [characterId, willingness] of Object.entries(
-    input.willingnessByCharacterId,
+    input.willingnessByCharacterId ?? {},
   )) {
     if (!Number.isFinite(willingness) || willingness < 0 || willingness > 1) {
       throw new RangeError(
@@ -128,57 +147,10 @@ export function conflictTypeToPowerContext(
   }
 }
 
-function calculateFactionMomentum(
-  state: PoliticalCoreState,
-  faction: Conflict["factions"][number],
-): number {
-  const memberMomentum = faction.memberCharacterIds.map((characterId) => {
-    const character = state.characters.find((item) => item.id === characterId);
-    if (!character) {
-      throw new Error(`Faction member "${characterId}" does not exist.`);
-    }
-    return character.dynamic.momentum;
-  });
-
-  const liveModifier =
-    memberMomentum.reduce((sum, value) => sum + value, 0) /
-    memberMomentum.length;
-
-  return clamp(0, 100, faction.momentum + liveModifier * 0.5);
-}
-
-function calculateCrossFactionResentment(
-  state: PoliticalCoreState,
-  factionA: Conflict["factions"][number],
-  factionB: Conflict["factions"][number],
-  scenarioBaseline: number,
-): number {
-  const aMembers = new Set(factionA.memberCharacterIds);
-  const bMembers = new Set(factionB.memberCharacterIds);
-
-  const relevant = state.relationships.filter(
-    (relationship) =>
-      (aMembers.has(relationship.fromCharacterId) &&
-        bMembers.has(relationship.toCharacterId)) ||
-      (bMembers.has(relationship.fromCharacterId) &&
-        aMembers.has(relationship.toCharacterId)),
-  );
-
-  if (relevant.length === 0) {
-    return scenarioBaseline;
-  }
-
-  const liveResentment =
-    relevant.reduce((sum, relationship) => sum + relationship.resentment, 0) /
-    relevant.length;
-
-  return clamp(0, 100, (scenarioBaseline + liveResentment) / 2);
-}
-
 export function calculateConflict(
   state: PoliticalCoreState,
   conflict: Conflict,
-  input: ConflictCalculationInput,
+  input: ConflictCalculationInput = {},
 ): ConflictCalculationResult {
   validateConflictCalculationInput(input);
 
@@ -195,36 +167,53 @@ export function calculateConflict(
 
   const context = conflictTypeToPowerContext(conflict.type);
 
+  const willingnessA =
+    input.willingnessByCharacterId?.[leaderA.id] ??
+    deriveWillingnessToAct(state, leaderA, conflict);
+  const willingnessB =
+    input.willingnessByCharacterId?.[leaderB.id] ??
+    deriveWillingnessToAct(state, leaderB, conflict);
+
   const projectedA = calculateProjectedPower(
     calculateContextualPower(leaderA, context),
-    input.willingnessByCharacterId[leaderA.id] ?? 1,
+    willingnessA,
   );
   const projectedB = calculateProjectedPower(
     calculateContextualPower(leaderB, context),
-    input.willingnessByCharacterId[leaderB.id] ?? 1,
+    willingnessB,
   );
 
-  const factionMomentumA = calculateFactionMomentum(state, factionA);
-  const factionMomentumB = calculateFactionMomentum(state, factionB);
-  const resentment = calculateCrossFactionResentment(
-    state,
-    factionA,
-    factionB,
-    input.resentment,
-  );
+  const alliancePowerA = deriveFactionAlliancePower(state, factionA, context);
+  const alliancePowerB = deriveFactionAlliancePower(state, factionB, context);
+  const factionMomentumA = deriveFactionMomentum(state, factionA);
+  const factionMomentumB = deriveFactionMomentum(state, factionB);
+  const leverageA = deriveFactionLeverage(state, factionA);
+  const leverageB = deriveFactionLeverage(state, factionB);
+  const resentment =
+    input.resentment ??
+    deriveCrossFactionResentment(state, factionA, factionB);
+  const leverageUsed =
+    input.leverageUsed ?? clamp(0, 100, (leverageA + leverageB) / 2);
+
+  const politicalCostA =
+    input.politicalCostA ??
+    derivePoliticalCost(state, conflict, factionA, resentment);
+  const politicalCostB =
+    input.politicalCostB ??
+    derivePoliticalCost(state, conflict, factionB, resentment);
 
   const strengthA = calculateFactionStrength({
     leaderProjectedPower: projectedA,
-    alliancePower: factionA.alliancePower,
-    leverage: factionA.leverage,
+    alliancePower: alliancePowerA,
+    leverage: leverageA,
     legitimacy: factionA.legitimacy,
     momentum: factionMomentumA,
     friction: factionA.friction,
   });
   const strengthB = calculateFactionStrength({
     leaderProjectedPower: projectedB,
-    alliancePower: factionB.alliancePower,
-    leverage: factionB.leverage,
+    alliancePower: alliancePowerB,
+    leverage: leverageB,
     legitimacy: factionB.legitimacy,
     momentum: factionMomentumB,
     friction: factionB.friction,
@@ -238,26 +227,33 @@ export function calculateConflict(
     resentment,
     stakes: conflict.stakes,
     publicExposure: conflict.publicExposure,
-    leverageUsed: input.leverageUsed,
+    leverageUsed,
   });
 
   return {
     factionA: {
       strength: strengthA,
       successChance: successChanceA,
-      politicalCost: input.politicalCostA,
+      politicalCost: politicalCostA,
     },
     factionB: {
       strength: strengthB,
       successChance: successChanceB,
-      politicalCost: input.politicalCostB,
+      politicalCost: politicalCostB,
     },
     delta: strengthA - strengthB,
     escalation,
     derived: {
+      willingnessA,
+      willingnessB,
+      alliancePowerA,
+      alliancePowerB,
       factionMomentumA,
       factionMomentumB,
+      leverageA,
+      leverageB,
       resentment,
+      leverageUsed,
     },
   };
 }
