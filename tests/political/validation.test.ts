@@ -27,6 +27,26 @@ describe("political core validation", () => {
     }
   });
 
+  it("rejects a conflict resolved before it started", () => {
+    const broken = structuredClone(demoState);
+    broken.conflicts[0].status = "RESOLVED";
+    broken.conflicts[0].outcome = "COMPROMISE";
+    broken.conflicts[0].roundResolved = 13;
+
+    const result = validatePoliticalCoreState(broken);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.errors.some(
+          (error) =>
+            error.path === "conflicts.0.roundResolved" &&
+            error.message.includes("greater than or equal"),
+        ),
+      ).toBe(true);
+    }
+  });
+
   it("rejects unknown character references", () => {
     const broken = structuredClone(demoState);
     broken.relationships[0].toCharacterId = "char_unknown";
