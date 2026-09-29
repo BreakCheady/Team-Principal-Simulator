@@ -123,6 +123,12 @@ export function resolveConflictDecision(
     throw new Error(`Conflict "${conflict.id}" is already resolved.`);
   }
 
+  if (conflict.status !== "ACTIVE" && conflict.status !== "ESCALATED") {
+    throw new Error(
+      `Conflict "${conflict.id}" must be active or escalated before it can be resolved.`,
+    );
+  }
+
   if (context.round < conflict.roundStarted) {
     throw new Error(
       `Conflict "${conflict.id}" cannot resolve in round ${context.round} before it started in round ${conflict.roundStarted}.`,

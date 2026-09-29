@@ -1,5 +1,6 @@
-import { ConflictDecisionGame } from "@/components/political/ConflictDecisionGame";
-import { demoConflictInput, demoState } from "@/game/data/demo-state";
+import { SeasonFlowGame } from "@/components/political/SeasonFlowGame";
+import { demoSeasonSteps } from "@/game/data/demo-season";
+import { demoState } from "@/game/data/demo-state";
 import { validatePoliticalCoreState } from "@/game/political/validation";
 
 export default function Home() {
@@ -17,11 +18,6 @@ export default function Home() {
   }
 
   return (
-    <ConflictDecisionGame
-      initialState={validation.data}
-      conflictId="conflict_technical_direction"
-      conflictInput={demoConflictInput}
-      round={14}
-    />
+    <SeasonFlowGame initialState={validation.data} steps={demoSeasonSteps} />
   );
 }
