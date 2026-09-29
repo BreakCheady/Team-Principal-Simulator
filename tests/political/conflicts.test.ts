@@ -333,6 +333,28 @@ describe("dynamic faction formation", () => {
     expect(alignment.alignment).toBe("SWING");
   });
 
+  it("lets institutional legitimacy influence a rule-respecting actor", () => {
+    const source = structuredClone(demoState);
+    neutralizeHartmannInterests(source);
+    const hartmann = source.characters.find((item) => item.id === "char_hartmann");
+    if (!hartmann) throw new Error("Missing Hartmann");
+
+    hartmann.personality.ruleRespect = 100;
+    setRelationshipSupport(source, "char_hartmann", "char_moretti", 50);
+    setRelationshipSupport(source, "char_hartmann", "char_chen", 50);
+    source.conflicts[0].factions[0].legitimacy = 0;
+    source.conflicts[0].factions[1].legitimacy = 100;
+
+    const alignment = calculateCharacterAlignment(
+      source,
+      source.conflicts[0],
+      "char_hartmann",
+    );
+
+    expect(alignment.alignment).toBe("FACTION_B");
+    expect(alignment.scoreB).toBeGreaterThan(alignment.scoreA);
+  });
+
   it("feeds formed memberships back into conflict strength", () => {
     const baseline = calculateConflict(demoState, demoState.conflicts[0]);
     const source = structuredClone(demoState);
