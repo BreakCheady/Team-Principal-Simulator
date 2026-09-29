@@ -168,7 +168,7 @@ export const demoRoundEvents: RoundEventDefinition[] = [
       },
     ],
 
-  },,
+  },
   {
     id: "event_varga_strategy_review",
     type: "SPORTING_EVENT",
