@@ -29,5 +29,8 @@
   },
   "engines": {
     "node": ">=22.13.0"
+  },
+  "overrides": {
+    "std-env": "4.2.0"
   }
 }

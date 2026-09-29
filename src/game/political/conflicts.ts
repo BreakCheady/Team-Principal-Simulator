@@ -1,4 +1,8 @@
-import { calculateContextualPower, calculateProjectedPower } from "./power";
+import {
+  calculateContextualPower,
+  calculateProjectedPower,
+  type PowerContext,
+} from "./power";
 import type { Conflict, PoliticalCoreState } from "./types";
 
 export type ConflictCalculationInput = {
@@ -63,6 +67,30 @@ export function calculateEscalation(input: {
   );
 }
 
+export function conflictTypeToPowerContext(
+  type: Conflict["type"],
+): PowerContext {
+  switch (type) {
+    case "TECHNICAL_DIRECTION":
+      return "TECHNICAL_DIRECTION";
+    case "DRIVER_PRIORITY":
+    case "TEAM_ORDER":
+      return "DRIVER_HIERARCHY";
+    case "PERSONNEL_DECISION":
+    case "CONTRACT_DISPUTE":
+    case "LEADERSHIP_CHALLENGE":
+      return "PERSONNEL_DECISION";
+    case "OWNER_INTERVENTION":
+    case "SPONSOR_PRESSURE":
+    case "MEDIA_CONFLICT":
+      return "REGULATION_POLITICS";
+    default: {
+      const exhaustive: never = type;
+      throw new Error(`Unsupported conflict type: ${exhaustive}`);
+    }
+  }
+}
+
 export function calculateConflict(
   state: PoliticalCoreState,
   conflict: Conflict,
@@ -77,9 +105,7 @@ export function calculateConflict(
     throw new Error("Conflict faction leader does not exist.");
   }
 
-  const context = conflict.type === "TECHNICAL_DIRECTION"
-    ? "TECHNICAL_DIRECTION"
-    : "PERSONNEL_DECISION";
+  const context = conflictTypeToPowerContext(conflict.type);
 
   const projectedA = calculateProjectedPower(
     calculateContextualPower(leaderA, context),

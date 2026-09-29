@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { demoConflictInput, demoState } from "../../src/game/data/demo-state";
-import { calculateConflict } from "../../src/game/political/conflicts";
+import {
+  calculateConflict,
+  conflictTypeToPowerContext,
+} from "../../src/game/political/conflicts";
 import { validatePoliticalCoreState } from "../../src/game/political/validation";
 
 describe("technical direction conflict", () => {
@@ -20,5 +23,26 @@ describe("technical direction conflict", () => {
     expect(result.factionA.successChance).toBeCloseTo(43.43, 1);
     expect(result.factionB.successChance).toBeCloseTo(56.57, 1);
     expect(result.escalation).toBeCloseTo(68.76, 1);
+  });
+});
+
+
+describe("conflict power contexts", () => {
+  it("maps technical direction explicitly", () => {
+    expect(conflictTypeToPowerContext("TECHNICAL_DIRECTION")).toBe(
+      "TECHNICAL_DIRECTION",
+    );
+  });
+
+  it("maps driver priority to driver hierarchy", () => {
+    expect(conflictTypeToPowerContext("DRIVER_PRIORITY")).toBe(
+      "DRIVER_HIERARCHY",
+    );
+  });
+
+  it("maps personnel decisions explicitly", () => {
+    expect(conflictTypeToPowerContext("PERSONNEL_DECISION")).toBe(
+      "PERSONNEL_DECISION",
+    );
   });
 });

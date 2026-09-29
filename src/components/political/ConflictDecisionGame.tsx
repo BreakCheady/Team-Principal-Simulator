@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  technicalDirectionDecisionOptions,
-  type ConflictDecisionId,
-} from "@/game/political/decisions";
+import { getConflictDecisions } from "@/game/political/decisions";
 import {
   calculateConflict,
   type ConflictCalculationInput,
@@ -18,6 +15,7 @@ import { applyConflictDecision } from "@/game/state/game-state";
 
 type Props = {
   initialState: PoliticalCoreState;
+  conflictId: string;
   conflictInput: ConflictCalculationInput;
   round: number;
 };
@@ -34,6 +32,7 @@ function changeSign(change: OutcomeChange) {
 
 export function ConflictDecisionGame({
   initialState,
+  conflictId,
   conflictInput,
   round,
 }: Props) {
@@ -43,7 +42,11 @@ export function ConflictDecisionGame({
   const [decisionResult, setDecisionResult] =
     useState<ConflictDecisionResult | null>(null);
 
-  const conflict = gameState.conflicts[0];
+  const conflict = gameState.conflicts.find((item) => item.id === conflictId);
+
+  if (!conflict) {
+    throw new Error(`Conflict "${conflictId}" was not found in game state.`);
+  }
 
   const calculation = useMemo(
     () =>
@@ -63,13 +66,17 @@ export function ConflictDecisionGame({
 
   const [factionA, factionB] = conflict.factions;
   const isResolved = conflict.status === "RESOLVED";
+  const decisionOptions = useMemo(
+    () => getConflictDecisions(conflict.id),
+    [conflict.id],
+  );
 
-  function chooseDecision(decisionId: ConflictDecisionId) {
+  function chooseDecision(decisionId: string) {
     if (isResolved) return;
 
     const result = applyConflictDecision(
       gameState,
-      conflict.id,
+      conflictId,
       decisionId,
       round,
     );
@@ -108,7 +115,7 @@ export function ConflictDecisionGame({
                   {isResolved ? "Resolved conflict" : "Active conflict"}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
-                  Technical direction
+                  {conflict.type.replaceAll("_", " ")}
                 </h2>
               </div>
               <div className="flex gap-2">
@@ -172,7 +179,7 @@ export function ConflictDecisionGame({
             )}
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {technicalDirectionDecisionOptions.map((option) => (
+              {decisionOptions.map((option) => (
                 <button
                   key={option.id}
                   type="button"

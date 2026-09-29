@@ -19,6 +19,7 @@ export default function Home() {
   return (
     <ConflictDecisionGame
       initialState={validation.data}
+      conflictId="conflict_technical_direction"
       conflictInput={demoConflictInput}
       round={14}
     />
