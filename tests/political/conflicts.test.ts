@@ -19,5 +19,6 @@ describe("technical direction conflict", () => {
     expect(result.factionB.strength).toBeCloseTo(71.42, 1);
     expect(result.factionA.successChance).toBeCloseTo(43.43, 1);
     expect(result.factionB.successChance).toBeCloseTo(56.57, 1);
+    expect(result.escalation).toBeCloseTo(70.66, 1);
   });
 });
