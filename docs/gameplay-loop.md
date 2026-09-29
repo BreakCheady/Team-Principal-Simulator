@@ -8,6 +8,7 @@ Season conflict
 Current political source state
     ↓
 Derived conflict factors
+    ├── Dynamic faction formation
     ├── Willingness to act
     ├── Alliance power
     ├── Faction momentum
@@ -35,6 +36,12 @@ leverage, precedents, conflicts, and resolved outcomes.
 
 Conflict Engine v2 derives the values that should react to those facts at runtime:
 
+- **Dynamic faction formation** keeps the two conflict leaders fixed but
+  re-evaluates every other character from directional relationships, active
+  goals/interests, role affinity, and political engagement. Characters can
+  join faction A, join faction B, remain neutral, or become swing actors. A
+  non-leading Team Principal remains a swing actor so the player retains the
+  decision role.
 - **Willingness to act** uses assertiveness, ambition, active goal pressure,
   momentum, political fatigue, and conflict stakes.
 - **Alliance power** uses directional trust, loyalty, dependency, respect, and
