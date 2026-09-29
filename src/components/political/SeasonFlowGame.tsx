@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { RoundEventsPanel } from "@/components/political/RoundEventsPanel";
+import type { IssueDefinition } from "@/game/issues/issues";
 import { calculateConflict } from "@/game/political/conflicts";
 import { getConflictDecisions } from "@/game/political/decisions";
 import type { OutcomeChange } from "@/game/political/outcomes";
@@ -19,6 +20,7 @@ type Props = {
   initialState: PoliticalCoreState;
   steps: SeasonConflictStep[];
   roundEvents: RoundEventDefinition[];
+  issueDefinitions: IssueDefinition[];
 };
 
 function format(value: number) {
@@ -34,6 +36,7 @@ export function SeasonFlowGame({
   initialState,
   steps,
   roundEvents,
+  issueDefinitions,
 }: Props) {
   const [season, setSeason] = useState(() =>
     createSeasonState(initialState, steps),
@@ -366,6 +369,7 @@ export function SeasonFlowGame({
           key={season.history.map((entry) => entry.decisionId).join(":")}
           initialState={season.political}
           events={roundEvents}
+          issueDefinitions={issueDefinitions}
           afterRound={season.currentRound}
         />
       ) : null}

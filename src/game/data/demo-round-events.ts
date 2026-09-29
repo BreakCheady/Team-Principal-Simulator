@@ -139,60 +139,7 @@ export const demoRoundEvents: RoundEventDefinition[] = [
         delta: 5,
       },
     ],
-    conflictTriggers: [
-      {
-        id: "trigger_media_conflict",
-        all: [
-          {
-            type: "LEVERAGE_STRENGTH_AT_LEAST",
-            leverageId: "lev_moretti_sponsor",
-            value: 88,
-          },
-          {
-            type: "RELATIONSHIP_AT_LEAST",
-            fromCharacterId: "char_moretti",
-            toCharacterId: "char_hartmann",
-            metric: "resentment",
-            value: 35,
-          },
-        ],
-        spawnConflict: {
-          id: "conflict_moretti_media_pressure",
-          type: "MEDIA_CONFLICT",
-          status: "ACTIVE",
-          initiatorCharacterId: "char_moretti",
-          issue:
-            "Moretti's public criticism turns a sporting disagreement into a battle over who controls the team's public narrative.",
-          stakes: 62,
-          publicExposure: 84,
-          factions: [
-            {
-              id: "faction_moretti_media",
-              leaderCharacterId: "char_moretti",
-              memberCharacterIds: ["char_moretti"],
-              alliancePower: 0,
-              legitimacy: 55,
-              leverage: 0,
-              friction: 7,
-              momentum: 50,
-            },
-            {
-              id: "faction_hartmann_media",
-              leaderCharacterId: "char_hartmann",
-              memberCharacterIds: ["char_hartmann"],
-              alliancePower: 0,
-              legitimacy: 76,
-              leverage: 0,
-              friction: 4,
-              momentum: 50,
-            },
-          ],
-          swingActorIds: ["char_chen", "char_keller"],
-          roundStarted: 19,
-          precedentIds: [],
-        },
-      },
-    ],
+
   },
   {
     id: "event_moretti_contract_talks",
@@ -220,59 +167,6 @@ export const demoRoundEvents: RoundEventDefinition[] = [
         delta: 5,
       },
     ],
-    conflictTriggers: [
-      {
-        id: "trigger_contract_dispute",
-        all: [
-          {
-            type: "LEVERAGE_STRENGTH_AT_LEAST",
-            leverageId: "lev_moretti_transfer",
-            value: 95,
-          },
-          {
-            type: "RELATIONSHIP_AT_LEAST",
-            fromCharacterId: "char_moretti",
-            toCharacterId: "char_hartmann",
-            metric: "dependency",
-            value: 80,
-          },
-        ],
-        spawnConflict: {
-          id: "conflict_moretti_contract",
-          type: "CONTRACT_DISPUTE",
-          status: "ACTIVE",
-          initiatorCharacterId: "char_moretti",
-          issue:
-            "Moretti ties his next contract to sporting guarantees and threatens to explore the market.",
-          stakes: 79,
-          publicExposure: 36,
-          factions: [
-            {
-              id: "faction_moretti_contract",
-              leaderCharacterId: "char_moretti",
-              memberCharacterIds: ["char_moretti"],
-              alliancePower: 0,
-              legitimacy: 68,
-              leverage: 0,
-              friction: 5,
-              momentum: 50,
-            },
-            {
-              id: "faction_hartmann_contract",
-              leaderCharacterId: "char_hartmann",
-              memberCharacterIds: ["char_hartmann"],
-              alliancePower: 0,
-              legitimacy: 74,
-              leverage: 0,
-              friction: 5,
-              momentum: 50,
-            },
-          ],
-          swingActorIds: ["char_chen", "char_keller"],
-          roundStarted: 20,
-          precedentIds: ["precedent_driver_priority"],
-        },
-      },
-    ],
+
   },
 ];

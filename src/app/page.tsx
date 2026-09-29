@@ -1,4 +1,5 @@
 import { SeasonFlowGame } from "@/components/political/SeasonFlowGame";
+import { demoIssueDefinitions } from "@/game/data/demo-issues";
 import { demoRoundEvents } from "@/game/data/demo-round-events";
 import { demoSeasonSteps } from "@/game/data/demo-season";
 import { demoState } from "@/game/data/demo-state";
@@ -23,6 +24,7 @@ export default function Home() {
       initialState={validation.data}
       steps={demoSeasonSteps}
       roundEvents={demoRoundEvents}
+      issueDefinitions={demoIssueDefinitions}
     />
   );
 }

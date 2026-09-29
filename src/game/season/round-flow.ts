@@ -1,4 +1,11 @@
+import {
+  createIssuesFromEvents,
+  resolveIssueAction,
+  type IssueDefinition,
+  type IssueState,
+} from "@/game/issues/issues";
 import type { PoliticalCoreState } from "@/game/political/types";
+import { applyConflictDecision } from "@/game/state/game-state";
 import {
   processRound,
   type AppliedRoundEvent,
@@ -8,6 +15,7 @@ import {
 export type RoundFlowHistoryEntry = {
   round: number;
   events: AppliedRoundEvent[];
+  createdIssueIds: string[];
   activeConflictIds: string[];
 };
 
@@ -17,6 +25,7 @@ export type RoundFlowState = {
   nextRoundIndex: number;
   currentRound: number;
   history: RoundFlowHistoryEntry[];
+  issues: IssueState[];
   complete: boolean;
 };
 
@@ -42,6 +51,7 @@ export function createRoundFlowState(
     nextRoundIndex: 0,
     currentRound: afterRound,
     history: [],
+    issues: [],
     complete: scheduledRounds.length === 0,
   };
 }
@@ -50,12 +60,21 @@ export function getNextRound(state: RoundFlowState): number | null {
   return state.scheduledRounds[state.nextRoundIndex] ?? null;
 }
 
+export function getOpenIssues(state: RoundFlowState): IssueState[] {
+  return state.issues.filter((issue) => issue.status === "OPEN");
+}
+
 export function advanceRoundFlow(
   state: RoundFlowState,
   events: RoundEventDefinition[],
+  issueDefinitions: IssueDefinition[] = [],
 ): RoundFlowState {
   if (state.complete) {
     throw new Error("Round flow is already complete.");
+  }
+
+  if (getOpenIssues(state).length > 0) {
+    throw new Error("Open inbox issues must be handled before the next round.");
   }
 
   const round = getNextRound(state);
@@ -64,6 +83,14 @@ export function advanceRoundFlow(
   }
 
   const result = processRound(state.political, round, events);
+  const createdIssues = createIssuesFromEvents(
+    round,
+    result.events,
+    issueDefinitions,
+  ).filter(
+    (candidate) => !state.issues.some((issue) => issue.id === candidate.id),
+  );
+
   const activeConflictIds = result.nextState.conflicts
     .filter(
       (conflict) =>
@@ -84,9 +111,67 @@ export function advanceRoundFlow(
       {
         round,
         events: result.events,
+        createdIssueIds: createdIssues.map((issue) => issue.id),
         activeConflictIds,
       },
     ],
+    issues: [...state.issues, ...createdIssues],
     complete: nextRoundIndex >= state.scheduledRounds.length,
+  };
+}
+
+export function resolveRoundIssue(
+  state: RoundFlowState,
+  issueId: string,
+  actionId: string,
+  issueDefinitions: IssueDefinition[],
+): RoundFlowState {
+  const issue = state.issues.find((item) => item.id === issueId);
+  if (!issue) {
+    throw new Error(`Issue "${issueId}" was not found.`);
+  }
+
+  const result = resolveIssueAction(
+    state.political,
+    issue,
+    issueDefinitions,
+    actionId,
+  );
+
+  return {
+    ...state,
+    political: result.political,
+    issues: state.issues.map((item) =>
+      item.id === issueId ? result.issue : item,
+    ),
+  };
+}
+
+
+export function resolveRoundConflict(
+  state: RoundFlowState,
+  conflictId: string,
+  decisionId: string,
+): RoundFlowState {
+  const conflict = state.political.conflicts.find(
+    (item) => item.id === conflictId,
+  );
+  if (!conflict) {
+    throw new Error(`Conflict "${conflictId}" was not found.`);
+  }
+  if (conflict.status !== "ACTIVE" && conflict.status !== "ESCALATED") {
+    throw new Error(`Conflict "${conflictId}" is not active.`);
+  }
+
+  const result = applyConflictDecision(
+    state.political,
+    conflictId,
+    decisionId,
+    state.currentRound,
+  );
+
+  return {
+    ...state,
+    political: result.nextState,
   };
 }
