@@ -7,7 +7,6 @@ import {
   deriveWillingnessToAct,
 } from "./derived-politics";
 import { formDynamicFactions } from "./faction-formation";
-import { formDynamicFactions } from "./faction-formation";
 import {
   calculateContextualPower,
   calculateProjectedPower,
