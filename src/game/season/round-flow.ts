@@ -5,6 +5,7 @@ import {
   type IssueState,
 } from "@/game/issues/issues";
 import type { PoliticalCoreState } from "@/game/political/types";
+import { applyConflictDecision } from "@/game/state/game-state";
 import {
   processRound,
   type AppliedRoundEvent,
@@ -143,5 +144,34 @@ export function resolveRoundIssue(
     issues: state.issues.map((item) =>
       item.id === issueId ? result.issue : item,
     ),
+  };
+}
+
+
+export function resolveRoundConflict(
+  state: RoundFlowState,
+  conflictId: string,
+  decisionId: string,
+): RoundFlowState {
+  const conflict = state.political.conflicts.find(
+    (item) => item.id === conflictId,
+  );
+  if (!conflict) {
+    throw new Error(`Conflict "${conflictId}" was not found.`);
+  }
+  if (conflict.status !== "ACTIVE" && conflict.status !== "ESCALATED") {
+    throw new Error(`Conflict "${conflictId}" is not active.`);
+  }
+
+  const result = applyConflictDecision(
+    state.political,
+    conflictId,
+    decisionId,
+    state.currentRound,
+  );
+
+  return {
+    ...state,
+    political: result.nextState,
   };
 }
