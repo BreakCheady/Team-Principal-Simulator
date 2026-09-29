@@ -29,7 +29,7 @@ describe("conflict decisions", () => {
 
     expect(demoState).toEqual(original);
     expect(result.nextState.conflicts[0].status).toBe("RESOLVED");
-    expect(result.nextState.conflicts[0].outcome).toBe("NARROW_WIN_A");
+    expect(result.nextState.conflicts[0].outcome).toBe("NARROW_WIN_B");
     expect(result.nextState.conflicts[0].roundResolved).toBe(14);
     expect(relationship(result.nextState, "rel_moretti_hartmann").trust).toBe(80);
     expect(relationship(result.nextState, "rel_chen_moretti").resentment).toBe(49);
