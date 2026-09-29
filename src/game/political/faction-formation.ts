@@ -256,6 +256,17 @@ export function calculateCharacterAlignment(
     };
   }
 
+  if (character.role === "TEAM_PRINCIPAL") {
+    return {
+      characterId,
+      alignment: "SWING",
+      scoreA: 50,
+      scoreB: 50,
+      margin: 0,
+      engagement: 100,
+    };
+  }
+
   const scoreA = clampScore(
     20 +
       relationshipAffinity(state, character.id, leaderA.id) * 0.55 +
