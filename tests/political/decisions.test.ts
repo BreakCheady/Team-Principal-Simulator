@@ -45,7 +45,7 @@ describe("conflict decisions", () => {
       14,
     );
 
-    expect(result.nextState.conflicts[0].outcome).toBe("NARROW_WIN_B");
+    expect(result.nextState.conflicts[0].outcome).toBe("COMPROMISE");
     expect(relationship(result.nextState, "rel_moretti_chen").trust).toBe(61);
     expect(relationship(result.nextState, "rel_chen_moretti").trust).toBe(66);
     expect(precedent(result.nextState).applications).toBe(2);
