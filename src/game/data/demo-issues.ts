@@ -298,7 +298,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       roundStarted: 20,
       precedentIds: ["precedent_driver_priority"],
     },
-  },,
+  },
   {
     id: "issue_varga_sporting_control",
     sourceEventId: "event_varga_strategy_review",
