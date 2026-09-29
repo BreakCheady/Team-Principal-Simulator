@@ -1,3 +1,4 @@
+import { advanceContractsForRound } from "@/game/contracts/contracts";
 import {
   advanceWatchingIssue,
   createChainedIssue,
@@ -164,7 +165,8 @@ export function advanceRoundFlow(
     round,
   );
   const agedPolitical = ageActiveConflicts(aged.political, round);
-  const result = processRound(agedPolitical, round, events);
+  const contractState = advanceContractsForRound(agedPolitical, round);
+  const result = processRound(contractState, round, events);
   const createdIssues = createIssuesFromEvents(
     round,
     result.events,
