@@ -256,6 +256,148 @@ export const ConflictSchema = z.object({
   }
 });
 
+
+export const ContractOptionSchema = z.object({
+  id: EntityIdSchema,
+  holder: z.enum(["TEAM", "CHARACTER", "MUTUAL"]),
+  exerciseFromRound: RoundNumberSchema,
+  exerciseUntilRound: RoundNumberSchema,
+  extensionRounds: z.number().int().min(1).max(52),
+  salaryMultiplier: z.number().min(0.5).max(3).default(1),
+  exercised: z.boolean().default(false),
+}).strict().superRefine((value, ctx) => {
+  if (value.exerciseUntilRound < value.exerciseFromRound) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["exerciseUntilRound"],
+      message: "exerciseUntilRound must be greater than or equal to exerciseFromRound.",
+    });
+  }
+});
+
+export const ReleaseClauseSchema = z.object({
+  id: EntityIdSchema,
+  amountMillions: z.number().min(0),
+  activeFromRound: RoundNumberSchema,
+  expiresAfterRound: RoundNumberSchema,
+  beneficiary: z.enum(["CHARACTER", "TEAM", "BOTH"]).default("CHARACTER"),
+  active: z.boolean().default(true),
+}).strict().superRefine((value, ctx) => {
+  if (value.expiresAfterRound < value.activeFromRound) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["expiresAfterRound"],
+      message: "expiresAfterRound must be greater than or equal to activeFromRound.",
+    });
+  }
+});
+
+export const PerformanceTriggerSchema = z.object({
+  id: EntityIdSchema,
+  metric: z.enum([
+    "DRIVER_CHAMPIONSHIP_POSITION",
+    "TEAM_CHAMPIONSHIP_POSITION",
+    "POINTS",
+    "WINS",
+    "PODIUMS",
+  ]),
+  comparator: z.enum(["AT_LEAST", "AT_MOST"]),
+  threshold: z.number().int().min(0),
+  consequence: z.enum([
+    "SALARY_BONUS",
+    "OPTION_ACTIVATION",
+    "RELEASE_CLAUSE_ACTIVATION",
+  ]),
+  amountMillions: z.number().min(0).optional(),
+  targetOptionId: EntityIdSchema.optional(),
+  targetReleaseClauseId: EntityIdSchema.optional(),
+  triggered: z.boolean().default(false),
+}).strict().superRefine((value, ctx) => {
+  if (value.consequence === "SALARY_BONUS" && value.amountMillions === undefined) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["amountMillions"],
+      message: "SALARY_BONUS requires amountMillions.",
+    });
+  }
+  if (value.consequence === "OPTION_ACTIVATION" && !value.targetOptionId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["targetOptionId"],
+      message: "OPTION_ACTIVATION requires targetOptionId.",
+    });
+  }
+  if (
+    value.consequence === "RELEASE_CLAUSE_ACTIVATION" &&
+    !value.targetReleaseClauseId
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["targetReleaseClauseId"],
+      message: "RELEASE_CLAUSE_ACTIVATION requires targetReleaseClauseId.",
+    });
+  }
+});
+
+export const ContractSchema = z.object({
+  id: EntityIdSchema,
+  characterId: EntityIdSchema,
+  employer: z.string().min(1).max(100),
+  status: z.enum(["ACTIVE", "EXPIRED", "TERMINATED"]),
+  signedRound: RoundNumberSchema,
+  startRound: RoundNumberSchema,
+  endRound: RoundNumberSchema,
+  salaryMillionsPerSeason: z.number().min(0),
+  guaranteedSalaryMillions: z.number().min(0),
+  options: z.array(ContractOptionSchema).default([]),
+  releaseClauses: z.array(ReleaseClauseSchema).default([]),
+  performanceTriggers: z.array(PerformanceTriggerSchema).default([]),
+  earnedBonusesMillions: z.number().min(0).default(0),
+}).strict().superRefine((value, ctx) => {
+  if (value.endRound < value.startRound) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["endRound"],
+      message: "endRound must be greater than or equal to startRound.",
+    });
+  }
+
+  const nestedIds = [
+    ...value.options.map((item) => item.id),
+    ...value.releaseClauses.map((item) => item.id),
+    ...value.performanceTriggers.map((item) => item.id),
+  ];
+  if (new Set(nestedIds).size !== nestedIds.length) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["options"],
+      message: "Contract clause and trigger IDs must be unique within a contract.",
+    });
+  }
+
+  const optionIds = new Set(value.options.map((item) => item.id));
+  const releaseIds = new Set(value.releaseClauses.map((item) => item.id));
+  value.performanceTriggers.forEach((trigger, index) => {
+    if (trigger.targetOptionId && !optionIds.has(trigger.targetOptionId)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["performanceTriggers", index, "targetOptionId"],
+        message: `Unknown contract option "${trigger.targetOptionId}".`,
+      });
+    }
+    if (
+      trigger.targetReleaseClauseId &&
+      !releaseIds.has(trigger.targetReleaseClauseId)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["performanceTriggers", index, "targetReleaseClauseId"],
+        message: `Unknown release clause "${trigger.targetReleaseClauseId}".`,
+      });
+    }
+  });
+});
+
 export const PoliticalCoreStateSchema = z.object({
   characters: z.array(CharacterSchema),
   relationships: z.array(RelationshipSchema),
@@ -263,4 +405,5 @@ export const PoliticalCoreStateSchema = z.object({
   leverages: z.array(LeverageSchema),
   precedents: z.array(PrecedentSchema),
   conflicts: z.array(ConflictSchema),
+  contracts: z.array(ContractSchema).default([]),
 }).strict();
