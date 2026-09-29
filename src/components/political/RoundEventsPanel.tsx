@@ -590,26 +590,122 @@ export function RoundEventsPanel({
                   </p>
                 </article>
               ))}
-            {roundFlow.political.characters
-              .filter((character) =>
-                ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER"].includes(
-                  character.role,
-                ),
-              )
-              .map((driver) => (
-                <article
-                  key={driver.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-sm"
-                >
-                  <div className="flex justify-between gap-4">
-                    <span>{driver.name}</span>
-                    <span className="text-zinc-500">
-                      Security {driver.career.contractSecurity} · transfer interest{" "}
-                      {driver.career.transferInterest}
-                    </span>
-                  </div>
-                </article>
-              ))}
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              {roundFlow.political.contracts.map((contract) => {
+                const character = roundFlow.political.characters.find(
+                  (item) => item.id === contract.characterId,
+                );
+                const activeClauses = contract.releaseClauses.filter(
+                  (clause) => clause.active,
+                );
+                const pendingTriggers = contract.performanceTriggers.filter(
+                  (trigger) => !trigger.triggered,
+                );
+
+                return (
+                  <article
+                    key={contract.id}
+                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
+                          {character?.name ?? contract.characterId}
+                        </p>
+                        <h4 className="mt-2 text-lg font-semibold">
+                          {contract.status} · R{contract.startRound}–R{contract.endRound}
+                        </h4>
+                      </div>
+                      <span className="text-sm text-emerald-300">
+                        €{contract.salaryMillionsPerSeason}m / season
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-sm text-zinc-400">
+                      Guaranteed €{contract.guaranteedSalaryMillions}m · bonuses earned €
+                      {contract.earnedBonusesMillions}m
+                    </p>
+
+                    {contract.options.length > 0 ? (
+                      <div className="mt-4">
+                        <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
+                          Options
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {contract.options.map((option) => (
+                            <div
+                              key={option.id}
+                              className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
+                            >
+                              {option.holder} · +{option.extensionRounds} rounds ·
+                              window R{option.exerciseFromRound}–R{option.exerciseUntilRound} ·
+                              {option.exercised
+                                ? " exercised"
+                                : option.available
+                                  ? " available"
+                                  : " locked"}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {contract.releaseClauses.length > 0 ? (
+                      <div className="mt-4">
+                        <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
+                          Release clauses
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {contract.releaseClauses.map((clause) => (
+                            <div
+                              key={clause.id}
+                              className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
+                            >
+                              €{clause.amountMillions}m · {clause.beneficiary} ·
+                              R{clause.activeFromRound}–R{clause.expiresAfterRound} ·
+                              {clause.active ? " active" : " inactive"}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {contract.performanceTriggers.length > 0 ? (
+                      <div className="mt-4">
+                        <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
+                          Performance triggers
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {contract.performanceTriggers.map((trigger) => (
+                            <div
+                              key={trigger.id}
+                              className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
+                            >
+                              {label(trigger.metric)} {trigger.comparator === "AT_LEAST" ? "≥" : "≤"}{" "}
+                              {trigger.threshold} → {label(trigger.consequence)} ·{" "}
+                              {trigger.triggered ? "triggered" : "pending"}
+                            </div>
+                          ))}
+                        </div>
+                        {pendingTriggers.length === 0 ? (
+                          <p className="mt-2 text-xs text-emerald-400">
+                            All performance triggers resolved.
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {activeClauses.length > 0 ? (
+                      <p className="mt-4 text-xs text-amber-300">
+                        {activeClauses.length} active release clause
+                        {activeClauses.length === 1 ? "" : "s"}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         ) : null}
 
