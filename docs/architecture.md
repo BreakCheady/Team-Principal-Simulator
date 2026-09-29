@@ -36,6 +36,6 @@ Recalculate from rules where practical:
 - faction strength
 - success chance
 - political cost
-- escalation
+- escalation (always derived; never persisted on Conflict)
 
 Supabase will be introduced after the local decision → simulation → consequence loop is stable.
