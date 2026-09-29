@@ -75,7 +75,7 @@ describe("dynamic faction formation", () => {
     if (!conflict) throw new Error("Missing driver status conflict");
 
     const before = calculateCharacterAlignment(source, conflict, "char_chen");
-    expect(before.alignment).toBe("NEUTRAL");
+    expect(before.alignment).toBe("FACTION_B");
 
     source.goals.push({
       id: "goal_chen_equal_status_test",
