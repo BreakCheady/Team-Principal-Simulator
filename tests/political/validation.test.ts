@@ -13,6 +13,20 @@ describe("political core validation", () => {
     }
   });
 
+  it("rejects persisted derived escalation", () => {
+    const broken = structuredClone(demoState) as typeof demoState & {
+      conflicts: Array<(typeof demoState.conflicts)[number] & { escalation?: number }>;
+    };
+    broken.conflicts[0].escalation = 71;
+
+    const result = validatePoliticalCoreState(broken);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.errors.some((error) => error.path === "conflicts.0")).toBe(true);
+    }
+  });
+
   it("rejects unknown character references", () => {
     const broken = structuredClone(demoState);
     broken.relationships[0].toCharacterId = "char_unknown";
