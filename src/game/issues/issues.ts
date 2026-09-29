@@ -39,14 +39,22 @@ export type IssueActionDefinition = {
   description: string;
   escalationDelta: number;
   effects: IssueEffect[];
+  followUpIssueDefinitionId?: string;
 };
 
 export type IssueDefinition = {
   id: string;
-  sourceEventId: string;
+  sourceEventId?: string;
   title: string;
   summary: string;
-  category: "SPORTING" | "TECHNICAL" | "MEDIA" | "CONTRACT";
+  category:
+    | "SPORTING"
+    | "TECHNICAL"
+    | "MEDIA"
+    | "CONTRACT"
+    | "OWNER"
+    | "SPONSOR"
+    | "STAFF";
   initiatorCharacterId: string;
   baseEscalation: number;
   escalationThreshold: number;
@@ -64,6 +72,7 @@ export type IssueState = {
   id: string;
   definitionId: string;
   sourceEventId: string;
+  parentIssueId: string | null;
   title: string;
   summary: string;
   category: IssueDefinition["category"];
@@ -230,6 +239,7 @@ export function createIssuesFromEvents(
         id: `issue_${round}_${definition.id}`,
         definitionId: definition.id,
         sourceEventId: event.eventId,
+        parentIssueId: null,
         title: definition.title,
         summary: definition.summary,
         category: definition.category,
@@ -404,4 +414,43 @@ export function advanceWatchingIssue(
     },
     spawnedConflictId,
   };
+}
+
+
+export function createChainedIssue(
+  round: number,
+  definition: IssueDefinition,
+  parentIssueId: string,
+): IssueState {
+  return {
+    id: `issue_${round}_${definition.id}_from_${parentIssueId}`,
+    definitionId: definition.id,
+    sourceEventId: `chain:${parentIssueId}`,
+    parentIssueId,
+    title: definition.title,
+    summary: definition.summary,
+    category: definition.category,
+    initiatorCharacterId: definition.initiatorCharacterId,
+    round,
+    status: "OPEN",
+    escalation: clamp(0, 100, definition.baseEscalation),
+    selectedActionId: null,
+    npcActions: [],
+    spawnedConflictId: null,
+    lastUpdatedRound: round,
+  };
+}
+
+export function getFollowUpIssueDefinitionId(
+  issue: IssueState,
+  definitions: IssueDefinition[],
+): string | null {
+  if (!issue.selectedActionId) return null;
+
+  const definition = definitions.find((item) => item.id === issue.definitionId);
+  const action = definition?.actions.find(
+    (item) => item.id === issue.selectedActionId,
+  );
+
+  return action?.followUpIssueDefinitionId ?? null;
 }

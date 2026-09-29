@@ -299,4 +299,352 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       precedentIds: ["precedent_driver_priority"],
     },
   },
+  {
+    id: "issue_varga_sporting_control",
+    sourceEventId: "event_varga_strategy_review",
+    title: "Who controls race-day sporting decisions?",
+    summary:
+      "Varga wants a clear mandate. Repeated intervention may protect short-term results but weakens the sporting chain of command.",
+    category: "SPORTING",
+    initiatorCharacterId: "char_varga",
+    baseEscalation: 48,
+    escalationThreshold: 74,
+    actions: [
+      {
+        id: "clarify_varga_mandate",
+        label: "Clarify Varga's mandate",
+        description:
+          "Give Varga defined race-day authority while retaining emergency escalation to the team principal.",
+        escalationDelta: -14,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "trust", delta: 6 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_varga_sporting", delta: -3 }
+        ],
+      },
+      {
+        id: "keep_personal_sporting_control",
+        label: "Keep personal control",
+        description:
+          "Reserve the right to overrule strategy directly when championship stakes are high.",
+        escalationDelta: 8,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "resentment", delta: 8 }
+        ],
+        followUpIssueDefinitionId: "issue_owner_governance_chain",
+      },
+      {
+        id: "back_varga_publicly",
+        label: "Back Varga publicly",
+        description:
+          "Make the sporting director visibly accountable for race operations, including unpopular calls.",
+        escalationDelta: -8,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_varga", delta: 3 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "loyalty", delta: 5 }
+        ],
+      },
+    ],
+  },
+  {
+    id: "issue_laurent_owner_review",
+    sourceEventId: "event_laurent_owner_review",
+    title: "Ownership wants clearer accountability",
+    summary:
+      "Laurent wants fewer surprises reaching the board. The question is whether oversight becomes governance or direct intervention.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 52,
+    escalationThreshold: 76,
+    actions: [
+      {
+        id: "define_owner_boundaries",
+        label: "Define formal owner boundaries",
+        description:
+          "Agree on reporting and escalation rules without giving ownership operational sign-off.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: -3 }
+        ],
+      },
+      {
+        id: "accept_owner_signoff",
+        label: "Accept owner sign-off",
+        description:
+          "Let Laurent approve major sporting and personnel exceptions before they are executed.",
+        escalationDelta: -17,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "loyalty", delta: 6 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: -2 }
+        ],
+        followUpIssueDefinitionId: "issue_sporting_autonomy_chain",
+      },
+      {
+        id: "resist_owner_intervention",
+        label: "Resist operational intervention",
+        description:
+          "Protect team-principal authority and accept a more difficult board relationship.",
+        escalationDelta: 11,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "resentment", delta: 9 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 3 }
+        ],
+      },
+    ],
+  },
+  {
+    id: "issue_salazar_sponsor_activation",
+    sourceEventId: "event_salazar_activation_push",
+    title: "Sponsor wants Moretti at the centre of the campaign",
+    summary:
+      "Salazar sees commercial value in Moretti's star status. Committing now could reshape sporting expectations inside the team.",
+    category: "SPONSOR",
+    initiatorCharacterId: "char_salazar",
+    baseEscalation: 50,
+    escalationThreshold: 73,
+    actions: [
+      {
+        id: "negotiate_sponsor_scope",
+        label: "Negotiate campaign scope",
+        description:
+          "Give the sponsor access to Moretti without tying commercial prominence to sporting priority.",
+        escalationDelta: -10,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: -4 }
+        ],
+      },
+      {
+        id: "make_moretti_campaign_face",
+        label: "Make Moretti the campaign face",
+        description:
+          "Maximise sponsor value now and accept that the paddock will read it as another sign of star-driver privilege.",
+        escalationDelta: -15,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 3 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "loyalty", delta: 6 },
+          { type: "GOAL_URGENCY_DELTA", goalId: "goal_keller_equal", delta: 6 }
+        ],
+        followUpIssueDefinitionId: "issue_staff_star_treatment",
+      },
+      {
+        id: "reject_sponsor_pressure",
+        label: "Reject sponsor pressure",
+        description:
+          "Keep sporting status separate from commercial demands even if the sponsor feels ignored.",
+        escalationDelta: 10,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 8 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 }
+        ],
+        followUpIssueDefinitionId: "issue_owner_commercial_chain",
+      },
+    ],
+  },
+  {
+    id: "issue_bellini_staff_protection",
+    sourceEventId: "event_bellini_staff_fracture",
+    title: "Race staff want protection from paddock politics",
+    summary:
+      "Bellini says engineers are becoming political proxies. The response will shape whether staff loyalty follows structure or personalities.",
+    category: "STAFF",
+    initiatorCharacterId: "char_bellini",
+    baseEscalation: 46,
+    escalationThreshold: 72,
+    actions: [
+      {
+        id: "protect_staff_boundary",
+        label: "Protect the staff boundary",
+        description:
+          "Tell drivers and management that engineers cannot be used as political intermediaries.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 6 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: -3 }
+        ],
+      },
+      {
+        id: "allow_driver_engineer_bloc",
+        label: "Let Bellini stay close to Moretti",
+        description:
+          "Preserve the successful driver-engineer relationship even if it creates an informal political bloc.",
+        escalationDelta: -7,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_moretti", metric: "loyalty", delta: 5 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 4 }
+        ],
+        followUpIssueDefinitionId: "issue_chen_staff_authority_chain",
+      },
+      {
+        id: "order_staff_neutrality",
+        label: "Order staff to stay neutral",
+        description:
+          "Use formal authority to shut down political involvement without addressing why staff feel exposed.",
+        escalationDelta: 9,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 8 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2 }
+        ],
+      },
+    ],
+  },
+  {
+    id: "issue_owner_governance_chain",
+    title: "Laurent questions Hartmann's concentration of control",
+    summary:
+      "Varga's complaint reaches the CEO. Laurent now wants to know whether too many operational decisions depend on Hartmann personally.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 44,
+    escalationThreshold: 75,
+    actions: [
+      {
+        id: "owner_governance_review",
+        label: "Accept a governance review",
+        description: "Formalise decision rights before ownership imposes its own structure.",
+        escalationDelta: -11,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
+        ],
+      },
+      {
+        id: "centralize_under_ceo",
+        label: "Centralise exceptions under the CEO",
+        description: "Trade autonomy for board confidence by escalating key exceptions to Laurent.",
+        escalationDelta: -15,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: -2 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 5 }
+        ],
+        followUpIssueDefinitionId: "issue_sporting_autonomy_chain",
+      }
+    ],
+  },
+  {
+    id: "issue_sporting_autonomy_chain",
+    title: "Varga pushes back on owner sign-off",
+    summary:
+      "The sporting director argues that board approval on operational exceptions makes accountability impossible on race weekends.",
+    category: "SPORTING",
+    initiatorCharacterId: "char_varga",
+    baseEscalation: 47,
+    escalationThreshold: 74,
+    actions: [
+      {
+        id: "protect_operational_autonomy",
+        label: "Protect operational autonomy",
+        description: "Keep owner reporting but return race-day authority to the sporting chain.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "resentment", delta: 3 }
+        ],
+      },
+      {
+        id: "keep_owner_override",
+        label: "Keep the owner override",
+        description: "Prioritise governance confidence over sporting autonomy.",
+        escalationDelta: 8,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_staff_star_treatment",
+    title: "Staff see commercial privilege becoming sporting privilege",
+    summary:
+      "Bellini warns that the sponsor campaign is being interpreted inside the garage as another signal that Moretti sits above normal team rules.",
+    category: "STAFF",
+    initiatorCharacterId: "char_bellini",
+    baseEscalation: 43,
+    escalationThreshold: 72,
+    actions: [
+      {
+        id: "separate_commercial_and_sporting",
+        label: "Separate commercial and sporting status",
+        description: "Keep Moretti visible commercially while explicitly reaffirming equal sporting rules.",
+        escalationDelta: -13,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
+          { type: "GOAL_URGENCY_DELTA", goalId: "goal_keller_equal", delta: -4 }
+        ],
+      },
+      {
+        id: "accept_star_treatment",
+        label: "Accept star treatment",
+        description: "Treat commercial and sporting hierarchy as part of the same star-driver strategy.",
+        escalationDelta: 9,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
+          { type: "GOAL_URGENCY_DELTA", goalId: "goal_keller_equal", delta: 7 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_owner_commercial_chain",
+    title: "Laurent worries about sponsor confidence",
+    summary:
+      "After Hartmann rejects sponsor pressure, Laurent asks whether the team can afford a governance principle that creates commercial risk.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 45,
+    escalationThreshold: 75,
+    actions: [
+      {
+        id: "back_hartmann_commercially",
+        label: "Ask Laurent to back the boundary",
+        description: "Make ownership absorb the sponsor relationship while Hartmann protects sporting independence.",
+        escalationDelta: -9,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 3 }
+        ],
+      },
+      {
+        id: "reopen_sponsor_concession",
+        label: "Reopen a sponsor concession",
+        description: "Reduce commercial risk by giving Salazar a narrower victory.",
+        escalationDelta: -13,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: -5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_chen_staff_authority_chain",
+    title: "Chen challenges the Moretti-Bellini bloc",
+    summary:
+      "Chen sees the driver-engineer relationship becoming an alternative power structure inside the technical organisation.",
+    category: "TECHNICAL",
+    initiatorCharacterId: "char_chen",
+    baseEscalation: 51,
+    escalationThreshold: 74,
+    actions: [
+      {
+        id: "formalize_engineer_reporting",
+        label: "Formalise Bellini's reporting line",
+        description: "Protect the driver relationship but make technical accountability explicit under Chen.",
+        escalationDelta: -12,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_chen_technical", delta: 3 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 2 }
+        ],
+      },
+      {
+        id: "protect_driver_engineer_independence",
+        label: "Protect driver-engineer independence",
+        description: "Keep Bellini close to Moretti even if Chen reads it as a challenge to technical authority.",
+        escalationDelta: 10,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 2 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_chen_technical", delta: 5 }
+        ],
+      }
+    ],
+  }
 ];

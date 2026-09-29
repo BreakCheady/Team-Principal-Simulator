@@ -1,6 +1,8 @@
 import {
   advanceWatchingIssue,
+  createChainedIssue,
   createIssuesFromEvents,
+  getFollowUpIssueDefinitionId,
   resolveIssueAction,
   type IssueDefinition,
   type IssueState,
@@ -218,14 +220,46 @@ export function resolveRoundIssue(
     actionId,
   );
 
+  const resolvedIssue = {
+    ...result.issue,
+    lastUpdatedRound: state.currentRound,
+  };
+  const followUpDefinitionId = getFollowUpIssueDefinitionId(
+    resolvedIssue,
+    issueDefinitions,
+  );
+  const followUpDefinition = followUpDefinitionId
+    ? issueDefinitions.find((item) => item.id === followUpDefinitionId)
+    : undefined;
+
+  if (followUpDefinitionId && !followUpDefinition) {
+    throw new Error(
+      `Follow-up issue definition "${followUpDefinitionId}" was not found.`,
+    );
+  }
+
+  const existingFollowUp = followUpDefinitionId
+    ? state.issues.some(
+        (item) =>
+          item.definitionId === followUpDefinitionId &&
+          item.parentIssueId === issueId,
+      )
+    : false;
+
+  const followUp =
+    followUpDefinition && !existingFollowUp
+      ? createChainedIssue(state.currentRound, followUpDefinition, issueId)
+      : null;
+
   return {
     ...state,
     political: result.political,
-    issues: state.issues.map((item) =>
-      item.id === issueId
-        ? { ...result.issue, lastUpdatedRound: state.currentRound }
-        : item,
-    ),
+    issues: [
+      ...state.issues.map((item) =>
+        item.id === issueId ? resolvedIssue : item,
+      ),
+      ...(followUp ? [followUp] : []),
+    ],
   };
 }
 

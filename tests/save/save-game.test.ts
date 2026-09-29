@@ -10,7 +10,7 @@ describe("local save envelope", () => {
     const raw = encodeSave("ROUND_FLOW", state);
     const decoded = decodeSave<typeof state>(raw, "ROUND_FLOW");
 
-    expect(decoded.version).toBe(2);
+    expect(decoded.version).toBe(3);
     expect(decoded.kind).toBe("ROUND_FLOW");
     expect(decoded.state).toEqual(state);
   });

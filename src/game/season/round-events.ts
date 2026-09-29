@@ -6,7 +6,11 @@ export type RoundEventType =
   | "PERFORMANCE_SWING"
   | "TECHNICAL_PROBLEM"
   | "MEDIA_EVENT"
-  | "CONTRACT_TALK";
+  | "CONTRACT_TALK"
+  | "SPORTING_EVENT"
+  | "OWNER_EVENT"
+  | "SPONSOR_EVENT"
+  | "STAFF_EVENT";
 
 export type RoundEventEffect =
   | {

@@ -138,6 +138,29 @@ describe("issue engine", () => {
     expect(aged.issue.escalation).toBeGreaterThan(handled.issue.escalation);
   });
 
+
+  it("creates issues for all v0.4 power-center events", () => {
+    const expectations = [
+      [21, "SPORTING", "char_varga"],
+      [22, "OWNER", "char_laurent"],
+      [23, "SPONSOR", "char_salazar"],
+      [24, "STAFF", "char_bellini"],
+    ] as const;
+
+    for (const [roundNumber, category, initiator] of expectations) {
+      const round = processRound(demoState, roundNumber, demoRoundEvents);
+      const issues = createIssuesFromEvents(
+        roundNumber,
+        round.events,
+        demoIssueDefinitions,
+      );
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0].category).toBe(category);
+      expect(issues[0].initiatorCharacterId).toBe(initiator);
+    }
+  });
+
   it("applies issue actions without mutating the source political state", () => {
     const round = processRound(demoState, 19, demoRoundEvents);
     const source = structuredClone(round.nextState);

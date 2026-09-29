@@ -24,7 +24,14 @@ type Props = {
   afterRound: number;
 };
 
-type HqTab = "INBOX" | "PEOPLE" | "POWER" | "TECHNICAL" | "CONTRACTS" | "ISSUES";
+type HqTab =
+  | "INBOX"
+  | "PEOPLE"
+  | "CENTERS"
+  | "POWER"
+  | "TECHNICAL"
+  | "CONTRACTS"
+  | "ISSUES";
 
 const SAVE_KEY = "team-principal-simulator-v03-rounds";
 
@@ -128,6 +135,7 @@ export function RoundEventsPanel({
   const tabs: Array<{ id: HqTab; title: string }> = [
     { id: "INBOX", title: "Inbox" + (openIssues.length ? " (" + openIssues.length + ")" : "") },
     { id: "PEOPLE", title: "People" },
+    { id: "CENTERS", title: "Power Centers" },
     { id: "POWER", title: "Power" },
     { id: "TECHNICAL", title: "Technical" },
     { id: "CONTRACTS", title: "Contracts" },
@@ -378,6 +386,82 @@ export function RoundEventsPanel({
                 </dl>
               </article>
             ))}
+          </div>
+        ) : null}
+
+
+        {tab === "CENTERS" ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {roundFlow.political.characters
+              .filter((character) =>
+                [
+                  "SPORTING_DIRECTOR",
+                  "CEO",
+                  "OWNER_REPRESENTATIVE",
+                  "SPONSOR_REPRESENTATIVE",
+                  "RACE_ENGINEER",
+                ].includes(character.role),
+              )
+              .map((character) => {
+                const activeLeverage = roundFlow.political.leverages.filter(
+                  (leverage) =>
+                    leverage.ownerCharacterId === character.id &&
+                    leverage.active,
+                );
+                const liveIssues = roundFlow.issues.filter(
+                  (issue) =>
+                    issue.initiatorCharacterId === character.id &&
+                    issue.status !== "RESOLVED",
+                );
+
+                return (
+                  <article
+                    key={character.id}
+                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                  >
+                    <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
+                      {label(character.role)}
+                    </p>
+                    <h3 className="mt-2 text-xl font-semibold">
+                      {character.name}
+                    </h3>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-zinc-500">Internal influence</p>
+                        <p className="mt-1">
+                          {character.power.internalInfluence}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-500">Owner access</p>
+                        <p className="mt-1">{character.power.ownerAccess}</p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-500">Commercial backing</p>
+                        <p className="mt-1">
+                          {character.power.commercialBacking}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-500">Live issues</p>
+                        <p className="mt-1">{liveIssues.length}</p>
+                      </div>
+                    </div>
+                    {activeLeverage.length > 0 ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {activeLeverage.map((leverage) => (
+                          <span
+                            key={leverage.id}
+                            className="rounded-full border border-violet-900 px-2.5 py-1 text-xs text-violet-300"
+                          >
+                            {label(leverage.type)} {leverage.strength}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
           </div>
         ) : null}
 
