@@ -66,6 +66,39 @@ describe("round flow", () => {
     ).not.toThrow();
   });
 
+
+  it("ages watched issues and unresolved conflicts when time advances", () => {
+    let flow = createRoundFlowState(demoState, demoRoundEvents, 17);
+    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
+
+    const technical = getOpenIssues(flow)[0];
+    flow = resolveRoundIssue(
+      flow,
+      technical.id,
+      "mediate_technical_review",
+      demoIssueDefinitions,
+    );
+
+    const sourceConflict = flow.political.conflicts.find(
+      (item) => item.id === "conflict_driver_status",
+    );
+    if (!sourceConflict) throw new Error("Missing driver status conflict");
+    sourceConflict.status = "ACTIVE";
+    const beforeExposure = sourceConflict.publicExposure;
+
+    const beforeIssueEscalation = flow.issues[0].escalation;
+    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
+
+    const agedIssue = flow.issues[0];
+    const agedConflict = flow.political.conflicts.find(
+      (item) => item.id === "conflict_driver_status",
+    );
+
+    expect(agedIssue.escalation).toBeGreaterThan(beforeIssueEscalation);
+    expect(agedIssue.lastUpdatedRound).toBe(19);
+    expect(agedConflict?.publicExposure).toBeGreaterThan(beforeExposure);
+  });
+
   it("escalates a media issue into a playable conflict", () => {
     let flow = createRoundFlowState(demoState, demoRoundEvents, 18);
     flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);

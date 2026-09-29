@@ -74,6 +74,7 @@ export type IssueState = {
   selectedActionId: string | null;
   npcActions: NpcIssueAction[];
   spawnedConflictId: string | null;
+  lastUpdatedRound: number;
 };
 
 export type IssueActionResult = {
@@ -145,6 +146,35 @@ function applyEffect(state: PoliticalCoreState, effect: IssueEffect): void {
   }
 }
 
+export function calculateNpcPressure(
+  state: PoliticalCoreState,
+  definition: IssueDefinition,
+  issue: IssueState,
+): number {
+  const initiator = state.characters.find(
+    (character) => character.id === definition.initiatorCharacterId,
+  );
+  if (!initiator) {
+    throw new Error(
+      `Issue initiator "${definition.initiatorCharacterId}" was not found.`,
+    );
+  }
+
+  const momentumScore = (initiator.dynamic.momentum + 25) * 2;
+  const inverseCompromise = 100 - initiator.personality.compromiseWillingness;
+
+  return clamp(
+    0,
+    100,
+    initiator.personality.assertiveness * 0.25 +
+      initiator.personality.ambition * 0.15 +
+      initiator.personality.grudgeHolding * 0.15 +
+      momentumScore * 0.1 +
+      issue.escalation * 0.2 +
+      inverseCompromise * 0.15,
+  );
+}
+
 function chooseNpcAction(
   state: PoliticalCoreState,
   definition: IssueDefinition,
@@ -159,13 +189,7 @@ function chooseNpcAction(
     );
   }
 
-  const pressure =
-    initiator.personality.assertiveness * 0.35 +
-    initiator.personality.ambition * 0.25 +
-    initiator.personality.grudgeHolding * 0.2 +
-    initiator.dynamic.momentum * 0.4 +
-    issue.escalation * 0.2 -
-    initiator.personality.compromiseWillingness * 0.15;
+  const pressure = calculateNpcPressure(state, definition, issue);
 
   if (pressure >= 65) {
     return {
@@ -216,6 +240,7 @@ export function createIssuesFromEvents(
         selectedActionId: null,
         npcActions: [],
         spawnedConflictId: null,
+        lastUpdatedRound: round,
       },
     ];
   });
@@ -299,6 +324,83 @@ export function resolveIssueAction(
       selectedActionId: action.id,
       npcActions: [...issue.npcActions, npcAction],
       spawnedConflictId,
+      lastUpdatedRound: issue.lastUpdatedRound,
+    },
+    spawnedConflictId,
+  };
+}
+
+
+export function advanceWatchingIssue(
+  sourceState: PoliticalCoreState,
+  issue: IssueState,
+  definitions: IssueDefinition[],
+  round: number,
+): IssueActionResult {
+  if (issue.status !== "WATCHING") {
+    return {
+      political: structuredClone(sourceState),
+      issue,
+      spawnedConflictId: issue.spawnedConflictId,
+    };
+  }
+
+  if (round <= issue.lastUpdatedRound) {
+    return {
+      political: structuredClone(sourceState),
+      issue,
+      spawnedConflictId: issue.spawnedConflictId,
+    };
+  }
+
+  const definition = definitions.find((item) => item.id === issue.definitionId);
+  if (!definition) {
+    throw new Error(`Issue definition "${issue.definitionId}" was not found.`);
+  }
+
+  const political = structuredClone(sourceState);
+  const agePressure = Math.min(12, 3 + (round - issue.round) * 2);
+  let escalation = clamp(0, 100, issue.escalation + agePressure);
+  const npcAction = chooseNpcAction(political, definition, {
+    ...issue,
+    escalation,
+  });
+  escalation = clamp(0, 100, escalation + npcAction.escalationDelta);
+
+  let status: IssueStatus =
+    escalation <= 20
+      ? "RESOLVED"
+      : escalation >= definition.escalationThreshold
+        ? "ESCALATED"
+        : "WATCHING";
+
+  let spawnedConflictId = issue.spawnedConflictId;
+
+  if (
+    status === "ESCALATED" &&
+    definition.spawnedConflict &&
+    !political.conflicts.some(
+      (conflict) => conflict.id === definition.spawnedConflict?.id,
+    )
+  ) {
+    political.conflicts.push(structuredClone(definition.spawnedConflict));
+    spawnedConflictId = definition.spawnedConflict.id;
+  }
+
+  const validation = validatePoliticalCoreState(political);
+  if (!validation.success) {
+    throw new Error("Watching issue aging produced an invalid political state.");
+  }
+
+  return {
+    political: validation.data,
+    issue: {
+      ...issue,
+      status,
+      escalation,
+      npcActions: [...issue.npcActions, npcAction],
+      spawnedConflictId,
+      lastUpdatedRound: round,
     },
     spawnedConflictId,
   };

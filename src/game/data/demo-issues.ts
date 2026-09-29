@@ -38,7 +38,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Hold a private technical review",
         description:
           "Give Moretti a hearing while preserving Chen's final authority.",
-        escalationDelta: -22,
+        escalationDelta: -14,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",
@@ -61,7 +61,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Let engineering handle it",
         description:
           "Take no political action and hope the frustration fades with the next result.",
-        escalationDelta: 12,
+        escalationDelta: 9,
         effects: [
           {
             type: "CHARACTER_FATIGUE_DELTA",
@@ -88,7 +88,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Call Moretti in privately",
         description:
           "Offer a direct conversation and ask him to stop escalating the dispute through the media.",
-        escalationDelta: -45,
+        escalationDelta: -20,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",
@@ -116,7 +116,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Publicly rebut the criticism",
         description:
           "Defend the team publicly and challenge Moretti's version of events.",
-        escalationDelta: 12,
+        escalationDelta: 10,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",
@@ -137,7 +137,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Say nothing",
         description:
           "Avoid feeding the story, but give Moretti's camp space to control the narrative.",
-        escalationDelta: 15,
+        escalationDelta: 8,
         effects: [
           {
             type: "LEVERAGE_STRENGTH_DELTA",
@@ -199,7 +199,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Open structured negotiations",
         description:
           "Discuss sporting expectations without granting a permanent number-one guarantee.",
-        escalationDelta: -32,
+        escalationDelta: -14,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",
@@ -220,7 +220,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Offer limited sporting guarantees",
         description:
           "Reduce contract tension at the cost of strengthening Moretti's political position.",
-        escalationDelta: -42,
+        escalationDelta: -22,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",
@@ -246,7 +246,7 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         label: "Refuse to negotiate under pressure",
         description:
           "Protect team authority and force Moretti's camp to decide whether the threat is real.",
-        escalationDelta: 18,
+        escalationDelta: 12,
         effects: [
           {
             type: "RELATIONSHIP_DELTA",

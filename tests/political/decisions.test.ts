@@ -29,7 +29,7 @@ describe("conflict decisions", () => {
 
     expect(demoState).toEqual(original);
     expect(result.nextState.conflicts[0].status).toBe("RESOLVED");
-    expect(result.nextState.conflicts[0].outcome).toBe("NARROW_WIN_A");
+    expect(result.nextState.conflicts[0].outcome).toBe("COMPROMISE");
     expect(result.nextState.conflicts[0].roundResolved).toBe(14);
     expect(relationship(result.nextState, "rel_moretti_hartmann").trust).toBe(80);
     expect(relationship(result.nextState, "rel_chen_moretti").resentment).toBe(49);
@@ -37,7 +37,7 @@ describe("conflict decisions", () => {
     expect(precedent(result.nextState).strength).toBe(68);
   });
 
-  it("creates a compromise that strengthens the existing authority rule", () => {
+  it("lets the stronger faction reject an attempted compromise", () => {
     const result = applyConflictDecision(
       demoState,
       "conflict_technical_direction",
@@ -45,7 +45,7 @@ describe("conflict decisions", () => {
       14,
     );
 
-    expect(result.nextState.conflicts[0].outcome).toBe("COMPROMISE");
+    expect(result.nextState.conflicts[0].outcome).toBe("NARROW_WIN_B");
     expect(relationship(result.nextState, "rel_moretti_chen").trust).toBe(61);
     expect(relationship(result.nextState, "rel_chen_moretti").trust).toBe(66);
     expect(precedent(result.nextState).applications).toBe(2);

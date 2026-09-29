@@ -1,4 +1,5 @@
 import {
+  advanceWatchingIssue,
   createIssuesFromEvents,
   resolveIssueAction,
   type IssueDefinition,
@@ -28,6 +29,78 @@ export type RoundFlowState = {
   issues: IssueState[];
   complete: boolean;
 };
+
+
+function clamp(min: number, max: number, value: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function ageActiveConflicts(
+  sourceState: PoliticalCoreState,
+  round: number,
+): PoliticalCoreState {
+  const nextState = structuredClone(sourceState);
+
+  for (const conflict of nextState.conflicts) {
+    if (
+      (conflict.status !== "ACTIVE" && conflict.status !== "ESCALATED") ||
+      conflict.roundStarted >= round
+    ) {
+      continue;
+    }
+
+    const exposureDelta = conflict.type === "MEDIA_CONFLICT" ? 7 : 4;
+    conflict.publicExposure = clamp(
+      0,
+      100,
+      conflict.publicExposure + exposureDelta,
+    );
+    conflict.stakes = clamp(0, 100, conflict.stakes + 2);
+
+    for (const faction of conflict.factions) {
+      const leader = nextState.characters.find(
+        (character) => character.id === faction.leaderCharacterId,
+      );
+      if (leader) {
+        leader.dynamic.politicalFatigue = clamp(
+          0,
+          100,
+          leader.dynamic.politicalFatigue + 2,
+        );
+      }
+    }
+  }
+
+  return nextState;
+}
+
+function ageWatchingIssues(
+  sourceState: PoliticalCoreState,
+  issues: IssueState[],
+  definitions: IssueDefinition[],
+  round: number,
+): { political: PoliticalCoreState; issues: IssueState[] } {
+  let political = structuredClone(sourceState);
+  const agedIssues: IssueState[] = [];
+
+  for (const issue of issues) {
+    if (issue.status !== "WATCHING") {
+      agedIssues.push(issue);
+      continue;
+    }
+
+    const result = advanceWatchingIssue(
+      political,
+      issue,
+      definitions,
+      round,
+    );
+    political = result.political;
+    agedIssues.push(result.issue);
+  }
+
+  return { political, issues: agedIssues };
+}
 
 function uniqueSortedRounds(
   events: RoundEventDefinition[],
@@ -82,13 +155,20 @@ export function advanceRoundFlow(
     throw new Error("Round flow has no next round.");
   }
 
-  const result = processRound(state.political, round, events);
+  const aged = ageWatchingIssues(
+    state.political,
+    state.issues,
+    issueDefinitions,
+    round,
+  );
+  const agedPolitical = ageActiveConflicts(aged.political, round);
+  const result = processRound(agedPolitical, round, events);
   const createdIssues = createIssuesFromEvents(
     round,
     result.events,
     issueDefinitions,
   ).filter(
-    (candidate) => !state.issues.some((issue) => issue.id === candidate.id),
+    (candidate) => !aged.issues.some((issue) => issue.id === candidate.id),
   );
 
   const activeConflictIds = result.nextState.conflicts
@@ -115,7 +195,7 @@ export function advanceRoundFlow(
         activeConflictIds,
       },
     ],
-    issues: [...state.issues, ...createdIssues],
+    issues: [...aged.issues, ...createdIssues],
     complete: nextRoundIndex >= state.scheduledRounds.length,
   };
 }
@@ -142,7 +222,9 @@ export function resolveRoundIssue(
     ...state,
     political: result.political,
     issues: state.issues.map((item) =>
-      item.id === issueId ? result.issue : item,
+      item.id === issueId
+        ? { ...result.issue, lastUpdatedRound: state.currentRound }
+        : item,
     ),
   };
 }
