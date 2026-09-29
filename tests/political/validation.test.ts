@@ -8,8 +8,42 @@ describe("political core validation", () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.characters).toHaveLength(4);
+      expect(result.data.characters).toHaveLength(8);
       expect(result.errors).toEqual([]);
+      expect(
+        result.data.characters
+          .filter((character) =>
+            [
+              "SPORTING_DIRECTOR",
+              "CEO",
+              "SPONSOR_REPRESENTATIVE",
+              "RACE_ENGINEER",
+            ].includes(character.role),
+          )
+          .map((character) => character.id),
+      ).toEqual([
+        "char_varga",
+        "char_laurent",
+        "char_salazar",
+        "char_bellini",
+      ]);
+      expect(
+        result.data.leverages
+          .filter((leverage) =>
+            [
+              "lev_varga_sporting",
+              "lev_laurent_owner",
+              "lev_salazar_sponsor",
+              "lev_bellini_staff",
+            ].includes(leverage.id),
+          )
+          .map((leverage) => leverage.ownerCharacterId),
+      ).toEqual([
+        "char_varga",
+        "char_laurent",
+        "char_salazar",
+        "char_bellini",
+      ]);
     }
   });
 
