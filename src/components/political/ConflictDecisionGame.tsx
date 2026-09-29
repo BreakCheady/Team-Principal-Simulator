@@ -76,7 +76,7 @@ export function ConflictDecisionGame({
 
     const result = applyConflictDecision(
       gameState,
-      conflict.id,
+      conflictId,
       decisionId,
       round,
     );
