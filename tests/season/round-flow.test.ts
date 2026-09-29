@@ -16,7 +16,7 @@ describe("round flow", () => {
     const flow = createRoundFlowState(demoState, demoRoundEvents, 15);
 
     expect(flow.currentRound).toBe(15);
-    expect(flow.scheduledRounds).toEqual([16, 17, 18, 19, 20]);
+    expect(flow.scheduledRounds).toEqual([16, 17, 18, 19, 20, 21, 22, 23, 24]);
     expect(getNextRound(flow)).toBe(16);
     expect(flow.complete).toBe(false);
   });
@@ -134,44 +134,74 @@ describe("round flow", () => {
     ).toBe("RESOLVED");
   });
 
-  it("finishes after the last authored round when issues are handled", () => {
+
+  it("creates cross-power-center follow-up issues from player choices", () => {
+    let flow = createRoundFlowState(demoState, demoRoundEvents, 20);
+    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
+
+    const sporting = getOpenIssues(flow).find(
+      (issue) => issue.definitionId === "issue_varga_sporting_control",
+    );
+    if (!sporting) throw new Error("Missing Varga sporting issue");
+
+    flow = resolveRoundIssue(
+      flow,
+      sporting.id,
+      "keep_personal_sporting_control",
+      demoIssueDefinitions,
+    );
+
+    const ownerFollowUp = getOpenIssues(flow).find(
+      (issue) => issue.definitionId === "issue_owner_governance_chain",
+    );
+
+    expect(ownerFollowUp?.parentIssueId).toBe(sporting.id);
+    expect(ownerFollowUp?.initiatorCharacterId).toBe("char_laurent");
+    expect(ownerFollowUp?.category).toBe("OWNER");
+  });
+
+  it("finishes after the last authored round when open issues are handled", () => {
     let flow = createRoundFlowState(demoState, demoRoundEvents, 15);
 
-    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
-    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
-    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
+    while (!flow.complete) {
+      while (getOpenIssues(flow).length > 0) {
+        const issue = getOpenIssues(flow)[0];
+        const definition = demoIssueDefinitions.find(
+          (item) => item.id === issue.definitionId,
+        );
+        if (!definition) throw new Error("Missing issue definition");
 
-    const technical = getOpenIssues(flow)[0];
-    flow = resolveRoundIssue(
-      flow,
-      technical.id,
-      "mediate_technical_review",
-      demoIssueDefinitions,
-    );
+        flow = resolveRoundIssue(
+          flow,
+          issue.id,
+          definition.actions[0].id,
+          demoIssueDefinitions,
+        );
+      }
 
-    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
-    const media = getOpenIssues(flow)[0];
-    flow = resolveRoundIssue(
-      flow,
-      media.id,
-      "private_media_meeting",
-      demoIssueDefinitions,
-    );
+      flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
+    }
 
-    flow = advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions);
-    const contract = getOpenIssues(flow)[0];
-    flow = resolveRoundIssue(
-      flow,
-      contract.id,
-      "structured_contract_talks",
-      demoIssueDefinitions,
-    );
+    while (getOpenIssues(flow).length > 0) {
+      const issue = getOpenIssues(flow)[0];
+      const definition = demoIssueDefinitions.find(
+        (item) => item.id === issue.definitionId,
+      );
+      if (!definition) throw new Error("Missing issue definition");
 
-    expect(flow.currentRound).toBe(20);
+      flow = resolveRoundIssue(
+        flow,
+        issue.id,
+        definition.actions[0].id,
+        demoIssueDefinitions,
+      );
+    }
+
+    expect(flow.currentRound).toBe(24);
     expect(flow.complete).toBe(true);
     expect(getNextRound(flow)).toBeNull();
     expect(flow.history.map((entry) => entry.round)).toEqual([
-      16, 17, 18, 19, 20,
+      16, 17, 18, 19, 20, 21, 22, 23, 24,
     ]);
     expect(() =>
       advanceRoundFlow(flow, demoRoundEvents, demoIssueDefinitions),
