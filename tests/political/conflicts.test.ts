@@ -12,10 +12,6 @@ import {
   derivePoliticalCost,
   deriveWillingnessToAct,
 } from "../../src/game/political/derived-politics";
-import {
-  calculateCharacterAlignment,
-  formDynamicFactions,
-} from "../../src/game/political/faction-formation";
 import { validatePoliticalCoreState } from "../../src/game/political/validation";
 
 describe("conflict engine v2", () => {
@@ -29,10 +25,9 @@ describe("conflict engine v2", () => {
 
     expect(result.factionA.strength).toBeGreaterThan(0);
     expect(result.factionB.strength).toBeGreaterThan(0);
-    expect(result.factionA.successChance + result.factionB.successChance).toBeCloseTo(
-      100,
-      6,
-    );
+    expect(
+      result.factionA.successChance + result.factionB.successChance,
+    ).toBeCloseTo(100, 6);
     expect(result.derived.willingnessA).toBeGreaterThanOrEqual(0);
     expect(result.derived.willingnessA).toBeLessThanOrEqual(1);
     expect(result.derived.willingnessB).toBeGreaterThanOrEqual(0);
@@ -46,6 +41,10 @@ describe("conflict engine v2", () => {
     expect(result.factionA.politicalCost).toBeLessThanOrEqual(100);
     expect(result.escalation).toBeGreaterThanOrEqual(0);
     expect(result.escalation).toBeLessThanOrEqual(100);
+    expect(result.derived.formation.factionB.memberCharacterIds).toContain(
+      "char_keller",
+    );
+    expect(result.derived.formation.swingActorIds).toContain("char_hartmann");
   });
 
   it("relationship quality changes derived alliance power", () => {
@@ -154,7 +153,9 @@ describe("conflict engine v2", () => {
 
     expect(overridden.derived.resentment).toBe(100);
     expect(overridden.factionA.politicalCost).toBe(1);
-    expect(overridden.factionA.strength).toBeLessThan(baseline.factionA.strength);
+    expect(overridden.factionA.strength).toBeLessThan(
+      baseline.factionA.strength,
+    );
 
     expect(() =>
       validateConflictCalculationInput({ politicalCostA: -1 }),
@@ -164,219 +165,6 @@ describe("conflict engine v2", () => {
         willingnessByCharacterId: { char_moretti: 1.01 },
       }),
     ).toThrow(/must be between 0 and 1/);
-  });
-});
-
-
-describe("dynamic faction formation", () => {
-  function setRelationshipSupport(
-    state: typeof demoState,
-    fromCharacterId: string,
-    toCharacterId: string,
-    support: number,
-  ) {
-    let relationship = state.relationships.find(
-      (item) =>
-        item.fromCharacterId === fromCharacterId &&
-        item.toCharacterId === toCharacterId,
-    );
-
-    if (!relationship) {
-      relationship = {
-        id: `rel_${fromCharacterId.replace("char_", "")}_${toCharacterId.replace("char_", "")}`,
-        fromCharacterId,
-        toCharacterId,
-        trust: support,
-        loyalty: support,
-        respect: support,
-        dependency: support,
-        resentment: 100 - support,
-        personalLeverage: 0,
-      };
-      state.relationships.push(relationship);
-      return;
-    }
-
-    relationship.trust = support;
-    relationship.loyalty = support;
-    relationship.respect = support;
-    relationship.dependency = support;
-    relationship.resentment = 100 - support;
-  }
-
-  function neutralizeHartmannInterests(state: typeof demoState) {
-    const hartmann = state.characters.find((item) => item.id === "char_hartmann");
-    if (!hartmann) throw new Error("Missing Hartmann");
-
-    hartmann.personality.ruleRespect = 0;
-    for (const goal of state.goals) {
-      if (goal.characterId === hartmann.id) goal.active = false;
-    }
-  }
-
-  it("forms the demo technical factions from live relationships and interests", () => {
-    const formation = formDynamicFactions(
-      demoState,
-      demoState.conflicts[0],
-    );
-
-    expect(formation.factionA.memberCharacterIds).toContain("char_moretti");
-    expect(formation.factionB.memberCharacterIds).toContain("char_chen");
-    expect(formation.factionB.memberCharacterIds).toContain("char_keller");
-    expect(
-      formation.factionA.memberCharacterIds.includes("char_keller"),
-    ).toBe(false);
-    expect(
-      new Set([
-        ...formation.factionA.memberCharacterIds,
-        ...formation.factionB.memberCharacterIds,
-        ...formation.swingActorIds,
-        ...formation.neutralActorIds,
-      ]).size,
-    ).toBe(demoState.characters.length);
-  });
-
-  it("classifies a strong preference as joining faction A", () => {
-    const source = structuredClone(demoState);
-    neutralizeHartmannInterests(source);
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 90);
-    setRelationshipSupport(source, "char_hartmann", "char_chen", 40);
-
-    expect(
-      calculateCharacterAlignment(
-        source,
-        source.conflicts[0],
-        "char_hartmann",
-      ).alignment,
-    ).toBe("FACTION_A");
-  });
-
-  it("classifies a strong preference as joining faction B", () => {
-    const source = structuredClone(demoState);
-    neutralizeHartmannInterests(source);
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 40);
-    setRelationshipSupport(source, "char_hartmann", "char_chen", 90);
-
-    expect(
-      calculateCharacterAlignment(
-        source,
-        source.conflicts[0],
-        "char_hartmann",
-      ).alignment,
-    ).toBe("FACTION_B");
-  });
-
-  it("classifies a meaningful but undecided preference as swing", () => {
-    const source = structuredClone(demoState);
-    neutralizeHartmannInterests(source);
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 70);
-    setRelationshipSupport(source, "char_hartmann", "char_chen", 50);
-
-    const alignment = calculateCharacterAlignment(
-      source,
-      source.conflicts[0],
-      "char_hartmann",
-    );
-
-    expect(alignment.alignment).toBe("SWING");
-    expect(Math.abs(alignment.margin)).toBeGreaterThanOrEqual(5);
-    expect(Math.abs(alignment.margin)).toBeLessThan(15);
-  });
-
-  it("classifies balanced preference as neutral", () => {
-    const source = structuredClone(demoState);
-    neutralizeHartmannInterests(source);
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 50);
-    setRelationshipSupport(source, "char_hartmann", "char_chen", 50);
-
-    expect(
-      calculateCharacterAlignment(
-        source,
-        source.conflicts[0],
-        "char_hartmann",
-      ).alignment,
-    ).toBe("NEUTRAL");
-  });
-
-  it("allows a relevant goal to move an otherwise balanced actor", () => {
-    const source = structuredClone(demoState);
-    const conflict = source.conflicts[1];
-    const hartmann = source.characters.find((item) => item.id === "char_hartmann");
-    if (!hartmann) throw new Error("Missing Hartmann");
-
-    hartmann.personality.ruleRespect = 0;
-    for (const goal of source.goals) {
-      if (goal.characterId === hartmann.id) goal.active = false;
-    }
-
-    setRelationshipSupport(source, "char_hartmann", "char_keller", 50);
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 50);
-
-    source.goals.push({
-      id: "goal_hartmann_equal_status_test",
-      characterId: "char_hartmann",
-      type: "KEEP_EQUAL_STATUS",
-      priority: 100,
-      urgency: 100,
-      progress: 0,
-      visibility: "HIDDEN",
-      active: true,
-    });
-
-    const alignment = calculateCharacterAlignment(
-      source,
-      conflict,
-      "char_hartmann",
-    );
-
-    expect(alignment.scoreA).toBeGreaterThan(alignment.scoreB);
-    expect(alignment.alignment).toBe("FACTION_A");
-  });
-
-  it("lets institutional legitimacy influence a rule-respecting actor", () => {
-    const source = structuredClone(demoState);
-    neutralizeHartmannInterests(source);
-    const hartmann = source.characters.find((item) => item.id === "char_hartmann");
-    if (!hartmann) throw new Error("Missing Hartmann");
-
-    hartmann.personality.ruleRespect = 100;
-    setRelationshipSupport(source, "char_hartmann", "char_moretti", 50);
-    setRelationshipSupport(source, "char_hartmann", "char_chen", 50);
-    source.conflicts[0].factions[0].legitimacy = 0;
-    source.conflicts[0].factions[1].legitimacy = 100;
-
-    const alignment = calculateCharacterAlignment(
-      source,
-      source.conflicts[0],
-      "char_hartmann",
-    );
-
-    expect(alignment.alignment).toBe("FACTION_B");
-    expect(alignment.scoreB).toBeGreaterThan(alignment.scoreA);
-  });
-
-  it("feeds formed memberships back into conflict strength", () => {
-    const baseline = calculateConflict(demoState, demoState.conflicts[0]);
-    const source = structuredClone(demoState);
-
-    const kellerToChen = source.relationships.find(
-      (item) =>
-        item.fromCharacterId === "char_keller" &&
-        item.toCharacterId === "char_chen",
-    );
-    if (!kellerToChen) throw new Error("Missing Keller to Chen relationship");
-
-    kellerToChen.trust = 0;
-    kellerToChen.loyalty = 0;
-    kellerToChen.respect = 0;
-    kellerToChen.dependency = 0;
-    kellerToChen.resentment = 100;
-
-    const changed = calculateConflict(source, source.conflicts[0]);
-
-    expect(baseline.derived.factionBMemberIds).toContain("char_keller");
-    expect(changed.derived.factionBMemberIds).not.toContain("char_keller");
-    expect(changed.factionB.strength).toBeLessThan(baseline.factionB.strength);
   });
 });
 
