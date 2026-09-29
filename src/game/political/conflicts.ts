@@ -7,6 +7,7 @@ import {
   deriveWillingnessToAct,
 } from "./derived-politics";
 import { formDynamicFactions } from "./faction-formation";
+import { formDynamicFactions } from "./faction-formation";
 import {
   calculateContextualPower,
   calculateProjectedPower,
@@ -28,6 +29,7 @@ export type ConflictCalculationResult = {
   delta: number;
   escalation: number;
   derived: {
+    formation: ReturnType<typeof formDynamicFactions>;
     willingnessA: number;
     willingnessB: number;
     alliancePowerA: number;
@@ -252,6 +254,7 @@ export function calculateConflict(
     delta: strengthA - strengthB,
     escalation,
     derived: {
+      formation,
       willingnessA,
       willingnessB,
       alliancePowerA,
