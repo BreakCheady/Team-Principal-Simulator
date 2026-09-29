@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RoundEventsPanel } from "@/components/political/RoundEventsPanel";
 import { calculateConflict } from "@/game/political/conflicts";
 import { getConflictDecisions } from "@/game/political/decisions";
 import type { OutcomeChange } from "@/game/political/outcomes";
 import type { PoliticalCoreState } from "@/game/political/types";
+import type { RoundEventDefinition } from "@/game/season/round-events";
 import {
   advanceSeason,
   createSeasonState,
@@ -16,6 +18,7 @@ import {
 type Props = {
   initialState: PoliticalCoreState;
   steps: SeasonConflictStep[];
+  roundEvents: RoundEventDefinition[];
 };
 
 function format(value: number) {
@@ -27,7 +30,11 @@ function changeSign(change: OutcomeChange) {
   return delta > 0 ? `+${delta}` : String(delta);
 }
 
-export function SeasonFlowGame({ initialState, steps }: Props) {
+export function SeasonFlowGame({
+  initialState,
+  steps,
+  roundEvents,
+}: Props) {
   const [season, setSeason] = useState(() =>
     createSeasonState(initialState, steps),
   );
@@ -353,6 +360,15 @@ export function SeasonFlowGame({ initialState, steps }: Props) {
           </section>
         </aside>
       </section>
+
+      {season.phase === "COMPLETE" ? (
+        <RoundEventsPanel
+          key={season.history.map((entry) => entry.decisionId).join(":")}
+          initialState={season.political}
+          events={roundEvents}
+          afterRound={season.currentRound}
+        />
+      ) : null}
     </main>
   );
 }
