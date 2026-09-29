@@ -131,9 +131,99 @@ export const vanguardTechnicalDirectionDecisions: ConflictDecisionDefinition[] =
   },
 ];
 
+export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
+  {
+    id: "back_keller",
+    conflictId: "conflict_driver_status",
+    label: "Back Keller",
+    description: "Protect equality and reduce Moretti's privileged sporting position.",
+    title: "Keller wins a political concession",
+    summary:
+      "Keller gains momentum and the performance-based driver-priority precedent is applied against automatic star-driver privilege.",
+    outcome: "NARROW_WIN_A",
+    effects: [
+      {
+        type: "CHARACTER_MOMENTUM_DELTA",
+        characterId: "char_keller",
+        delta: 4,
+        subject: "Noah Keller",
+      },
+      {
+        type: "CHARACTER_MOMENTUM_DELTA",
+        characterId: "char_moretti",
+        delta: -3,
+        subject: "Luca Moretti",
+      },
+      {
+        type: "PRECEDENT_COUNTER_DELTA",
+        precedentId: "precedent_driver_priority",
+        counter: "applications",
+        delta: 1,
+        subject: "Driver priority precedent",
+      },
+    ],
+  },
+  {
+    id: "protect_moretti_status",
+    conflictId: "conflict_driver_status",
+    label: "Protect Moretti's status",
+    description: "Preserve the star driver's sporting priority despite Keller's challenge.",
+    title: "Moretti keeps the upper hand",
+    summary:
+      "Moretti retains sporting priority, but the objective driver-priority precedent is weakened.",
+    outcome: "NARROW_WIN_B",
+    effects: [
+      {
+        type: "CHARACTER_MOMENTUM_DELTA",
+        characterId: "char_moretti",
+        delta: 3,
+        subject: "Luca Moretti",
+      },
+      {
+        type: "CHARACTER_MOMENTUM_DELTA",
+        characterId: "char_keller",
+        delta: -3,
+        subject: "Noah Keller",
+      },
+      {
+        type: "PRECEDENT_STRENGTH_DELTA",
+        precedentId: "precedent_driver_priority",
+        delta: -8,
+        subject: "Driver priority precedent",
+      },
+      {
+        type: "PRECEDENT_COUNTER_DELTA",
+        precedentId: "precedent_driver_priority",
+        counter: "violations",
+        delta: 1,
+        subject: "Driver priority precedent",
+      },
+    ],
+  },
+];
+
+export function assertUniqueDecisionCatalog(
+  decisions: ConflictDecisionDefinition[],
+): void {
+  const keys = new Set<string>();
+
+  for (const decision of decisions) {
+    const key = `${decision.conflictId}::${decision.id}`;
+    if (keys.has(key)) {
+      throw new Error(
+        `Duplicate decision id "${decision.id}" for conflict "${decision.conflictId}".`,
+      );
+    }
+    keys.add(key);
+  }
+}
+
 const decisionCatalog: ConflictDecisionDefinition[] = [
   ...vanguardTechnicalDirectionDecisions,
+  ...driverPriorityDecisions,
 ];
+
+assertUniqueDecisionCatalog(decisionCatalog);
 
 export function getConflictDecisions(conflictId: string): ConflictDecisionDefinition[] {
   return decisionCatalog.filter((decision) => decision.conflictId === conflictId);

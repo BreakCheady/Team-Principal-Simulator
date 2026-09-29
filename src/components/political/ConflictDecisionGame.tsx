@@ -15,6 +15,7 @@ import { applyConflictDecision } from "@/game/state/game-state";
 
 type Props = {
   initialState: PoliticalCoreState;
+  conflictId: string;
   conflictInput: ConflictCalculationInput;
   round: number;
 };
@@ -31,6 +32,7 @@ function changeSign(change: OutcomeChange) {
 
 export function ConflictDecisionGame({
   initialState,
+  conflictId,
   conflictInput,
   round,
 }: Props) {
@@ -40,7 +42,11 @@ export function ConflictDecisionGame({
   const [decisionResult, setDecisionResult] =
     useState<ConflictDecisionResult | null>(null);
 
-  const conflict = gameState.conflicts[0];
+  const conflict = gameState.conflicts.find((item) => item.id === conflictId);
+
+  if (!conflict) {
+    throw new Error(`Conflict "${conflictId}" was not found in game state.`);
+  }
 
   const calculation = useMemo(
     () =>
