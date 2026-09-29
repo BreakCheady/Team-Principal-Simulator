@@ -422,15 +422,4 @@ export const demoState: PoliticalCoreState = {
   ],
 };
 
-export const demoConflictInput = {
-  willingnessByCharacterId: {
-    char_moretti: 0.95,
-    char_keller: 0.7,
-    char_hartmann: 0.85,
-    char_chen: 0.98,
-  },
-  politicalCostA: 82,
-  politicalCostB: 44,
-  resentment: 68,
-  leverageUsed: 60,
-};
+export const demoConflictInput = {};
