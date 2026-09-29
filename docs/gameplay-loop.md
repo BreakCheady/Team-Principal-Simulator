@@ -45,6 +45,15 @@ Conflict Engine v2 derives the values that should react to those facts at runtim
   opposing faction members.
 - **Political cost** reacts to legitimacy, resentment, public exposure,
   relevant precedent strength, and instability.
+- **Faction membership** is re-formed at calculation time. Leaders stay fixed;
+  every other character is scored against both sides using directional
+  relationships, active goals/interests, and institutional legitimacy. Large
+  score gaps create faction members, medium gaps create swing actors, and
+  balanced or weak preferences remain neutral.
+
+Because membership is derived rather than authoritative source data, a changed
+relationship or goal can move an actor between a faction, swing position, and
+neutrality in the next conflict calculation.
 
 Scenario calculation inputs are optional overrides for authored exceptions and
 testing. The normal season prototype leaves them empty and relies on the live
