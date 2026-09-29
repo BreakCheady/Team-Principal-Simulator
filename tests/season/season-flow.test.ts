@@ -162,7 +162,9 @@ describe("season flow", () => {
     );
 
     const invalidWillingness = structuredClone(demoSeasonSteps);
-    invalidWillingness[1].input.willingnessByCharacterId.char_moretti = 1.2;
+    invalidWillingness[1].input.willingnessByCharacterId = {
+      char_moretti: 1.2,
+    };
 
     expect(() => createSeasonState(demoState, invalidWillingness)).toThrow(
       /must be between 0 and 1/,
