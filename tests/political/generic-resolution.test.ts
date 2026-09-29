@@ -55,6 +55,38 @@ describe("generic conflict resolution", () => {
     ).toBe(4);
   });
 
+  it("resolves every catalogued decision into a valid resolved state", () => {
+    const scenarios = [
+      {
+        conflictId: "conflict_technical_direction",
+        round: 14,
+        state: structuredClone(demoState),
+      },
+      {
+        conflictId: "conflict_driver_status",
+        round: 15,
+        state: stateWithActiveDriverPriorityConflict(),
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      for (const decision of getConflictDecisions(scenario.conflictId)) {
+        const result = applyConflictDecision(
+          structuredClone(scenario.state),
+          scenario.conflictId,
+          decision.id,
+          scenario.round,
+        );
+        const conflict = result.nextState.conflicts.find(
+          (item) => item.id === scenario.conflictId,
+        );
+
+        expect(conflict?.status).toBe("RESOLVED");
+        expect(conflict?.outcome).toBe(decision.outcome);
+      }
+    }
+  });
+
   it("rejects resolving a dormant conflict before the season activates it", () => {
     expect(() =>
       applyConflictDecision(
