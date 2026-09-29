@@ -222,7 +222,9 @@ export function resolveRoundIssue(
     ...state,
     political: result.political,
     issues: state.issues.map((item) =>
-      item.id === issueId ? result.issue : item,
+      item.id === issueId
+        ? { ...result.issue, lastUpdatedRound: state.currentRound }
+        : item,
     ),
   };
 }
