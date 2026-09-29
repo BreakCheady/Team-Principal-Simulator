@@ -382,7 +382,6 @@ export const demoState: PoliticalCoreState = {
         },
       ],
       swingActorIds: ["char_hartmann"],
-      escalation: 71,
       roundStarted: 14,
       precedentIds: ["precedent_technical_authority"],
     },
