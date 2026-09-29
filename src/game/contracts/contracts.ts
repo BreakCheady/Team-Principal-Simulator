@@ -96,12 +96,9 @@ export function syncContractCareerState(
     35 + remainingRounds * 3 + Math.min(25, availableExtensionRounds * 2),
   );
 
-  const releasePressure = activeReleaseClause ? 12 : 0;
-  character.career.transferInterest = clamp(
-    0,
-    100,
-    character.career.transferInterest + releasePressure,
-  );
+  character.career.transferInterest = activeReleaseClause
+    ? Math.max(character.career.transferInterest, 60)
+    : character.career.transferInterest;
 
   return nextState;
 }
