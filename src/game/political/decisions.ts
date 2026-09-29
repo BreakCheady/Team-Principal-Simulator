@@ -202,6 +202,114 @@ export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
   },
 ];
 
+export const mediaConflictDecisions: ConflictDecisionDefinition[] = [
+  {
+    id: "contain_media_story",
+    conflictId: "conflict_moretti_media_pressure",
+    label: "Contain the story",
+    description:
+      "Agree on a controlled public line while keeping the sporting disagreement internal.",
+    title: "The media fight is contained",
+    summary:
+      "Both sides step back from public escalation. Hartmann protects authority without humiliating Moretti.",
+    outcome: "COMPROMISE",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2, subject: "Daniel Hartmann" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -1, subject: "Luca Moretti" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "trust", delta: 4, subject: "Moretti → Hartmann" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "resentment", delta: -4, subject: "Moretti → Hartmann" },
+    ],
+  },
+  {
+    id: "back_moretti_publicly",
+    conflictId: "conflict_moretti_media_pressure",
+    label: "Back Moretti publicly",
+    description:
+      "Accept his framing and reassure the star driver in front of the paddock.",
+    title: "Moretti wins the public argument",
+    summary:
+      "Moretti gains momentum and loyalty, but Hartmann gives up some control over the public narrative.",
+    outcome: "NARROW_WIN_A",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 4, subject: "Luca Moretti" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: -2, subject: "Daniel Hartmann" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "loyalty", delta: 6, subject: "Moretti → Hartmann" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -4, subject: "Driver priority precedent" },
+    ],
+  },
+  {
+    id: "discipline_moretti_media",
+    conflictId: "conflict_moretti_media_pressure",
+    label: "Discipline Moretti",
+    description:
+      "Draw a hard line: drivers do not set team policy through the press.",
+    title: "Hartmann reasserts media control",
+    summary:
+      "The team principal wins the institutional argument, but the relationship with Moretti worsens.",
+    outcome: "NARROW_WIN_B",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -4, subject: "Luca Moretti" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 3, subject: "Daniel Hartmann" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "trust", delta: -7, subject: "Moretti → Hartmann" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "resentment", delta: 9, subject: "Moretti → Hartmann" },
+    ],
+  },
+];
+
+export const contractConflictDecisions: ConflictDecisionDefinition[] = [
+  {
+    id: "structured_contract_compromise",
+    conflictId: "conflict_moretti_contract",
+    label: "Negotiate a structured compromise",
+    description:
+      "Offer review points and performance-linked sporting commitments without permanent guarantees.",
+    title: "Contract talks return to structure",
+    summary:
+      "Moretti gets a credible path to sporting priority while Hartmann avoids surrendering permanent authority.",
+    outcome: "COMPROMISE",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2, subject: "Daniel Hartmann" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 1, subject: "Luca Moretti" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "trust", delta: 5, subject: "Moretti → Hartmann" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "applications", delta: 1, subject: "Driver priority precedent" },
+    ],
+  },
+  {
+    id: "grant_contract_guarantees",
+    conflictId: "conflict_moretti_contract",
+    label: "Grant sporting guarantees",
+    description:
+      "Secure Moretti by putting stronger sporting priority into the deal.",
+    title: "Moretti wins contract leverage",
+    summary:
+      "The star driver gains security and power, but Keller and the objective-priority precedent take a hit.",
+    outcome: "NARROW_WIN_A",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 4, subject: "Luca Moretti" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_keller", delta: -3, subject: "Noah Keller" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -10, subject: "Driver priority precedent" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "violations", delta: 1, subject: "Driver priority precedent" },
+    ],
+  },
+  {
+    id: "hold_contract_line",
+    conflictId: "conflict_moretti_contract",
+    label: "Hold the line",
+    description:
+      "Refuse permanent sporting guarantees and make Moretti decide whether he will really leave.",
+    title: "Hartmann protects contract authority",
+    summary:
+      "The team keeps the rules-based position, but Moretti leaves the dispute angrier and less trusting.",
+    outcome: "NARROW_WIN_B",
+    effects: [
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -3, subject: "Luca Moretti" },
+      { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 3, subject: "Daniel Hartmann" },
+      { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "resentment", delta: 8, subject: "Moretti → Hartmann" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: 5, subject: "Driver priority precedent" },
+    ],
+  },
+];
+
 export function assertUniqueDecisionCatalog(
   decisions: ConflictDecisionDefinition[],
 ): void {
@@ -221,6 +329,8 @@ export function assertUniqueDecisionCatalog(
 const decisionCatalog: ConflictDecisionDefinition[] = [
   ...vanguardTechnicalDirectionDecisions,
   ...driverPriorityDecisions,
+  ...mediaConflictDecisions,
+  ...contractConflictDecisions,
 ];
 
 assertUniqueDecisionCatalog(decisionCatalog);
