@@ -5,7 +5,10 @@ import {
   getConflictDecisions,
   type ConflictDecisionDefinition,
 } from "../../src/game/political/decisions";
-import { applyConflictDecision } from "../../src/game/state/game-state";
+import {
+  applyConflictDecision,
+  resolveOutcomeFromPower,
+} from "../../src/game/state/game-state";
 
 function stateWithActiveDriverPriorityConflict() {
   const source = structuredClone(demoState);
@@ -39,7 +42,7 @@ describe("generic conflict resolution", () => {
       (item) => item.id === "conflict_driver_status",
     );
     expect(conflict?.status).toBe("RESOLVED");
-    expect(conflict?.outcome).toBe("NARROW_WIN_A");
+    expect(conflict?.outcome).toBeDefined();
     expect(
       result.nextState.characters.find((item) => item.id === "char_keller")
         ?.dynamic.momentum,
@@ -82,9 +85,60 @@ describe("generic conflict resolution", () => {
         );
 
         expect(conflict?.status).toBe("RESOLVED");
-        expect(conflict?.outcome).toBe(decision.outcome);
+        expect(conflict?.outcome).toBeDefined();
       }
     }
+  });
+
+
+  it("uses live power balance to resolve an attempted faction win", () => {
+    const decision = getConflictDecisions("conflict_driver_status").find(
+      (item) => item.id === "back_keller",
+    );
+    if (!decision) throw new Error("Missing Keller decision");
+
+    const strongA = resolveOutcomeFromPower(decision, {
+      factionA: { strength: 80, successChance: 75, politicalCost: 20 },
+      factionB: { strength: 40, successChance: 25, politicalCost: 40 },
+      delta: 40,
+      escalation: 60,
+      derived: {} as never,
+    });
+    const weakA = resolveOutcomeFromPower(decision, {
+      factionA: { strength: 30, successChance: 30, politicalCost: 60 },
+      factionB: { strength: 75, successChance: 70, politicalCost: 20 },
+      delta: -45,
+      escalation: 75,
+      derived: {} as never,
+    });
+
+    expect(strongA).toBe("DECISIVE_WIN_A");
+    expect(weakA).toBe("BACKFIRE_A");
+  });
+
+  it("lets an attempted compromise fail when the power gap is too large", () => {
+    const decision = getConflictDecisions("conflict_technical_direction").find(
+      (item) => item.id === "offer_compromise",
+    );
+    if (!decision) throw new Error("Missing compromise decision");
+
+    const balanced = resolveOutcomeFromPower(decision, {
+      factionA: { strength: 60, successChance: 53, politicalCost: 30 },
+      factionB: { strength: 55, successChance: 47, politicalCost: 30 },
+      delta: 5,
+      escalation: 60,
+      derived: {} as never,
+    });
+    const dominated = resolveOutcomeFromPower(decision, {
+      factionA: { strength: 85, successChance: 78, politicalCost: 20 },
+      factionB: { strength: 35, successChance: 22, politicalCost: 60 },
+      delta: 50,
+      escalation: 70,
+      derived: {} as never,
+    });
+
+    expect(balanced).toBe("COMPROMISE");
+    expect(dominated).toBe("DECISIVE_WIN_A");
   });
 
   it("rejects resolving a dormant conflict before the season activates it", () => {
