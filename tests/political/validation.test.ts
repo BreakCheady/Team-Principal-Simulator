@@ -10,6 +10,15 @@ describe("political core validation", () => {
     if (result.success) {
       expect(result.data.characters).toHaveLength(8);
       expect(result.errors).toEqual([]);
+      expect(result.data.contracts).toHaveLength(4);
+      expect(
+        result.data.contracts.map((contract) => contract.id),
+      ).toEqual([
+        "contract_moretti_2026",
+        "contract_keller_2026",
+        "contract_chen_2026",
+        "contract_varga_2026",
+      ]);
       expect(
         result.data.characters
           .filter((character) =>
@@ -44,6 +53,24 @@ describe("political core validation", () => {
         "char_salazar",
         "char_bellini",
       ]);
+    }
+  });
+
+  it("rejects contracts with unknown characters", () => {
+    const broken = structuredClone(demoState);
+    broken.contracts[0].characterId = "char_unknown";
+
+    const result = validatePoliticalCoreState(broken);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.errors.some(
+          (error) =>
+            error.code === "UNKNOWN_CHARACTER" &&
+            error.path === "contracts[0].characterId",
+        ),
+      ).toBe(true);
     }
   });
 
