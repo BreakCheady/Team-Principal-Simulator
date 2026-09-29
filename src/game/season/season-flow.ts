@@ -1,5 +1,12 @@
-import type { ConflictCalculationInput } from "@/game/political/conflicts";
-import type { ConflictDecisionResult } from "@/game/political/outcomes";
+import {
+  validateConflictCalculationInput,
+  type ConflictCalculationInput,
+} from "@/game/political/conflicts";
+import { getConflictDecisions } from "@/game/political/decisions";
+import type {
+  ConflictDecisionResult,
+  OutcomeChange,
+} from "@/game/political/outcomes";
 import type { PoliticalCoreState } from "@/game/political/types";
 import { validatePoliticalCoreState } from "@/game/political/validation";
 import { applyConflictDecision } from "@/game/state/game-state";
@@ -21,6 +28,13 @@ export type SeasonHistoryEntry = {
   summary: string;
 };
 
+export type SeasonReview = {
+  decisionId: string;
+  title: string;
+  summary: string;
+  changes: OutcomeChange[];
+};
+
 export type SeasonState = {
   political: PoliticalCoreState;
   steps: SeasonConflictStep[];
@@ -28,6 +42,7 @@ export type SeasonState = {
   currentRound: number;
   phase: SeasonPhase;
   history: SeasonHistoryEntry[];
+  pendingReview: SeasonReview | null;
 };
 
 function requireConflict(state: PoliticalCoreState, conflictId: string) {
@@ -51,7 +66,9 @@ function validateSeasonSteps(
 
   for (const [index, step] of steps.entries()) {
     if (conflictIds.has(step.conflictId)) {
-      throw new Error(`Conflict "${step.conflictId}" appears more than once in the season.`);
+      throw new Error(
+        `Conflict "${step.conflictId}" appears more than once in the season.`,
+      );
     }
     conflictIds.add(step.conflictId);
 
@@ -63,10 +80,18 @@ function validateSeasonSteps(
     }
     previousRound = step.round;
 
+    validateConflictCalculationInput(step.input);
+
     const conflict = requireConflict(state, step.conflictId);
     if (conflict.roundStarted !== step.round) {
       throw new Error(
         `Conflict "${step.conflictId}" starts in round ${conflict.roundStarted}, but the season schedules it for round ${step.round}.`,
+      );
+    }
+
+    if (getConflictDecisions(step.conflictId).length === 0) {
+      throw new Error(
+        `Season conflict "${step.conflictId}" has no decision options.`,
       );
     }
 
@@ -88,7 +113,9 @@ export function createSeasonState(
 ): SeasonState {
   const validation = validatePoliticalCoreState(sourceState);
   if (!validation.success) {
-    throw new Error("Cannot create a season from an invalid political core state.");
+    throw new Error(
+      "Cannot create a season from an invalid political core state.",
+    );
   }
 
   validateSeasonSteps(validation.data, steps);
@@ -100,6 +127,7 @@ export function createSeasonState(
     currentRound: steps[0].round,
     phase: "DECISION",
     history: [],
+    pendingReview: null,
   };
 }
 
@@ -116,7 +144,9 @@ export function resolveSeasonDecision(
   decisionId: string,
 ): { seasonState: SeasonState; result: ConflictDecisionResult } {
   if (state.phase !== "DECISION") {
-    throw new Error("A season decision can only be made during the DECISION phase.");
+    throw new Error(
+      "A season decision can only be made during the DECISION phase.",
+    );
   }
 
   const step = getCurrentSeasonStep(state);
@@ -139,6 +169,12 @@ export function resolveSeasonDecision(
     ...state,
     political: result.nextState,
     phase: "REVIEW",
+    pendingReview: {
+      decisionId: result.decisionId,
+      title: result.title,
+      summary: result.summary,
+      changes: structuredClone(result.changes),
+    },
     history: [
       ...state.history,
       {
@@ -157,11 +193,16 @@ export function resolveSeasonDecision(
 
 export function advanceSeason(state: SeasonState): SeasonState {
   if (state.phase !== "REVIEW") {
-    throw new Error("Season can only advance after reviewing a resolved conflict.");
+    throw new Error(
+      "Season can only advance after reviewing a resolved conflict.",
+    );
   }
 
   const currentStep = getCurrentSeasonStep(state);
-  const currentConflict = requireConflict(state.political, currentStep.conflictId);
+  const currentConflict = requireConflict(
+    state.political,
+    currentStep.conflictId,
+  );
   if (currentConflict.status !== "RESOLVED") {
     throw new Error("Cannot advance while the current conflict is unresolved.");
   }
@@ -173,6 +214,7 @@ export function advanceSeason(state: SeasonState): SeasonState {
     return {
       ...state,
       phase: "COMPLETE",
+      pendingReview: null,
     };
   }
 
@@ -187,7 +229,9 @@ export function advanceSeason(state: SeasonState): SeasonState {
 
   const validation = validatePoliticalCoreState(political);
   if (!validation.success) {
-    throw new Error("Activating the next conflict produced an invalid political state.");
+    throw new Error(
+      "Activating the next conflict produced an invalid political state.",
+    );
   }
 
   return {
@@ -196,5 +240,6 @@ export function advanceSeason(state: SeasonState): SeasonState {
     currentStepIndex: nextIndex,
     currentRound: nextStep.round,
     phase: "DECISION",
+    pendingReview: null,
   };
 }
