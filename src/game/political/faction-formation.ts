@@ -1,12 +1,16 @@
+import { calculateAllianceStrength, clampScore } from "./derived-politics";
 import type {
   Character,
   Conflict,
   Goal,
   PoliticalCoreState,
-  Relationship,
 } from "./types";
 
-export type FactionAlignment = "FACTION_A" | "FACTION_B" | "SWING" | "NEUTRAL";
+export type FactionAlignment =
+  | "FACTION_A"
+  | "FACTION_B"
+  | "SWING"
+  | "NEUTRAL";
 
 export type CharacterAlignment = {
   characterId: string;
@@ -14,6 +18,7 @@ export type CharacterAlignment = {
   scoreA: number;
   scoreB: number;
   margin: number;
+  engagement: number;
 };
 
 export type DynamicFactionFormation = {
@@ -24,197 +29,188 @@ export type DynamicFactionFormation = {
   alignments: CharacterAlignment[];
 };
 
-function clamp(min: number, max: number, value: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
-function relationshipTo(
-  state: PoliticalCoreState,
-  fromCharacterId: string,
-  toCharacterId: string,
-): Relationship | undefined {
-  return state.relationships.find(
-    (relationship) =>
-      relationship.fromCharacterId === fromCharacterId &&
-      relationship.toCharacterId === toCharacterId,
-  );
-}
-
-function relationshipSupport(
-  relationship: Relationship | undefined,
-): number {
-  if (!relationship) return 50;
-
-  return clamp(
-    0,
-    100,
-    relationship.trust * 0.3 +
-      relationship.loyalty * 0.25 +
-      relationship.respect * 0.2 +
-      relationship.dependency * 0.15 +
-      (100 - relationship.resentment) * 0.1,
-  );
-}
-
-function goalsForCharacter(
+function relationshipAffinity(
   state: PoliticalCoreState,
   characterId: string,
-): Goal[] {
-  return state.goals.filter(
-    (goal) => goal.characterId === characterId && goal.active,
+  leaderId: string,
+): number {
+  const relationship = state.relationships.find(
+    (item) =>
+      item.fromCharacterId === characterId &&
+      item.toCharacterId === leaderId,
+  );
+
+  if (!relationship) return 0;
+
+  return clampScore(
+    calculateAllianceStrength(relationship) -
+      relationship.resentment * 0.55,
   );
 }
 
-function goalWeight(goal: Goal): number {
-  return (goal.priority * 0.6 + goal.urgency * 0.4) / 100;
-}
-
-function technicalGoalAffinity(
-  goals: Goal[],
+function roleAffinity(
+  character: Character,
   leader: Character,
-): number {
-  let affinity = 50;
-
-  for (const goal of goals) {
-    const weight = goalWeight(goal);
-
-    if (
-      goal.type === "PROTECT_TECHNICAL_AUTHORITY" ||
-      goal.type === "BUILD_FASTEST_CAR" ||
-      goal.type === "PROTECT_ENGINEERING_TEAM"
-    ) {
-      affinity +=
-        (leader.role === "TECHNICAL_DIRECTOR" ? 35 : -20) * weight;
-    }
-
-    if (goal.type === "INCREASE_TECHNICAL_INFLUENCE") {
-      affinity +=
-        (leader.role === "STAR_DRIVER" || leader.role === "DRIVER"
-          ? 30
-          : -15) * weight;
-    }
-
-    if (
-      goal.type === "PROTECT_TEAM_AUTHORITY" ||
-      goal.type === "MAINTAIN_TEAM_STABILITY"
-    ) {
-      affinity +=
-        (leader.role === "TEAM_PRINCIPAL" ||
-        leader.role === "TECHNICAL_DIRECTOR"
-          ? 10
-          : -5) * weight;
-    }
-  }
-
-  return clamp(0, 100, affinity);
-}
-
-function driverHierarchyGoalAffinity(
-  goals: Goal[],
-  leader: Character,
-): number {
-  let affinity = 50;
-
-  for (const goal of goals) {
-    const weight = goalWeight(goal);
-
-    if (goal.type === "KEEP_EQUAL_STATUS") {
-      affinity +=
-        (leader.role === "SECOND_DRIVER" || leader.role === "DRIVER"
-          ? 35
-          : leader.role === "STAR_DRIVER"
-            ? -30
-            : 0) * weight;
-    }
-
-    if (
-      goal.type === "GAIN_NUMBER_ONE_STATUS" ||
-      goal.type === "WIN_CHAMPIONSHIP"
-    ) {
-      affinity +=
-        (leader.role === "STAR_DRIVER" ? 25 : -5) * weight;
-    }
-
-    if (goal.type === "MAINTAIN_TEAM_STABILITY") {
-      affinity +=
-        (leader.role === "TEAM_PRINCIPAL" ? 15 : 0) * weight;
-    }
-  }
-
-  return clamp(0, 100, affinity);
-}
-
-function personnelGoalAffinity(
-  goals: Goal[],
-  leader: Character,
-): number {
-  let affinity = 50;
-
-  for (const goal of goals) {
-    const weight = goalWeight(goal);
-
-    if (goal.type === "PROTECT_ALLY" && goal.targetCharacterId === leader.id) {
-      affinity += 40 * weight;
-    }
-
-    if (goal.type === "REMOVE_RIVAL" && goal.targetCharacterId === leader.id) {
-      affinity -= 45 * weight;
-    }
-
-    if (
-      goal.type === "PROTECT_TEAM_AUTHORITY" ||
-      goal.type === "MAINTAIN_TEAM_STABILITY"
-    ) {
-      affinity +=
-        (leader.role === "TEAM_PRINCIPAL" ||
-        leader.role === "CEO" ||
-        leader.role === "OWNER_REPRESENTATIVE"
-          ? 20
-          : 0) * weight;
-    }
-  }
-
-  return clamp(0, 100, affinity);
-}
-
-function goalAffinity(
   conflict: Conflict,
-  goals: Goal[],
-  leader: Character,
 ): number {
   switch (conflict.type) {
     case "TECHNICAL_DIRECTION":
-      return technicalGoalAffinity(goals, leader);
+      if (
+        leader.role === "TECHNICAL_DIRECTOR" &&
+        ["TECHNICAL_DIRECTOR", "RACE_ENGINEER"].includes(character.role)
+      ) {
+        return 14;
+      }
+      if (
+        ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER"].includes(leader.role) &&
+        ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER"].includes(character.role)
+      ) {
+        return 6;
+      }
+      return 0;
     case "DRIVER_PRIORITY":
     case "TEAM_ORDER":
-      return driverHierarchyGoalAffinity(goals, leader);
+      return ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER"].includes(leader.role) &&
+        ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER", "RACE_ENGINEER"].includes(
+          character.role,
+        )
+        ? 8
+        : 0;
     case "PERSONNEL_DECISION":
     case "CONTRACT_DISPUTE":
     case "LEADERSHIP_CHALLENGE":
-      return personnelGoalAffinity(goals, leader);
+      return ["TEAM_PRINCIPAL", "CEO", "OWNER_REPRESENTATIVE"].includes(
+        leader.role,
+      )
+        ? 8
+        : 0;
     case "OWNER_INTERVENTION":
     case "SPONSOR_PRESSURE":
     case "MEDIA_CONFLICT":
-      return 50;
-    default: {
-      const exhaustive: never = conflict.type;
-      throw new Error(`Unsupported conflict type: ${exhaustive}`);
-    }
+      return ["CEO", "OWNER_REPRESENTATIVE", "SPONSOR_REPRESENTATIVE"].includes(
+        leader.role,
+      )
+        ? 8
+        : 0;
+    default:
+      return 0;
   }
 }
 
-function institutionalAffinity(
-  character: Character,
-  faction: Conflict["factions"][number],
+function goalAffinityForLeader(
+  goal: Goal,
+  owner: Character,
+  leader: Character,
+  conflict: Conflict,
 ): number {
-  const legitimacySignal = faction.legitimacy - 50;
-  return clamp(
-    0,
-    100,
-    50 +
-      legitimacySignal *
-        (character.personality.ruleRespect / 100) *
-        0.75,
+  if (!goal.active) return 0;
+
+  const weight = (goal.priority * 0.6 + goal.urgency * 0.4) / 100;
+
+  if (goal.targetCharacterId) {
+    if (goal.type === "PROTECT_ALLY" && goal.targetCharacterId === leader.id) {
+      return 30 * weight;
+    }
+    if (goal.type === "REMOVE_RIVAL" && goal.targetCharacterId === leader.id) {
+      return -30 * weight;
+    }
+  }
+
+  switch (conflict.type) {
+    case "TECHNICAL_DIRECTION":
+      if (goal.type === "INCREASE_TECHNICAL_INFLUENCE") {
+        return ["STAR_DRIVER", "SECOND_DRIVER", "DRIVER"].includes(leader.role)
+          ? 28 * weight
+          : -12 * weight;
+      }
+      if (
+        [
+          "PROTECT_TECHNICAL_AUTHORITY",
+          "BUILD_FASTEST_CAR",
+          "PROTECT_ENGINEERING_TEAM",
+        ].includes(goal.type)
+      ) {
+        return leader.role === "TECHNICAL_DIRECTOR"
+          ? 28 * weight
+          : -16 * weight;
+      }
+      if (goal.type === "KEEP_EQUAL_STATUS") {
+        return leader.role === "TECHNICAL_DIRECTOR"
+          ? 8 * weight
+          : -8 * weight;
+      }
+      break;
+    case "DRIVER_PRIORITY":
+    case "TEAM_ORDER":
+      if (goal.type === "KEEP_EQUAL_STATUS") {
+        if (leader.id === owner.id) return 32 * weight;
+        if (leader.role === "STAR_DRIVER") return -24 * weight;
+        if (["SECOND_DRIVER", "DRIVER"].includes(leader.role)) {
+          return 18 * weight;
+        }
+      }
+      if (goal.type === "GAIN_NUMBER_ONE_STATUS") {
+        if (leader.id === owner.id) return 32 * weight;
+        return leader.role === "STAR_DRIVER"
+          ? 16 * weight
+          : -10 * weight;
+      }
+      if (goal.type === "WIN_CHAMPIONSHIP") {
+        return leader.id === owner.id ? 18 * weight : 0;
+      }
+      break;
+    case "LEADERSHIP_CHALLENGE":
+    case "PERSONNEL_DECISION":
+      if (goal.type === "PROTECT_TEAM_AUTHORITY") {
+        return leader.role === "TEAM_PRINCIPAL"
+          ? 26 * weight
+          : -12 * weight;
+      }
+      if (goal.type === "MAINTAIN_TEAM_STABILITY") {
+        return leader.role === "TEAM_PRINCIPAL"
+          ? 12 * weight
+          : -6 * weight;
+      }
+      break;
+    default:
+      break;
+  }
+
+  if (goal.type === "PROTECT_TEAM_AUTHORITY") {
+    return leader.role === "TEAM_PRINCIPAL" ? 12 * weight : 0;
+  }
+
+  if (goal.type === "MAINTAIN_TEAM_STABILITY") {
+    return -Math.max(0, conflict.stakes - 50) * 0.08 * weight;
+  }
+
+  return 0;
+}
+
+function goalAffinity(
+  state: PoliticalCoreState,
+  character: Character,
+  leader: Character,
+  conflict: Conflict,
+): number {
+  return state.goals
+    .filter((goal) => goal.characterId === character.id && goal.active)
+    .reduce(
+      (sum, goal) =>
+        sum + goalAffinityForLeader(goal, character, leader, conflict),
+      0,
+    );
+}
+
+function engagementScore(character: Character, conflict: Conflict): number {
+  const momentum = (character.dynamic.momentum + 25) * 2;
+
+  return clampScore(
+    character.personality.assertiveness * 0.3 +
+      character.personality.ambition * 0.2 +
+      (100 - character.dynamic.politicalFatigue) * 0.2 +
+      momentum * 0.1 +
+      conflict.stakes * 0.2,
   );
 }
 
@@ -223,17 +219,19 @@ export function calculateCharacterAlignment(
   conflict: Conflict,
   characterId: string,
 ): CharacterAlignment {
-  const [factionA, factionB] = conflict.factions;
+  const [baseA, baseB] = conflict.factions;
   const character = state.characters.find((item) => item.id === characterId);
   const leaderA = state.characters.find(
-    (item) => item.id === factionA.leaderCharacterId,
+    (item) => item.id === baseA.leaderCharacterId,
   );
   const leaderB = state.characters.find(
-    (item) => item.id === factionB.leaderCharacterId,
+    (item) => item.id === baseB.leaderCharacterId,
   );
 
   if (!character || !leaderA || !leaderB) {
-    throw new Error("Alignment requires existing character and faction leaders.");
+    throw new Error(
+      "Alignment requires existing character and faction leaders.",
+    );
   }
 
   if (character.id === leaderA.id) {
@@ -243,6 +241,7 @@ export function calculateCharacterAlignment(
       scoreA: 100,
       scoreB: 0,
       margin: 100,
+      engagement: 100,
     };
   }
 
@@ -253,41 +252,35 @@ export function calculateCharacterAlignment(
       scoreA: 0,
       scoreB: 100,
       margin: -100,
+      engagement: 100,
     };
   }
 
-  const goals = goalsForCharacter(state, character.id);
-  const relationshipA = relationshipSupport(
-    relationshipTo(state, character.id, leaderA.id),
+  const scoreA = clampScore(
+    20 +
+      relationshipAffinity(state, character.id, leaderA.id) * 0.55 +
+      goalAffinity(state, character, leaderA, conflict) +
+      roleAffinity(character, leaderA, conflict),
   );
-  const relationshipB = relationshipSupport(
-    relationshipTo(state, character.id, leaderB.id),
+  const scoreB = clampScore(
+    20 +
+      relationshipAffinity(state, character.id, leaderB.id) * 0.55 +
+      goalAffinity(state, character, leaderB, conflict) +
+      roleAffinity(character, leaderB, conflict),
   );
-  const goalA = goalAffinity(conflict, goals, leaderA);
-  const goalB = goalAffinity(conflict, goals, leaderB);
-  const institutionA = institutionalAffinity(character, factionA);
-  const institutionB = institutionalAffinity(character, factionB);
-
-  const scoreA =
-    relationshipA * 0.5 +
-    goalA * 0.3 +
-    institutionA * 0.2;
-  const scoreB =
-    relationshipB * 0.5 +
-    goalB * 0.3 +
-    institutionB * 0.2;
-
   const margin = scoreA - scoreB;
-  const absoluteMargin = Math.abs(margin);
-  const maxScore = Math.max(scoreA, scoreB);
+  const strongest = Math.max(scoreA, scoreB);
+  const engagement = engagementScore(character, conflict);
 
   let alignment: FactionAlignment;
-  if (maxScore < 47) {
+  if (engagement < 42 || strongest < 32) {
     alignment = "NEUTRAL";
-  } else if (absoluteMargin >= 15) {
-    alignment = margin > 0 ? "FACTION_A" : "FACTION_B";
-  } else if (absoluteMargin >= 5) {
+  } else if (Math.abs(margin) <= 10 && strongest >= 38) {
     alignment = "SWING";
+  } else if (margin >= 14) {
+    alignment = "FACTION_A";
+  } else if (margin <= -14) {
+    alignment = "FACTION_B";
   } else {
     alignment = "NEUTRAL";
   }
@@ -298,6 +291,7 @@ export function calculateCharacterAlignment(
     scoreA,
     scoreB,
     margin,
+    engagement,
   };
 }
 
