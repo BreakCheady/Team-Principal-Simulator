@@ -28,6 +28,7 @@ export function validatePoliticalCoreReferences(
   state.leverages.forEach((item, index) => register(item.id, `leverages[${index}].id`));
   state.precedents.forEach((item, index) => register(item.id, `precedents[${index}].id`));
   state.conflicts.forEach((item, index) => register(item.id, `conflicts[${index}].id`));
+  state.contracts.forEach((item, index) => register(item.id, `contracts[${index}].id`));
 
   const requireCharacter = (id: string, path: string) => {
     if (!characterIds.has(id)) {
@@ -97,6 +98,36 @@ export function validatePoliticalCoreReferences(
           path: `characters[${index}].precedentIds[${idIndex}]`,
           code: "UNKNOWN_PRECEDENT",
           message: `Unknown precedent "${id}".`,
+        });
+      }
+    });
+  });
+
+
+  state.contracts.forEach((contract, index) => {
+    requireCharacter(contract.characterId, `contracts[${index}].characterId`);
+
+    const optionIds = new Set(contract.options.map((item) => item.id));
+    const releaseClauseIds = new Set(
+      contract.releaseClauses.map((item) => item.id),
+    );
+
+    contract.performanceTriggers.forEach((trigger, triggerIndex) => {
+      if (trigger.targetOptionId && !optionIds.has(trigger.targetOptionId)) {
+        errors.push({
+          path: `contracts[${index}].performanceTriggers[${triggerIndex}].targetOptionId`,
+          code: "UNKNOWN_CONTRACT_OPTION",
+          message: `Unknown contract option "${trigger.targetOptionId}".`,
+        });
+      }
+      if (
+        trigger.targetReleaseClauseId &&
+        !releaseClauseIds.has(trigger.targetReleaseClauseId)
+      ) {
+        errors.push({
+          path: `contracts[${index}].performanceTriggers[${triggerIndex}].targetReleaseClauseId`,
+          code: "UNKNOWN_RELEASE_CLAUSE",
+          message: `Unknown release clause "${trigger.targetReleaseClauseId}".`,
         });
       }
     });
