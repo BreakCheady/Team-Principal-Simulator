@@ -1,4 +1,4 @@
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export type SaveEnvelope<T> = {
   version: typeof SAVE_VERSION;
