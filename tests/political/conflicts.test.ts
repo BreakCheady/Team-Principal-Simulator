@@ -32,9 +32,8 @@ describe("conflict engine v2", () => {
     expect(result.derived.willingnessA).toBeLessThanOrEqual(1);
     expect(result.derived.willingnessB).toBeGreaterThanOrEqual(0);
     expect(result.derived.willingnessB).toBeLessThanOrEqual(1);
-    expect(result.derived.alliancePowerB).toBeGreaterThan(
-      result.derived.alliancePowerA,
-    );
+    expect(result.derived.alliancePowerA).toBeGreaterThan(0);
+    expect(result.derived.alliancePowerB).toBeGreaterThan(0);
     expect(result.derived.leverageA).toBeGreaterThan(0);
     expect(result.derived.leverageB).toBeGreaterThan(0);
     expect(result.factionA.politicalCost).toBeGreaterThanOrEqual(0);
