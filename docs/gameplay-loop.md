@@ -5,9 +5,17 @@ The browser UI never mutates political state directly.
 ```text
 Season conflict
     ↓
-Player decision
+Current political source state
     ↓
-Decision definition
+Derived conflict factors
+    ├── Willingness to act
+    ├── Alliance power
+    ├── Faction momentum
+    ├── Active leverage
+    ├── Cross-faction resentment
+    └── Political cost
+    ↓
+Player decision
     ↓
 Generic effect resolver
     ↓
@@ -17,18 +25,46 @@ Consequence review
     ↓
 Next scheduled conflict activates
     ↓
-Same changed political state continues
+Changed source state produces a changed political calculation
 ```
+
+## Source state vs derived state
+
+The Political Core stores durable source facts: characters, relationships, goals,
+leverage, precedents, conflicts, and resolved outcomes.
+
+Conflict Engine v2 derives the values that should react to those facts at runtime:
+
+- **Willingness to act** uses assertiveness, ambition, active goal pressure,
+  momentum, political fatigue, and conflict stakes.
+- **Alliance power** uses directional trust, loyalty, dependency, respect, and
+  the ally's contextual power with diminishing returns.
+- **Faction momentum** is derived from the current momentum of faction members.
+- **Leverage** comes only from active, usable leverage owned by faction members.
+- **Cross-faction resentment** is derived from directional relationships between
+  opposing faction members.
+- **Political cost** reacts to legitimacy, resentment, public exposure,
+  relevant precedent strength, and instability.
+
+Scenario calculation inputs are optional overrides for authored exceptions and
+testing. The normal season prototype leaves them empty and relies on the live
+political state.
 
 ## Decision content vs engine
 
-Conflict-specific names and entity IDs live in declarative decision definitions. The resolver only understands generic effect types such as relationship deltas, momentum deltas, goal progress changes, and precedent changes.
+Conflict-specific names and entity IDs live in declarative decision definitions.
+The resolver only understands generic effect types such as relationship deltas,
+momentum deltas, goal progress changes, and precedent changes.
 
-Adding a new conflict therefore does not require a new resolver function. A conflict can provide its own decision definitions and reuse the same state transition engine.
+Adding a new conflict therefore does not require a new resolver function. A
+conflict can provide its own decision definitions and reuse the same state
+transition engine.
 
 ## Season flow
 
-A season is an ordered list of conflict steps. Each step defines a conflict ID, its round, and calculation input. Only the current conflict is active. Future conflicts remain dormant until the previous result has been reviewed.
+A season is an ordered list of conflict steps. Each step defines a conflict ID,
+its round, and optional scenario overrides. Only the current conflict is active.
+Future conflicts remain dormant until the previous result has been reviewed.
 
 The season uses three phases:
 
@@ -36,4 +72,7 @@ The season uses three phases:
 - `REVIEW`: the resolved result and its political changes remain visible.
 - `COMPLETE`: all scheduled conflicts have been resolved.
 
-Advancing from `REVIEW` activates the next dormant conflict without resetting the political state. Relationships, momentum, goals, precedents, and previous conflict outcomes therefore carry forward through the season.
+Advancing from `REVIEW` activates the next dormant conflict without resetting
+the political state. Relationships, momentum, goals, precedents, leverage, and
+previous conflict outcomes therefore carry forward and affect later conflict
+calculations.
