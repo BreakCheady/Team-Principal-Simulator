@@ -42,6 +42,27 @@ export function calculateSuccessChance(strengthA: number, strengthB: number): nu
   return clamp(10, 90, 50 + 0.6 * (strengthA - strengthB));
 }
 
+export function calculateEscalation(input: {
+  strengthA: number;
+  strengthB: number;
+  resentment: number;
+  stakes: number;
+  publicExposure: number;
+  leverageUsed: number;
+}): number {
+  const closeness = clamp(0, 100, 100 - Math.abs(input.strengthA - input.strengthB));
+
+  return clamp(
+    0,
+    100,
+    closeness * 0.25 +
+      input.resentment * 0.25 +
+      input.stakes * 0.2 +
+      input.publicExposure * 0.15 +
+      input.leverageUsed * 0.15,
+  );
+}
+
 export function calculateConflict(
   state: PoliticalCoreState,
   conflict: Conflict,
@@ -88,16 +109,14 @@ export function calculateConflict(
 
   const successChanceA = calculateSuccessChance(strengthA, strengthB);
   const successChanceB = 100 - successChanceA;
-  const closeness = clamp(0, 100, 100 - Math.abs(strengthA - strengthB));
-  const escalation = clamp(
-    0,
-    100,
-    closeness * 0.25 +
-      input.resentment * 0.25 +
-      conflict.stakes * 0.2 +
-      conflict.publicExposure * 0.15 +
-      input.leverageUsed * 0.15,
-  );
+  const escalation = calculateEscalation({
+    strengthA,
+    strengthB,
+    resentment: input.resentment,
+    stakes: conflict.stakes,
+    publicExposure: conflict.publicExposure,
+    leverageUsed: input.leverageUsed,
+  });
 
   return {
     factionA: { strength: strengthA, successChance: successChanceA, politicalCost: input.politicalCostA },
