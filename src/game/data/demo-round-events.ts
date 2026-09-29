@@ -168,5 +168,57 @@ export const demoRoundEvents: RoundEventDefinition[] = [
       },
     ],
 
+  },,
+  {
+    id: "event_varga_strategy_review",
+    type: "SPORTING_EVENT",
+    title: "Varga challenges race-control interference",
+    summary:
+      "Elena Varga warns that repeated ad-hoc intervention from above is undermining the sporting chain of command.",
+    round: 21,
+    effects: [
+      { type: "GOAL_URGENCY_DELTA", goalId: "goal_varga_sporting", delta: 8 },
+      { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 },
+      { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_varga_sporting", delta: 4 }
+    ],
   },
+  {
+    id: "event_laurent_owner_review",
+    type: "OWNER_EVENT",
+    title: "Laurent demands a governance review",
+    summary:
+      "Sophie Laurent wants clearer accountability after several public and sporting disputes begin to reach ownership.",
+    round: 22,
+    effects: [
+      { type: "GOAL_URGENCY_DELTA", goalId: "goal_laurent_authority", delta: 8 },
+      { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 3 },
+      { type: "CHARACTER_FATIGUE_DELTA", characterId: "char_hartmann", delta: 4 }
+    ],
+  },
+  {
+    id: "event_salazar_activation_push",
+    type: "SPONSOR_EVENT",
+    title: "Salazar pushes for a Moretti-led sponsor campaign",
+    summary:
+      "Victor Salazar wants the team to commit Moretti to a major commercial activation while the driver's political status remains unsettled.",
+    round: 23,
+    effects: [
+      { type: "GOAL_URGENCY_DELTA", goalId: "goal_salazar_moretti", delta: 9 },
+      { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 },
+      { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "dependency", delta: 5 }
+    ],
+  },
+  {
+    id: "event_bellini_staff_fracture",
+    type: "STAFF_EVENT",
+    title: "Bellini questions who protects the race team",
+    summary:
+      "Marco Bellini says engineers and race staff are being pulled into driver and management politics without clear protection from leadership.",
+    round: 24,
+    effects: [
+      { type: "GOAL_URGENCY_DELTA", goalId: "goal_bellini_engineering", delta: 10 },
+      { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
+      { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 }
+    ],
+  }
 ];
