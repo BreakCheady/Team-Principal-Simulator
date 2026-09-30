@@ -272,5 +272,14 @@ describe("contract negotiations", () => {
     );
 
     expect(flow.negotiations[0].status).toBe("COUNTERED");
+    expect(
+      getOpenIssues(flow).map((issue) => issue.definitionId),
+    ).toEqual(
+      expect.arrayContaining([
+        "issue_contract_hard_owner_reaction",
+        "issue_contract_hard_sponsor_reaction",
+        "issue_contract_hard_staff_reaction",
+      ]),
+    );
   });
 });
