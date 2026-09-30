@@ -210,6 +210,7 @@ export function advanceRoundFlow(
       },
     ],
     issues: [...aged.issues, ...createdIssues],
+    negotiations: state.negotiations,
     complete: nextRoundIndex >= state.scheduledRounds.length,
   };
 }
