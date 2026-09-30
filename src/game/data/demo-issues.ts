@@ -646,5 +646,132 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         ],
       }
     ],
+  },
+  {
+    id: "issue_contract_negotiation_stall",
+    title: "Contract talks have stalled",
+    summary:
+      "A failed renewal process is now becoming a wider management problem. Ownership wants clarity before uncertainty spreads through the paddock.",
+    category: "CONTRACT",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 54,
+    escalationThreshold: 76,
+    actions: [
+      {
+        id: "reopen_contract_channel",
+        label: "Reopen the channel",
+        description:
+          "Give the negotiation another route without immediately improving the financial package.",
+        escalationDelta: -10,
+        effects: [
+          {
+            type: "RELATIONSHIP_DELTA",
+            fromCharacterId: "char_laurent",
+            toCharacterId: "char_hartmann",
+            metric: "trust",
+            delta: 3
+          }
+        ],
+      },
+      {
+        id: "hold_contract_line_publicly",
+        label: "Hold the line",
+        description:
+          "Signal that no individual can force the team into a deal, accepting higher exit risk.",
+        escalationDelta: 9,
+        effects: [
+          {
+            type: "CHARACTER_MOMENTUM_DELTA",
+            characterId: "char_hartmann",
+            delta: 2
+          }
+        ],
+        followUpIssueDefinitionId: "issue_owner_contract_risk",
+      },
+    ],
+  },
+  {
+    id: "issue_contract_release_precedent",
+    title: "A new release clause changes the contract precedent",
+    summary:
+      "The renewal is signed, but ownership now worries that giving senior figures an easier exit route will shape every future negotiation.",
+    category: "CONTRACT",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 40,
+    escalationThreshold: 72,
+    actions: [
+      {
+        id: "treat_release_as_exception",
+        label: "Define it as a one-off exception",
+        description:
+          "Document the clause as a specific retention concession rather than a new team standard.",
+        escalationDelta: -12,
+        effects: [
+          {
+            type: "RELATIONSHIP_DELTA",
+            fromCharacterId: "char_laurent",
+            toCharacterId: "char_hartmann",
+            metric: "trust",
+            delta: 4
+          }
+        ],
+      },
+      {
+        id: "accept_release_precedent",
+        label: "Accept the new precedent",
+        description:
+          "Use flexible exit clauses as a deliberate retention tool, even if future negotiations become harder.",
+        escalationDelta: 4,
+        effects: [
+          {
+            type: "LEVERAGE_STRENGTH_DELTA",
+            leverageId: "lev_laurent_owner",
+            delta: 4
+          }
+        ],
+      },
+    ],
+  },
+  {
+    id: "issue_owner_contract_risk",
+    title: "Ownership questions the risk of losing key personnel",
+    summary:
+      "The hard contract line protects authority, but Laurent now wants a plan for the sporting and commercial cost of a possible departure.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 46,
+    escalationThreshold: 74,
+    actions: [
+      {
+        id: "prepare_replacement_plan",
+        label: "Prepare a replacement plan",
+        description:
+          "Reduce dependency by planning alternatives rather than weakening the negotiating position.",
+        escalationDelta: -11,
+        effects: [
+          {
+            type: "RELATIONSHIP_DELTA",
+            fromCharacterId: "char_laurent",
+            toCharacterId: "char_hartmann",
+            metric: "trust",
+            delta: 4
+          }
+        ],
+      },
+      {
+        id: "authorize_better_contract_terms",
+        label: "Authorize better terms",
+        description:
+          "Give Hartmann more financial room for the next negotiating round.",
+        escalationDelta: -14,
+        effects: [
+          {
+            type: "LEVERAGE_STRENGTH_DELTA",
+            leverageId: "lev_laurent_owner",
+            delta: -3
+          }
+        ],
+      },
+    ],
   }
 ];
