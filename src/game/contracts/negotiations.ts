@@ -462,6 +462,7 @@ export function submitNegotiationOffer(
             : []),
           ...(posture === "FIRM"
             ? [
+                "issue_contract_hard_owner_reaction",
                 "issue_contract_hard_sponsor_reaction",
                 "issue_contract_hard_staff_reaction",
               ]
@@ -469,6 +470,7 @@ export function submitNegotiationOffer(
           ...(posture === "GENEROUS"
             ? [
                 "issue_contract_generous_owner_reaction",
+                "issue_contract_generous_sponsor_reaction",
                 "issue_contract_generous_staff_reaction",
               ]
             : []),
