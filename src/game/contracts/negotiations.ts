@@ -168,7 +168,7 @@ export function buildCharacterDemand(
   const desiredExtension =
     character.career.contractSecurity < 55 ? 36 : 24;
   const releaseClauseMillions =
-    character.career.transferInterest >= 45
+    character.career.transferInterest >= 40
       ? roundMoney(Math.max(12, contract.salaryMillionsPerSeason * 1.25))
       : null;
 
@@ -429,7 +429,7 @@ export function submitNegotiationOffer(
     },
   ];
 
-  if (acceptanceScore >= 68) {
+  if (acceptanceScore >= 78) {
     return {
       political: applyAcceptedRenewal(
         sourceState,
@@ -452,7 +452,7 @@ export function submitNegotiationOffer(
     };
   }
 
-  if (session.turn >= 3 && acceptanceScore < 45) {
+  if (session.turn >= 3 && acceptanceScore < 78) {
     return {
       political: structuredClone(sourceState),
       session: {
