@@ -187,21 +187,16 @@ describe("issue engine", () => {
       ).toBe(true);
 
       const escalationProfiles = new Set(
-        definition.actions.map((action) =>
-          Math.sign(action.escalationDelta),
-        ),
+        definition.actions.map((action) => action.escalationDelta),
       );
-      expect(escalationProfiles.size).toBeGreaterThan(1);
+      expect(escalationProfiles.size).toBe(3);
 
       const effectProfiles = new Set(
         definition.actions.map((action) =>
-          action.effects
-            .map((effect) => effect.type)
-            .sort()
-            .join("|"),
+          JSON.stringify(action.effects),
         ),
       );
-      expect(effectProfiles.size).toBeGreaterThan(1);
+      expect(effectProfiles.size).toBe(3);
     }
   });
 
