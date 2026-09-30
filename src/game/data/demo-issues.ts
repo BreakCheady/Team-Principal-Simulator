@@ -794,6 +794,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: -2 }
         ],
+              consequenceHints: [
+          "Owner trust rises",
+          "Owner leverage falls",
+          "Retention risk becomes manageable",
+        ],
       },
       {
         id: "ask_owner_for_more_budget",
@@ -805,6 +810,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 },
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "dependency", delta: 5 }
         ],
+              consequenceHints: [
+          "More room for the next deal",
+          "Owner leverage rises",
+          "Hartmann becomes more dependent on ownership",
+        ],
+      }
+    ,
+      {
+        id: "reject_owner_retention_pressure",
+        label: "Reject the retention panic",
+        description:
+          "Keep the board out of the negotiation and insist that the team can absorb a departure if necessary.",
+        escalationDelta: 8,
+        effects: [
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 }
+        ],
+        consequenceHints: ["Hartmann authority rises", "Owner resentment rises", "No extra retention resources"],
       }
     ],
   },
@@ -828,6 +851,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: -3 }
         ],
+              consequenceHints: [
+          "Sponsor trust rises",
+          "Sponsor leverage falls",
+          "Commercial continuity is protected",
+        ],
       },
       {
         id: "use_sponsor_to_reopen_talks",
@@ -839,6 +867,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 6 },
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "dependency", delta: 5 }
         ],
+              consequenceHints: [
+          "Talks gain commercial pressure",
+          "Sponsor leverage rises sharply",
+          "Hartmann becomes more dependent on Salazar",
+        ],
+      }
+    ,
+      {
+        id: "firewall_sponsor_from_contracts",
+        label: "Keep contracts separate from sponsorship",
+        description:
+          "Draw a hard boundary between commercial value and employment negotiations.",
+        escalationDelta: 5,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 1 }
+        ],
+        consequenceHints: ["Contract authority is protected", "Sponsor resentment rises", "Commercial help is unavailable"],
       }
     ],
   },
@@ -862,6 +908,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: -2 }
         ],
+              consequenceHints: [
+          "Staff trust rises",
+          "Staff leverage falls",
+          "Rumour pressure is contained",
+        ],
       },
       {
         id: "keep_failed_talks_private",
@@ -872,6 +923,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 }
         ],
+              consequenceHints: [
+          "Management secrecy is preserved",
+          "Staff resentment rises",
+          "Rumours remain uncontrolled",
+        ],
+      }
+    ,
+      {
+        id: "give_staff_continuity_voice",
+        label: "Give staff a continuity voice",
+        description:
+          "Bring Bellini into succession planning so the garage has representation in the transition.",
+        escalationDelta: -8,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 5 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 }
+        ],
+        consequenceHints: ["Staff loyalty rises", "Staff leverage rises", "Continuity planning becomes more collaborative"],
       }
     ],
   },
@@ -894,6 +963,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "respect", delta: 5 }
         ],
+              consequenceHints: [
+          "Owner respect rises",
+          "Hartmann keeps negotiating autonomy",
+          "Retention risk remains accepted",
+        ],
       },
       {
         id: "add_owner_review_gate",
@@ -904,6 +978,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 }
         ],
+              consequenceHints: [
+          "Owner concern drops sharply",
+          "Owner leverage rises",
+          "Future negotiations lose autonomy",
+        ],
+      }
+    ,
+      {
+        id: "offer_owner_risk_reporting",
+        label: "Offer risk reporting, not veto power",
+        description:
+          "Give Laurent earlier information and scenario planning without granting formal approval rights.",
+        escalationDelta: -7,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 1 }
+        ],
+        consequenceHints: ["Owner trust rises moderately", "Hartmann keeps final authority", "Some board concern remains"],
       }
     ],
   },
@@ -926,6 +1018,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 5 }
         ],
+              consequenceHints: [
+          "Sponsor trust rises",
+          "Commercial relationship is insulated",
+          "No new sponsor authority",
+        ],
       },
       {
         id: "tell_sponsor_to_stay_out",
@@ -937,6 +1034,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 },
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 4 }
         ],
+              consequenceHints: [
+          "Contract authority stays clean",
+          "Sponsor resentment rises",
+          "Sponsor pressure strengthens",
+        ],
+      }
+    ,
+      {
+        id: "trade_activation_access",
+        label: "Trade activation access for support",
+        description:
+          "Give Salazar more commercial access in return for staying out of future contract negotiations.",
+        escalationDelta: -8,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 }
+        ],
+        consequenceHints: ["Sponsor loyalty rises", "Sponsor leverage rises", "Contract process remains formally independent"],
       }
     ],
   },
@@ -959,6 +1074,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
         ],
+              consequenceHints: [
+          "Staff trust rises",
+          "Hard-line precedent is narrowed",
+          "No extra staff bargaining power",
+        ],
       },
       {
         id: "embrace_tough_contract_culture",
@@ -970,6 +1090,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 5 }
         ],
+              consequenceHints: [
+          "Management authority is reinforced",
+          "Staff leverage rises defensively",
+          "Staff resentment rises",
+        ],
+      }
+    ,
+      {
+        id: "create_staff_contract_charter",
+        label: "Create a staff contract charter",
+        description:
+          "Set minimum process standards for future staff renewals without promising richer deals.",
+        escalationDelta: -7,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 3 }
+        ],
+        consequenceHints: ["Staff loyalty rises", "Staff gains procedural leverage", "Future negotiations become more structured"],
       }
     ],
   },
@@ -992,6 +1130,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
         ],
+              consequenceHints: [
+          "Owner trust rises",
+          "Cost precedent is contained",
+          "Hartmann keeps budget autonomy",
+        ],
       },
       {
         id: "accept_higher_retention_costs",
@@ -1002,6 +1145,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 5 }
         ],
+              consequenceHints: [
+          "Retention philosophy becomes more generous",
+          "Owner leverage rises",
+          "Future salary pressure increases",
+        ],
+      }
+    ,
+      {
+        id: "tie_generosity_to_performance",
+        label: "Tie future generosity to performance",
+        description:
+          "Keep this deal intact but require stronger performance triggers on future premium renewals.",
+        escalationDelta: -7,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "respect", delta: 4 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 1 }
+        ],
+        consequenceHints: ["Owner respect rises", "Future premium deals need measurable returns", "Current contract remains untouched"],
       }
     ],
   },
@@ -1025,6 +1186,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: -2 }
         ],
+              consequenceHints: [
+          "Sponsor trust rises",
+          "Sponsor leverage falls",
+          "Sporting independence stays protected",
+        ],
       },
       {
         id: "expand_sponsor_access",
@@ -1036,6 +1202,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 },
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "loyalty", delta: 5 }
         ],
+              consequenceHints: [
+          "Sponsor loyalty rises strongly",
+          "Sponsor leverage rises",
+          "Commercial commitments expand",
+        ],
+      }
+    ,
+      {
+        id: "sell_campaign_rights_only",
+        label: "Sell campaign rights, not influence",
+        description:
+          "Offer more content and appearances while explicitly excluding sponsor input on sporting status.",
+        escalationDelta: -8,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 2 }
+        ],
+        consequenceHints: ["Sponsor trust rises", "Commercial leverage rises slightly", "Sporting authority remains with the team"],
       }
     ],
   },
@@ -1058,6 +1242,11 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
         ],
+              consequenceHints: [
+          "Staff trust rises",
+          "Pay precedent is narrowed",
+          "No wider compensation review",
+        ],
       },
       {
         id: "open_staff_reward_review",
@@ -1069,6 +1258,24 @@ export const demoIssueDefinitions: IssueDefinition[] = [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 }
         ],
+              consequenceHints: [
+          "Staff loyalty rises",
+          "Staff leverage rises",
+          "Wider pay expectations increase",
+        ],
+      }
+    ,
+      {
+        id: "freeze_wider_pay_comparisons",
+        label: "Freeze wider pay comparisons",
+        description:
+          "Treat the renewal as unrelated to staff compensation and refuse to reopen the wider reward structure.",
+        escalationDelta: 6,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 },
+          { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 1 }
+        ],
+        consequenceHints: ["Hartmann holds the cost line", "Staff resentment rises", "No additional staff bargaining power"],
       }
     ],
   }
