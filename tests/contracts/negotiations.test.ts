@@ -113,7 +113,7 @@ describe("contract negotiations", () => {
         (clause) => clause.id === "release_char_keller_renewal",
       ),
     ).toBe(true);
-    expect(accepted.session.followUpIssueDefinitionId).toBe(
+    expect(accepted.session.followUpIssueDefinitionIds).toContain(
       "issue_contract_release_precedent",
     );
   });
@@ -154,8 +154,13 @@ describe("contract negotiations", () => {
     expect(first.session.status).toBe("COUNTERED");
     expect(second.session.status).toBe("COUNTERED");
     expect(third.session.status).toBe("STALLED");
-    expect(third.session.followUpIssueDefinitionId).toBe(
-      "issue_contract_negotiation_stall",
+    expect(third.session.followUpIssueDefinitionIds).toEqual(
+      expect.arrayContaining([
+        "issue_contract_negotiation_stall",
+        "issue_contract_failed_owner_reaction",
+        "issue_contract_failed_sponsor_reaction",
+        "issue_contract_failed_staff_reaction",
+      ]),
     );
   });
 
@@ -178,6 +183,81 @@ describe("contract negotiations", () => {
           issue.parentIssueId === negotiation.id,
       ),
     ).toBe(true);
+  });
+
+
+  it("creates owner sponsor and staff fallout for an accepted hard deal", () => {
+    const session = startContractNegotiation(
+      demoState,
+      "contract_moretti_2026",
+      24,
+    );
+    const accepted = submitNegotiationOffer(
+      demoState,
+      session,
+      session.characterDemand,
+      24,
+      "FIRM",
+    );
+
+    expect(accepted.session.status).toBe("ACCEPTED");
+    expect(accepted.session.followUpIssueDefinitionIds).toEqual(
+      expect.arrayContaining([
+        "issue_contract_hard_owner_reaction",
+        "issue_contract_hard_sponsor_reaction",
+        "issue_contract_hard_staff_reaction",
+      ]),
+    );
+  });
+
+  it("creates owner sponsor and staff fallout for an accepted generous deal", () => {
+    const session = startContractNegotiation(
+      demoState,
+      "contract_moretti_2026",
+      24,
+    );
+    const offer = createNegotiationOffer(session, "GENEROUS");
+    const accepted = submitNegotiationOffer(
+      demoState,
+      session,
+      offer,
+      24,
+      "GENEROUS",
+    );
+
+    expect(accepted.session.status).toBe("ACCEPTED");
+    expect(accepted.session.followUpIssueDefinitionIds).toEqual(
+      expect.arrayContaining([
+        "issue_contract_generous_owner_reaction",
+        "issue_contract_generous_sponsor_reaction",
+        "issue_contract_generous_staff_reaction",
+      ]),
+    );
+  });
+
+  it("adds all failed-talk power-center reactions to the inbox", () => {
+    let flow = createRoundFlowState(demoState, demoRoundEvents, 24);
+    flow = startRoundContractNegotiation(flow, "contract_moretti_2026");
+    const negotiation = flow.negotiations[0];
+
+    flow = rejectRoundContractNegotiation(
+      flow,
+      negotiation.id,
+      demoIssueDefinitions,
+    );
+
+    const openDefinitions = getOpenIssues(flow).map(
+      (issue) => issue.definitionId,
+    );
+
+    expect(openDefinitions).toEqual(
+      expect.arrayContaining([
+        "issue_contract_negotiation_stall",
+        "issue_contract_failed_owner_reaction",
+        "issue_contract_failed_sponsor_reaction",
+        "issue_contract_failed_staff_reaction",
+      ]),
+    );
   });
 
   it("supports a playable team offer through the round-flow facade", () => {
