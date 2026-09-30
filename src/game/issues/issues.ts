@@ -39,6 +39,7 @@ export type IssueActionDefinition = {
   description: string;
   escalationDelta: number;
   effects: IssueEffect[];
+  consequenceHints?: string[];
   followUpIssueDefinitionId?: string;
 };
 
