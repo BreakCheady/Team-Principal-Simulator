@@ -773,5 +773,303 @@ export const demoIssueDefinitions: IssueDefinition[] = [
         ],
       },
     ],
+  },
+  {
+    id: "issue_contract_failed_owner_reaction",
+    title: "Ownership demands a retention contingency",
+    summary:
+      "Failed contract talks expose the risk of losing a key figure. Laurent wants a replacement and succession plan before the uncertainty spreads.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 50,
+    escalationThreshold: 75,
+    actions: [
+      {
+        id: "build_retention_contingency",
+        label: "Build a contingency plan",
+        description:
+          "Prepare replacement options and define the sporting cost of losing the negotiating party.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: -2 }
+        ],
+      },
+      {
+        id: "ask_owner_for_more_budget",
+        label: "Ask for more budget",
+        description:
+          "Reopen the financial ceiling and accept greater owner involvement in the next negotiating round.",
+        escalationDelta: -8,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "dependency", delta: 5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_failed_sponsor_reaction",
+    title: "Sponsor confidence drops after failed talks",
+    summary:
+      "Salazar worries that losing a high-profile figure will weaken future campaigns and wants commercial reassurance.",
+    category: "SPONSOR",
+    initiatorCharacterId: "char_salazar",
+    baseEscalation: 48,
+    escalationThreshold: 73,
+    actions: [
+      {
+        id: "reassure_sponsor_continuity",
+        label: "Reassure sponsor continuity",
+        description:
+          "Commit to a replacement marketing plan without promising a richer contract.",
+        escalationDelta: -11,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: -3 }
+        ],
+      },
+      {
+        id: "use_sponsor_to_reopen_talks",
+        label: "Use sponsor pressure to reopen talks",
+        description:
+          "Invite Salazar into the retention effort, giving commercial interests more influence over the negotiation.",
+        escalationDelta: -6,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 6 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "dependency", delta: 5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_failed_staff_reaction",
+    title: "Staff read the failed talks as instability",
+    summary:
+      "Bellini says the garage now expects wider personnel changes and wants clarity before uncertainty affects day-to-day work.",
+    category: "STAFF",
+    initiatorCharacterId: "char_bellini",
+    baseEscalation: 44,
+    escalationThreshold: 71,
+    actions: [
+      {
+        id: "brief_staff_on_continuity",
+        label: "Brief the staff",
+        description:
+          "Explain the succession plan and protect the garage from contract speculation.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: -2 }
+        ],
+      },
+      {
+        id: "keep_failed_talks_private",
+        label: "Keep the details private",
+        description:
+          "Limit information internally and accept that staff may fill the gaps themselves.",
+        escalationDelta: 7,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_hard_owner_reaction",
+    title: "Ownership backs the discipline but questions the risk",
+    summary:
+      "A hard renewal protects cost control and authority, but Laurent wants to know whether Hartmann has pushed too close to losing a key asset.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 38,
+    escalationThreshold: 70,
+    actions: [
+      {
+        id: "defend_hard_contract_policy",
+        label: "Defend the hard line",
+        description:
+          "Frame the deal as proof that the team can retain talent without surrendering financial discipline.",
+        escalationDelta: -9,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "respect", delta: 5 }
+        ],
+      },
+      {
+        id: "add_owner_review_gate",
+        label: "Add owner review for future hard offers",
+        description:
+          "Keep the policy but give Laurent earlier oversight when a key renewal becomes confrontational.",
+        escalationDelta: -13,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_hard_sponsor_reaction",
+    title: "Sponsor worries the hard deal damages the relationship",
+    summary:
+      "Salazar sees the renewal as financially disciplined but fears the negotiating tone has weakened the star relationship behind future campaigns.",
+    category: "SPONSOR",
+    initiatorCharacterId: "char_salazar",
+    baseEscalation: 46,
+    escalationThreshold: 72,
+    actions: [
+      {
+        id: "separate_sponsor_relationship",
+        label: "Repair the commercial relationship",
+        description:
+          "Give the sponsor direct reassurance that a hard contract process does not mean reduced commercial commitment.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 5 }
+        ],
+      },
+      {
+        id: "tell_sponsor_to_stay_out",
+        label: "Keep the sponsor out",
+        description:
+          "Protect contract authority and accept a colder commercial relationship.",
+        escalationDelta: 8,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 4 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_hard_staff_reaction",
+    title: "Staff see a tougher contract culture",
+    summary:
+      "Bellini says the hard renewal has been noticed across the team and could change how staff read their own security and bargaining position.",
+    category: "STAFF",
+    initiatorCharacterId: "char_bellini",
+    baseEscalation: 42,
+    escalationThreshold: 70,
+    actions: [
+      {
+        id: "explain_contract_discipline",
+        label: "Explain the policy",
+        description:
+          "Make clear that the hard line was specific to leverage and does not mean blanket pressure on staff.",
+        escalationDelta: -11,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
+        ],
+      },
+      {
+        id: "embrace_tough_contract_culture",
+        label: "Embrace the tougher culture",
+        description:
+          "Signal that future deals will also be hard-nosed, increasing authority but lowering staff comfort.",
+        escalationDelta: 7,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_generous_owner_reaction",
+    title: "Ownership questions the cost precedent",
+    summary:
+      "The generous renewal secures continuity, but Laurent worries that the package has reset expectations for every senior contract.",
+    category: "OWNER",
+    initiatorCharacterId: "char_laurent",
+    baseEscalation: 47,
+    escalationThreshold: 73,
+    actions: [
+      {
+        id: "ringfence_generous_deal",
+        label: "Ring-fence the deal",
+        description:
+          "Document the package as an exceptional retention decision rather than a new salary benchmark.",
+        escalationDelta: -12,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
+        ],
+      },
+      {
+        id: "accept_higher_retention_costs",
+        label: "Accept higher retention costs",
+        description:
+          "Treat generous renewals as the price of stability, giving ownership more reason to monitor future deals.",
+        escalationDelta: 5,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_generous_sponsor_reaction",
+    title: "Sponsor sees an opportunity in the generous renewal",
+    summary:
+      "Salazar views the richer deal as proof of long-term commitment and wants the renewed figure tied more closely to commercial activation.",
+    category: "SPONSOR",
+    initiatorCharacterId: "char_salazar",
+    baseEscalation: 36,
+    escalationThreshold: 69,
+    actions: [
+      {
+        id: "limit_sponsor_linkage",
+        label: "Limit commercial linkage",
+        description:
+          "Use the stability commercially without turning contract generosity into sponsor influence over sporting status.",
+        escalationDelta: -10,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: -2 }
+        ],
+      },
+      {
+        id: "expand_sponsor_access",
+        label: "Expand sponsor access",
+        description:
+          "Monetise the new stability by giving Salazar more access and activation rights.",
+        escalationDelta: -13,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "loyalty", delta: 5 }
+        ],
+      }
+    ],
+  },
+  {
+    id: "issue_contract_generous_staff_reaction",
+    title: "Staff question the new pay hierarchy",
+    summary:
+      "Bellini says a visibly generous renewal has changed expectations inside the garage about who is valued and how strongly.",
+    category: "STAFF",
+    initiatorCharacterId: "char_bellini",
+    baseEscalation: 45,
+    escalationThreshold: 71,
+    actions: [
+      {
+        id: "explain_retention_value",
+        label: "Explain the retention case",
+        description:
+          "Present the package as a role-specific retention decision and reinforce the wider staff structure.",
+        escalationDelta: -11,
+        effects: [
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
+        ],
+      },
+      {
+        id: "open_staff_reward_review",
+        label: "Open a wider reward review",
+        description:
+          "Reduce resentment by reviewing staff rewards, at the cost of giving the staff bloc more bargaining leverage.",
+        escalationDelta: -14,
+        effects: [
+          { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
+          { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 }
+        ],
+      }
+    ],
   }
 ];

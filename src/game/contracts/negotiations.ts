@@ -22,11 +22,18 @@ export type ContractNegotiationPower = {
   delta: number;
 };
 
+export type ContractNegotiationPosture =
+  | "FIRM"
+  | "BALANCED"
+  | "GENEROUS"
+  | "CUSTOM";
+
 export type ContractNegotiationHistoryEntry = {
   turn: number;
   by: "TEAM" | "CHARACTER";
   offer: ContractNegotiationOffer;
   acceptanceScore: number | null;
+  posture?: ContractNegotiationPosture;
 };
 
 export type ContractNegotiationSession = {
@@ -41,7 +48,8 @@ export type ContractNegotiationSession = {
   latestTeamOffer: ContractNegotiationOffer | null;
   counterOffer: ContractNegotiationOffer | null;
   history: ContractNegotiationHistoryEntry[];
-  followUpIssueDefinitionId: string | null;
+  lastTeamPosture: ContractNegotiationPosture | null;
+  followUpIssueDefinitionIds: string[];
 };
 
 export type ContractNegotiationResult = {
@@ -189,7 +197,7 @@ export function buildCharacterDemand(
 
 export function createNegotiationOffer(
   session: ContractNegotiationSession,
-  posture: "FIRM" | "BALANCED" | "GENEROUS",
+  posture: Exclude<ContractNegotiationPosture, "CUSTOM">,
 ): ContractNegotiationOffer {
   const demand = session.characterDemand;
   const factor = posture === "FIRM" ? 0.84 : posture === "BALANCED" ? 0.94 : 1.03;
@@ -404,8 +412,31 @@ export function startContractNegotiation(
     latestTeamOffer: null,
     counterOffer: null,
     history: [],
-    followUpIssueDefinitionId: null,
+    lastTeamPosture: null,
+    followUpIssueDefinitionIds: [],
   };
+}
+
+function postureFollowUpIssueDefinitionIds(
+  posture: ContractNegotiationPosture,
+): string[] {
+  if (posture === "FIRM") {
+    return [
+      "issue_contract_hard_owner_reaction",
+      "issue_contract_hard_sponsor_reaction",
+      "issue_contract_hard_staff_reaction",
+    ];
+  }
+
+  if (posture === "GENEROUS") {
+    return [
+      "issue_contract_generous_owner_reaction",
+      "issue_contract_generous_sponsor_reaction",
+      "issue_contract_generous_staff_reaction",
+    ];
+  }
+
+  return [];
 }
 
 export function submitNegotiationOffer(
@@ -413,6 +444,7 @@ export function submitNegotiationOffer(
   session: ContractNegotiationSession,
   offer: ContractNegotiationOffer,
   currentRound: number,
+  posture: ContractNegotiationPosture = "CUSTOM",
 ): ContractNegotiationResult {
   if (session.status !== "OPEN" && session.status !== "COUNTERED") {
     throw new Error("Negotiation is no longer open.");
@@ -426,6 +458,7 @@ export function submitNegotiationOffer(
       by: "TEAM",
       offer,
       acceptanceScore: roundMoney(acceptanceScore),
+      posture,
     },
   ];
 
@@ -444,10 +477,13 @@ export function submitNegotiationOffer(
         latestTeamOffer: offer,
         counterOffer: null,
         history,
-        followUpIssueDefinitionId:
-          offer.releaseClauseMillions !== null
-            ? "issue_contract_release_precedent"
-            : null,
+        lastTeamPosture: posture,
+        followUpIssueDefinitionIds: [
+          ...(offer.releaseClauseMillions !== null
+            ? ["issue_contract_release_precedent"]
+            : []),
+          ...postureFollowUpIssueDefinitionIds(posture),
+        ],
       },
     };
   }
@@ -462,7 +498,13 @@ export function submitNegotiationOffer(
         latestTeamOffer: offer,
         counterOffer: null,
         history,
-        followUpIssueDefinitionId: "issue_contract_negotiation_stall",
+        lastTeamPosture: posture,
+        followUpIssueDefinitionIds: [
+          "issue_contract_negotiation_stall",
+          "issue_contract_failed_owner_reaction",
+          "issue_contract_failed_sponsor_reaction",
+          "issue_contract_failed_staff_reaction",
+        ],
       },
     };
   }
@@ -486,7 +528,9 @@ export function submitNegotiationOffer(
           acceptanceScore: null,
         },
       ],
-      followUpIssueDefinitionId: null,
+      lastTeamPosture: posture,
+      followUpIssueDefinitionIds:
+        postureFollowUpIssueDefinitionIds(posture),
     },
   };
 }
@@ -512,10 +556,10 @@ export function acceptNegotiationCounter(
       status: "ACCEPTED",
       turn: session.turn + 1,
       history: session.history,
-      followUpIssueDefinitionId:
+      followUpIssueDefinitionIds:
         session.counterOffer.releaseClauseMillions !== null
-          ? "issue_contract_release_precedent"
-          : null,
+          ? ["issue_contract_release_precedent"]
+          : [],
     },
   };
 }
@@ -546,7 +590,12 @@ export function rejectContractNegotiation(
       ...session,
       status: "REJECTED",
       counterOffer: null,
-      followUpIssueDefinitionId: "issue_contract_negotiation_stall",
+      followUpIssueDefinitionIds: [
+        "issue_contract_negotiation_stall",
+        "issue_contract_failed_owner_reaction",
+        "issue_contract_failed_sponsor_reaction",
+        "issue_contract_failed_staff_reaction",
+      ],
     },
   };
 }
