@@ -306,35 +306,38 @@ export function resolveRoundConflict(
 }
 
 
-function appendNegotiationFollowUp(
+function appendNegotiationFollowUps(
   state: RoundFlowState,
   session: ContractNegotiationSession,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
-  const definitionId = session.followUpIssueDefinitionId;
-  if (!definitionId) return state;
+  if (session.followUpIssueDefinitionIds.length === 0) return state;
 
-  const definition = issueDefinitions.find((item) => item.id === definitionId);
-  if (!definition) {
-    throw new Error(
-      `Negotiation follow-up issue definition "${definitionId}" was not found.`,
+  const additions = session.followUpIssueDefinitionIds.flatMap((definitionId) => {
+    const definition = issueDefinitions.find((item) => item.id === definitionId);
+    if (!definition) {
+      throw new Error(
+        `Negotiation follow-up issue definition "${definitionId}" was not found.`,
+      );
+    }
+
+    const alreadyExists = state.issues.some(
+      (issue) =>
+        issue.definitionId === definitionId &&
+        issue.parentIssueId === session.id,
     );
-  }
 
-  const alreadyExists = state.issues.some(
-    (issue) =>
-      issue.definitionId === definitionId &&
-      issue.parentIssueId === session.id,
-  );
-  if (alreadyExists) return state;
+    return alreadyExists
+      ? []
+      : [createChainedIssue(state.currentRound, definition, session.id)];
+  });
 
-  return {
-    ...state,
-    issues: [
-      ...state.issues,
-      createChainedIssue(state.currentRound, definition, session.id),
-    ],
-  };
+  return additions.length === 0
+    ? state
+    : {
+        ...state,
+        issues: [...state.issues, ...additions],
+      };
 }
 
 export function startRoundContractNegotiation(
@@ -384,6 +387,7 @@ export function submitRoundContractOffer(
     session,
     offer,
     state.currentRound,
+    posture,
   );
 
   const nextState: RoundFlowState = {
@@ -394,7 +398,7 @@ export function submitRoundContractOffer(
     ),
   };
 
-  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
 }
 
 export function acceptRoundContractCounter(
@@ -419,7 +423,7 @@ export function acceptRoundContractCounter(
     ),
   };
 
-  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
 }
 
 export function rejectRoundContractNegotiation(
@@ -440,5 +444,5 @@ export function rejectRoundContractNegotiation(
     ),
   };
 
-  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
 }
