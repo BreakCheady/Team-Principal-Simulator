@@ -374,6 +374,19 @@ export function RoundEventsPanel({
                             <span className="mt-2 block text-xs leading-5 text-zinc-500">
                               {action.description}
                             </span>
+                            {action.consequenceHints &&
+                            action.consequenceHints.length > 0 ? (
+                              <span className="mt-3 block border-t border-zinc-800 pt-3">
+                                {action.consequenceHints.map((hint) => (
+                                  <span
+                                    key={hint}
+                                    className="mt-1 block text-[11px] leading-4 text-zinc-400 first:mt-0"
+                                  >
+                                    • {hint}
+                                  </span>
+                                ))}
+                              </span>
+                            ) : null}
                           </button>
                         ))}
                       </div>
