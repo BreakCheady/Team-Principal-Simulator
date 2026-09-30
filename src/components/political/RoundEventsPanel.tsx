@@ -11,8 +11,12 @@ import {
   createRoundFlowState,
   getNextRound,
   getOpenIssues,
+  acceptRoundContractCounter,
+  rejectRoundContractNegotiation,
   resolveRoundConflict,
   resolveRoundIssue,
+  startRoundContractNegotiation,
+  submitRoundContractOffer,
   type RoundFlowState,
 } from "@/game/season/round-flow";
 import type { RoundEventDefinition } from "@/game/season/round-events";
@@ -95,6 +99,50 @@ export function RoundEventsPanel({
   function takeConflictDecision(conflictId: string, decisionId: string) {
     setRoundFlow((current) =>
       resolveRoundConflict(current, conflictId, decisionId),
+    );
+    setSaveMessage(null);
+  }
+
+  function startNegotiation(contractId: string) {
+    setRoundFlow((current) =>
+      startRoundContractNegotiation(current, contractId),
+    );
+    setSaveMessage(null);
+  }
+
+  function submitContractOffer(
+    negotiationId: string,
+    posture: "FIRM" | "BALANCED" | "GENEROUS",
+  ) {
+    setRoundFlow((current) =>
+      submitRoundContractOffer(
+        current,
+        negotiationId,
+        posture,
+        issueDefinitions,
+      ),
+    );
+    setSaveMessage(null);
+  }
+
+  function acceptCounterOffer(negotiationId: string) {
+    setRoundFlow((current) =>
+      acceptRoundContractCounter(
+        current,
+        negotiationId,
+        issueDefinitions,
+      ),
+    );
+    setSaveMessage(null);
+  }
+
+  function walkAwayFromNegotiation(negotiationId: string) {
+    setRoundFlow((current) =>
+      rejectRoundContractNegotiation(
+        current,
+        negotiationId,
+        issueDefinitions,
+      ),
     );
     setSaveMessage(null);
   }
@@ -596,6 +644,9 @@ export function RoundEventsPanel({
                 const character = roundFlow.political.characters.find(
                   (item) => item.id === contract.characterId,
                 );
+                const negotiation = [...roundFlow.negotiations]
+                  .reverse()
+                  .find((item) => item.contractId === contract.id);
                 const activeClauses = contract.releaseClauses.filter(
                   (clause) => clause.active,
                 );
@@ -701,6 +752,131 @@ export function RoundEventsPanel({
                         {activeClauses.length} active release clause
                         {activeClauses.length === 1 ? "" : "s"}
                       </p>
+                    ) : null}
+
+                    {contract.status === "ACTIVE" ? (
+                      <div className="mt-5 border-t border-zinc-800 pt-4">
+                        {!negotiation ||
+                        ["ACCEPTED", "REJECTED", "STALLED"].includes(
+                          negotiation.status,
+                        ) ? (
+                          <button
+                            type="button"
+                            onClick={() => startNegotiation(contract.id)}
+                            className="rounded-lg border border-emerald-800 px-3 py-2 text-sm text-emerald-300 hover:border-emerald-600"
+                          >
+                            Start renewal talks
+                          </button>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-medium">
+                                  Renewal negotiation · {negotiation.status}
+                                </p>
+                                <p className="mt-1 text-xs text-zinc-500">
+                                  Team power {negotiation.power.teamPower} ·{" "}
+                                  {character?.name ?? contract.characterId} power{" "}
+                                  {negotiation.power.characterPower} · delta{" "}
+                                  {negotiation.power.delta}
+                                </p>
+                              </div>
+                              <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400">
+                                Turn {negotiation.turn}
+                              </span>
+                            </div>
+
+                            <div className="rounded-xl border border-zinc-800 bg-black/20 p-4 text-xs text-zinc-400">
+                              <p className="font-medium text-zinc-300">
+                                Character demand
+                              </p>
+                              <p className="mt-2">
+                                €{negotiation.characterDemand.salaryMillionsPerSeason}m / season ·
+                                guaranteed €{negotiation.characterDemand.guaranteedSalaryMillions}m ·
+                                +{negotiation.characterDemand.extensionRounds} rounds
+                              </p>
+                              <p className="mt-1">
+                                Release clause{" "}
+                                {negotiation.characterDemand.releaseClauseMillions === null
+                                  ? "none"
+                                  : "€" +
+                                    negotiation.characterDemand.releaseClauseMillions +
+                                    "m"}{" "}
+                                · performance bonus €
+                                {negotiation.characterDemand.performanceBonusMillions}m
+                              </p>
+                            </div>
+
+                            {negotiation.counterOffer ? (
+                              <div className="rounded-xl border border-amber-900 bg-amber-950/10 p-4 text-xs text-amber-200">
+                                <p className="font-medium">Counteroffer</p>
+                                <p className="mt-2">
+                                  €{negotiation.counterOffer.salaryMillionsPerSeason}m / season ·
+                                  guaranteed €{negotiation.counterOffer.guaranteedSalaryMillions}m ·
+                                  +{negotiation.counterOffer.extensionRounds} rounds
+                                </p>
+                                <p className="mt-1">
+                                  Release clause{" "}
+                                  {negotiation.counterOffer.releaseClauseMillions === null
+                                    ? "none"
+                                    : "€" +
+                                      negotiation.counterOffer.releaseClauseMillions +
+                                      "m"}{" "}
+                                  · bonus €
+                                  {negotiation.counterOffer.performanceBonusMillions}m
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => acceptCounterOffer(negotiation.id)}
+                                  className="mt-3 rounded-lg bg-amber-200 px-3 py-2 font-medium text-amber-950"
+                                >
+                                  Accept counteroffer
+                                </button>
+                              </div>
+                            ) : null}
+
+                            <div className="grid gap-2 sm:grid-cols-3">
+                              {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
+                                (posture) => (
+                                  <button
+                                    key={posture}
+                                    type="button"
+                                    onClick={() =>
+                                      submitContractOffer(negotiation.id, posture)
+                                    }
+                                    className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700"
+                                  >
+                                    {posture === "FIRM"
+                                      ? "Firm offer"
+                                      : posture === "BALANCED"
+                                        ? "Balanced offer"
+                                        : "Generous offer"}
+                                  </button>
+                                ),
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                walkAwayFromNegotiation(negotiation.id)
+                              }
+                              className="text-xs text-red-300 hover:text-red-200"
+                            >
+                              Walk away from talks
+                            </button>
+                          </div>
+                        )}
+
+                        {negotiation &&
+                        ["ACCEPTED", "REJECTED", "STALLED"].includes(
+                          negotiation.status,
+                        ) ? (
+                          <p className="mt-3 text-xs text-zinc-500">
+                            Last negotiation: {negotiation.status}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                   </article>
                 );

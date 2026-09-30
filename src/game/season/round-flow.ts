@@ -1,3 +1,11 @@
+import {
+  acceptNegotiationCounter,
+  createNegotiationOffer,
+  rejectContractNegotiation,
+  startContractNegotiation,
+  submitNegotiationOffer,
+  type ContractNegotiationSession,
+} from "@/game/contracts/negotiations";
 import { advanceContractsForRound } from "@/game/contracts/contracts";
 import {
   advanceWatchingIssue,
@@ -30,6 +38,7 @@ export type RoundFlowState = {
   currentRound: number;
   history: RoundFlowHistoryEntry[];
   issues: IssueState[];
+  negotiations: ContractNegotiationSession[];
   complete: boolean;
 };
 
@@ -128,6 +137,7 @@ export function createRoundFlowState(
     currentRound: afterRound,
     history: [],
     issues: [],
+    negotiations: [],
     complete: scheduledRounds.length === 0,
   };
 }
@@ -200,6 +210,7 @@ export function advanceRoundFlow(
       },
     ],
     issues: [...aged.issues, ...createdIssues],
+    negotiations: state.negotiations,
     complete: nextRoundIndex >= state.scheduledRounds.length,
   };
 }
@@ -292,4 +303,142 @@ export function resolveRoundConflict(
     ...state,
     political: result.nextState,
   };
+}
+
+
+function appendNegotiationFollowUp(
+  state: RoundFlowState,
+  session: ContractNegotiationSession,
+  issueDefinitions: IssueDefinition[],
+): RoundFlowState {
+  const definitionId = session.followUpIssueDefinitionId;
+  if (!definitionId) return state;
+
+  const definition = issueDefinitions.find((item) => item.id === definitionId);
+  if (!definition) {
+    throw new Error(
+      `Negotiation follow-up issue definition "${definitionId}" was not found.`,
+    );
+  }
+
+  const alreadyExists = state.issues.some(
+    (issue) =>
+      issue.definitionId === definitionId &&
+      issue.parentIssueId === session.id,
+  );
+  if (alreadyExists) return state;
+
+  return {
+    ...state,
+    issues: [
+      ...state.issues,
+      createChainedIssue(state.currentRound, definition, session.id),
+    ],
+  };
+}
+
+export function startRoundContractNegotiation(
+  state: RoundFlowState,
+  contractId: string,
+): RoundFlowState {
+  const existingOpen = state.negotiations.find(
+    (session) =>
+      session.contractId === contractId &&
+      ["OPEN", "COUNTERED"].includes(session.status),
+  );
+  if (existingOpen) {
+    throw new Error("An open negotiation already exists for this contract.");
+  }
+
+  const created = startContractNegotiation(
+    state.political,
+    contractId,
+    state.currentRound,
+  );
+  const sameBaseIdCount = state.negotiations.filter(
+    (session) => session.id === created.id || session.id.startsWith(created.id + "_n"),
+  ).length;
+  const session =
+    sameBaseIdCount === 0
+      ? created
+      : { ...created, id: created.id + "_n" + (sameBaseIdCount + 1) };
+
+  return {
+    ...state,
+    negotiations: [...state.negotiations, session],
+  };
+}
+
+export function submitRoundContractOffer(
+  state: RoundFlowState,
+  negotiationId: string,
+  posture: "FIRM" | "BALANCED" | "GENEROUS",
+  issueDefinitions: IssueDefinition[],
+): RoundFlowState {
+  const session = state.negotiations.find((item) => item.id === negotiationId);
+  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+
+  const offer = createNegotiationOffer(session, posture);
+  const result = submitNegotiationOffer(
+    state.political,
+    session,
+    offer,
+    state.currentRound,
+  );
+
+  const nextState: RoundFlowState = {
+    ...state,
+    political: result.political,
+    negotiations: state.negotiations.map((item) =>
+      item.id === negotiationId ? result.session : item,
+    ),
+  };
+
+  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
+}
+
+export function acceptRoundContractCounter(
+  state: RoundFlowState,
+  negotiationId: string,
+  issueDefinitions: IssueDefinition[],
+): RoundFlowState {
+  const session = state.negotiations.find((item) => item.id === negotiationId);
+  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+
+  const result = acceptNegotiationCounter(
+    state.political,
+    session,
+    state.currentRound,
+  );
+
+  const nextState: RoundFlowState = {
+    ...state,
+    political: result.political,
+    negotiations: state.negotiations.map((item) =>
+      item.id === negotiationId ? result.session : item,
+    ),
+  };
+
+  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
+}
+
+export function rejectRoundContractNegotiation(
+  state: RoundFlowState,
+  negotiationId: string,
+  issueDefinitions: IssueDefinition[],
+): RoundFlowState {
+  const session = state.negotiations.find((item) => item.id === negotiationId);
+  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+
+  const result = rejectContractNegotiation(state.political, session);
+
+  const nextState: RoundFlowState = {
+    ...state,
+    political: result.political,
+    negotiations: state.negotiations.map((item) =>
+      item.id === negotiationId ? result.session : item,
+    ),
+  };
+
+  return appendNegotiationFollowUp(nextState, result.session, issueDefinitions);
 }
