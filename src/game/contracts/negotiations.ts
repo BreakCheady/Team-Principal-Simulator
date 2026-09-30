@@ -417,6 +417,28 @@ export function startContractNegotiation(
   };
 }
 
+function postureFollowUpIssueDefinitionIds(
+  posture: ContractNegotiationPosture,
+): string[] {
+  if (posture === "FIRM") {
+    return [
+      "issue_contract_hard_owner_reaction",
+      "issue_contract_hard_sponsor_reaction",
+      "issue_contract_hard_staff_reaction",
+    ];
+  }
+
+  if (posture === "GENEROUS") {
+    return [
+      "issue_contract_generous_owner_reaction",
+      "issue_contract_generous_sponsor_reaction",
+      "issue_contract_generous_staff_reaction",
+    ];
+  }
+
+  return [];
+}
+
 export function submitNegotiationOffer(
   sourceState: PoliticalCoreState,
   session: ContractNegotiationSession,
@@ -460,20 +482,7 @@ export function submitNegotiationOffer(
           ...(offer.releaseClauseMillions !== null
             ? ["issue_contract_release_precedent"]
             : []),
-          ...(posture === "FIRM"
-            ? [
-                "issue_contract_hard_owner_reaction",
-                "issue_contract_hard_sponsor_reaction",
-                "issue_contract_hard_staff_reaction",
-              ]
-            : []),
-          ...(posture === "GENEROUS"
-            ? [
-                "issue_contract_generous_owner_reaction",
-                "issue_contract_generous_sponsor_reaction",
-                "issue_contract_generous_staff_reaction",
-              ]
-            : []),
+          ...postureFollowUpIssueDefinitionIds(posture),
         ],
       },
     };
@@ -520,7 +529,8 @@ export function submitNegotiationOffer(
         },
       ],
       lastTeamPosture: posture,
-      followUpIssueDefinitionIds: [],
+      followUpIssueDefinitionIds:
+        postureFollowUpIssueDefinitionIds(posture),
     },
   };
 }
