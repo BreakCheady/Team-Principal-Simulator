@@ -161,6 +161,112 @@ describe("issue engine", () => {
     }
   });
 
+
+  it("keeps contract fallout reactions as three-way political decisions", () => {
+    const falloutIds = [
+      "issue_contract_failed_owner_reaction",
+      "issue_contract_failed_sponsor_reaction",
+      "issue_contract_failed_staff_reaction",
+      "issue_contract_hard_owner_reaction",
+      "issue_contract_hard_sponsor_reaction",
+      "issue_contract_hard_staff_reaction",
+      "issue_contract_generous_owner_reaction",
+      "issue_contract_generous_sponsor_reaction",
+      "issue_contract_generous_staff_reaction",
+    ];
+
+    for (const id of falloutIds) {
+      const definition = demoIssueDefinitions.find((item) => item.id === id);
+      if (!definition) throw new Error(`Missing fallout issue ${id}`);
+
+      expect(definition.actions).toHaveLength(3);
+      expect(
+        definition.actions.every(
+          (action) => (action.consequenceHints?.length ?? 0) >= 3,
+        ),
+      ).toBe(true);
+
+      const escalationProfiles = new Set(
+        definition.actions.map((action) =>
+          Math.sign(action.escalationDelta),
+        ),
+      );
+      expect(escalationProfiles.size).toBeGreaterThan(1);
+
+      const effectProfiles = new Set(
+        definition.actions.map((action) =>
+          action.effects
+            .map((effect) => effect.type)
+            .sort()
+            .join("|"),
+        ),
+      );
+      expect(effectProfiles.size).toBeGreaterThan(1);
+    }
+  });
+
+  it("applies materially different owner fallout choices", () => {
+    const definition = demoIssueDefinitions.find(
+      (item) => item.id === "issue_contract_failed_owner_reaction",
+    );
+    if (!definition) throw new Error("Missing failed owner reaction");
+
+    const issue = {
+      id: "test_failed_owner",
+      definitionId: definition.id,
+      sourceEventId: "test",
+      parentIssueId: null,
+      title: definition.title,
+      summary: definition.summary,
+      category: definition.category,
+      initiatorCharacterId: definition.initiatorCharacterId,
+      round: 24,
+      status: "OPEN" as const,
+      escalation: definition.baseEscalation,
+      selectedActionId: null,
+      npcActions: [],
+      spawnedConflictId: null,
+      lastUpdatedRound: 24,
+    };
+
+    const contingency = resolveIssueAction(
+      demoState,
+      issue,
+      demoIssueDefinitions,
+      "build_retention_contingency",
+    );
+    const hardLine = resolveIssueAction(
+      demoState,
+      issue,
+      demoIssueDefinitions,
+      "reject_owner_retention_pressure",
+    );
+
+    const contingencyRelationship = contingency.political.relationships.find(
+      (relationship) => relationship.id === "rel_laurent_hartmann",
+    );
+    const hardLineRelationship = hardLine.political.relationships.find(
+      (relationship) => relationship.id === "rel_laurent_hartmann",
+    );
+    const contingencyHartmann = contingency.political.characters.find(
+      (character) => character.id === "char_hartmann",
+    );
+    const hardLineHartmann = hardLine.political.characters.find(
+      (character) => character.id === "char_hartmann",
+    );
+
+    expect(contingency.issue.escalation).toBeLessThan(hardLine.issue.escalation);
+    expect(contingencyRelationship?.trust).toBeGreaterThan(
+      hardLineRelationship?.trust ?? 0,
+    );
+    expect(hardLineRelationship?.resentment).toBeGreaterThan(
+      contingencyRelationship?.resentment ?? 0,
+    );
+    expect(hardLineHartmann?.dynamic.momentum).toBeGreaterThan(
+      contingencyHartmann?.dynamic.momentum ?? 0,
+    );
+  });
+
   it("applies issue actions without mutating the source political state", () => {
     const round = processRound(demoState, 19, demoRoundEvents);
     const source = structuredClone(round.nextState);
