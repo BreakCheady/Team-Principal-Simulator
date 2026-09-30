@@ -349,11 +349,18 @@ export function startRoundContractNegotiation(
     throw new Error("An open negotiation already exists for this contract.");
   }
 
-  const session = startContractNegotiation(
+  const created = startContractNegotiation(
     state.political,
     contractId,
     state.currentRound,
   );
+  const sameBaseIdCount = state.negotiations.filter(
+    (session) => session.id === created.id || session.id.startsWith(created.id + "_n"),
+  ).length;
+  const session =
+    sameBaseIdCount === 0
+      ? created
+      : { ...created, id: created.id + "_n" + (sameBaseIdCount + 1) };
 
   return {
     ...state,
