@@ -819,7 +819,17 @@ export function RoundEventsPanel({
           />
         ) : null}
 
-        {tab === "ISSUES" ? (v className="flex flex-wrap items-center justify-between gap-3">
+        {tab === "ISSUES" ? (
+          <div className="space-y-3">
+            {roundFlow.issues.length === 0 ? (
+              <p className="text-sm text-zinc-500">No issues recorded yet.</p>
+            ) : (
+              roundFlow.issues.map((issue) => (
+                <article
+                  key={issue.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">{issue.title}</p>
                       <p className="mt-1 text-xs text-zinc-500">
