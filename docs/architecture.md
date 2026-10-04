@@ -66,3 +66,15 @@ practice/qualifying/grid/race phases, per-car strategy, measured time and series
 sporting profiles. Crew employment, finance and political consequences remain
 connected. See [racing.md](racing.md) for controls, official sources, save version 10
 and the explicitly modeled rule scope.
+
+
+## UI production boundary
+
+Feature-heavy HQ screens must delegate domain workspaces to focused components instead of
+growing the season shell indefinitely. `RoundEventsPanel` owns round navigation, persistence
+and cross-workspace orchestration; domain panels such as contracts and finance own their
+presentation and derived view calculations. Simulation mutations remain in `src/game`.
+
+Production CI runs lint, an explicit TypeScript check, tests and the Next.js production build.
+The app-level error boundary provides a recoverable failure screen without replacing or
+silently mutating the user's local save.
