@@ -4,7 +4,7 @@ import { MotorsportWorldPanel } from "@/components/political/MotorsportWorldPane
 
 import { useMemo, useState } from "react";
 import { CareerPanel } from "@/components/political/CareerPanel";
-import { advanceCareerFlow, createCareerFlow } from "@/game/career/career";
+import { beginCareerWeekend, createCareerFlow } from "@/game/career/career";
 import { FinancePanel } from "@/components/political/FinancePanel";
 import {
   createNegotiationOffer,
@@ -85,6 +85,8 @@ export function RoundEventsPanel({
   const [tab, setTab] = useState<HqTab>("INBOX");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+  const raceActive =
+    !!roundFlow.career?.weekend && !roundFlow.career.weekend.committed;
   const nextRound = getNextRound(roundFlow);
   const latest = roundFlow.history.at(-1) ?? null;
   const openIssues = getOpenIssues(roundFlow);
@@ -109,9 +111,9 @@ export function RoundEventsPanel({
 
   function startNextRound() {
     applyContractAction((current) =>
-      advanceCareerFlow(current, events, issueDefinitions),
+      beginCareerWeekend(current, events, issueDefinitions),
     );
-    setTab("INBOX");
+    setTab("RACING");
     setSaveMessage(null);
   }
 
@@ -334,7 +336,15 @@ export function RoundEventsPanel({
             >
               Reset rounds
             </button>
-            {!roundFlow.complete && nextRound !== null ? (
+            {raceActive ? (
+              <button
+                type="button"
+                onClick={() => setTab("RACING")}
+                className="rounded-xl bg-sky-300 px-5 py-3 font-medium text-sky-950"
+              >
+                Resume race weekend
+              </button>
+            ) : !roundFlow.complete && nextRound !== null ? (
               <button
                 type="button"
                 onClick={startNextRound}
@@ -387,7 +397,10 @@ export function RoundEventsPanel({
 
       <fieldset
         className="mt-5 min-w-0"
-        disabled={roundFlow.career?.status === "DISMISSED"}
+        disabled={
+          roundFlow.career?.status === "DISMISSED" ||
+          (raceActive && tab !== "RACING")
+        }
       >
         {tab === "WORLD" && roundFlow.career?.world ? (
           <MotorsportWorldPanel world={roundFlow.career.world} />

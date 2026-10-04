@@ -159,6 +159,8 @@ export function advanceRoundFlow(
   events: RoundEventDefinition[],
   issueDefinitions: IssueDefinition[] = [],
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   if (state.complete) {
@@ -228,6 +230,8 @@ export function resolveRoundIssue(
   actionId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const issue = state.issues.find((item) => item.id === issueId);
@@ -290,6 +294,8 @@ export function resolveRoundConflict(
   conflictId: string,
   decisionId: string,
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const conflict = state.political.conflicts.find(
@@ -391,6 +397,8 @@ export function exerciseRoundContractOption(
   contractId: string,
   optionId: string,
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const contract = state.political.contracts.find(
@@ -427,6 +435,8 @@ export function takeRoundFinanceAction(
   state: RoundFlowState,
   action: "OWNER_FUNDING" | "CUT_OPERATING_COSTS",
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const political =
@@ -446,6 +456,8 @@ export function startRoundContractNegotiation(
   state: RoundFlowState,
   contractId: string,
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   if (
@@ -494,6 +506,8 @@ export function submitRoundContractOffer(
   posture: "FIRM" | "BALANCED" | "GENEROUS",
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
@@ -534,6 +548,8 @@ export function acceptRoundContractCounter(
   negotiationId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
@@ -571,6 +587,8 @@ export function rejectRoundContractNegotiation(
   negotiationId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.weekend && !state.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);

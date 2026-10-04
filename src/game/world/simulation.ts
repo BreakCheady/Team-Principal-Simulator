@@ -1,5 +1,11 @@
+import {
+  createWeekend,
+  runWeekend,
+  classify,
+  summarize,
+} from "@/game/racing/engine";
 import type { RoundFlowState } from "@/game/season/round-flow";
-import { getSeries, pointsForEvent, SERIES } from "./series";
+import { getSeries, SERIES } from "./series";
 import {
   worldRandom,
   resetWorldStandings,
@@ -13,66 +19,69 @@ function worldRace(
 ) {
   const cfg = getSeries(seriesId),
     table = world.series.find((s) => s.seriesId === seriesId)!,
-    event = cfg.calendar[table.completedRounds];
-  const results = world.teams
-    .filter((t) => t.seriesId === seriesId)
-    .flatMap((team) =>
-      team.drivers.map((id) => {
-        const p = world.people.find((p) => p.id === id)!;
-        const terrain =
-          event.kind === "OVAL" || cfg.category === "RALLY"
-            ? p.terrainSkill * 0.15
-            : 0;
-        const dnf =
-          worldRandom(world) * 100 <
-          (100 - team.reliability) * 0.35 +
-            (event.kind === "ENDURANCE" ? 4 : cfg.category === "RALLY" ? 3 : 0);
-        const score =
-          team.pace * 0.5 +
-          p.skill * 0.38 +
-          p.consistency * 0.05 +
-          terrain +
-          worldRandom(world) * 22;
-        return {
-          personId: id,
-          teamId: team.id,
-          dnf,
-          score,
-          position: 0,
-          points: 0,
-        };
-      }),
-    )
-    .sort(
-      (a, b) =>
-        Number(a.dnf) - Number(b.dnf) ||
-        b.score - a.score ||
-        a.personId.localeCompare(b.personId),
-    );
-  const points = pointsForEvent(cfg, table.completedRounds);
-  results.forEach((r, i) => {
-    r.position = i + 1;
-    r.points = r.dnf ? 0 : (points[i] ?? 0);
-    let standing = table.drivers.find((d) => d.personId === r.personId);
-    if (!standing) {
-      standing = { personId: r.personId, points: 0, wins: 0, podiums: 0 };
-      table.drivers.push(standing);
+    team = world.teams.find((t) => t.seriesId === seriesId)!,
+    index = table.completedRounds;
+  const view = { ...world, playerSeriesId: seriesId, playerTeamId: team.id };
+  const source: Parameters<typeof createWeekend>[0] = {
+    currentRound: (world.season - 1) * cfg.rounds + index + 1,
+    political: { characters: [], relationships: [] },
+    career: {
+      world: view,
+      seed: world.seed,
+      season: world.season,
+      seasonStart: (world.season - 1) * cfg.rounds + 1,
+      strategy: "BALANCED",
+      car: { pace: team.pace, reliability: team.reliability },
+      seats: [],
+      standings: [],
+      races: table.qualifying?.length
+        ? [{ summary: { qualifying: table.qualifying } }]
+        : [],
+    },
+  };
+  const weekend = createWeekend(source);
+  for (const car of weekend.cars) {
+    car.ours = false;
+    const t = world.teams.find((t) => t.name === car.team);
+    car.crewSkill =
+      t?.staff
+        .map((id) => world.people.find((p) => p.id === id))
+        .find((p) => p?.role === "RACE_ENGINEER")?.skill ?? 65;
+  }
+  runWeekend(weekend);
+  world.seed = weekend.seed;
+  const summary = summarize(weekend, 0),
+    cars = classify(weekend);
+  for (const [i, car] of cars.entries())
+    for (const driver of summary.entries[i].crew) {
+      let d = table.drivers.find((d) => d.personId === driver.id);
+      if (!d) {
+        d = { personId: driver.id, points: 0, wins: 0, podiums: 0 };
+        table.drivers.push(d);
+      }
+      if (driver.eligible) {
+        d.points += car.finishPoints + car.bonusPoints;
+        d.wins += car.raceWins;
+        d.podiums += car.racePodiums;
+      }
     }
-    standing.points += r.points;
-    if (!r.dnf && i === 0) standing.wins++;
-    if (!r.dnf && i < 3) standing.podiums++;
-    table.teams.find((t) => t.teamId === r.teamId)!.points += r.points;
-  });
+  for (const result of summary.teamPoints) {
+    const t = world.teams.find(
+      (t) => t.name === result.team && t.seriesId === seriesId,
+    )!;
+    table.teams.find((r) => r.teamId === t.id)!.points += result.points;
+  }
   table.completedRounds++;
-  table.lastResults = results.map(
-    ({ personId, teamId, dnf, position, points }) => ({
-      personId,
-      teamId,
-      dnf,
-      position,
-      points,
-    }),
-  );
+  table.qualifying = weekend.qualifying;
+  table.lastResults = cars.map((c) => ({
+    personId: c.id,
+    teamId: world.teams.find(
+      (t) => t.name === c.team && t.seriesId === seriesId,
+    )!.id,
+    position: c.position,
+    points: c.finishPoints + c.bonusPoints,
+    dnf: c.retired || c.dsq,
+  }));
 }
 export function advanceWorld(flow: RoundFlowState) {
   const c = flow.career!,
@@ -82,20 +91,30 @@ export function advanceWorld(flow: RoundFlowState) {
     race = c.races.at(-1)!,
     cfg = getSeries(w.playerSeriesId);
   for (const r of race.results) {
-    let standing = selected.drivers.find((d) => d.personId === r.characterId);
-    if (!standing) {
-      standing = { personId: r.characterId, points: 0, wins: 0, podiums: 0 };
-      selected.drivers.push(standing);
+    const entry = race.summary?.entries.find((e) => e.id === r.characterId);
+    const crew = entry?.crew ?? [{ id: r.characterId, eligible: true }];
+    for (const member of crew) {
+      let standing = selected.drivers.find((d) => d.personId === member.id);
+      if (!standing) {
+        standing = { personId: member.id, points: 0, wins: 0, podiums: 0 };
+        selected.drivers.push(standing);
+      }
+      if (member.eligible) {
+        standing.points += r.points;
+        standing.wins += entry?.wins ?? (!r.dnf && r.position === 1 ? 1 : 0);
+        standing.podiums +=
+          entry?.podiums ?? (!r.dnf && r.position <= 3 ? 1 : 0);
+      }
     }
-    standing.points += r.points;
-    if (!r.dnf && r.position === 1) standing.wins++;
-    if (!r.dnf && r.position <= 3) standing.podiums++;
+  }
+  for (const r of race.summary?.teamPoints ?? race.results) {
     const team = w.teams.find(
       (t) => t.name === r.team && t.seriesId === w.playerSeriesId,
     );
     if (team)
       selected.teams.find((t) => t.teamId === team.id)!.points += r.points;
   }
+  selected.qualifying = race.summary?.qualifying;
   selected.completedRounds = flow.currentRound - c.seasonStart + 1;
   selected.lastResults = race.results.map((r) => ({
     personId: r.characterId,
@@ -161,6 +180,7 @@ export function nextWorldSeason(flow: RoundFlowState) {
     .filter(
       (p) =>
         p.role === "DRIVER" &&
+        !w.teams.some((t) => t.raceCrews?.some((c) => c.coDriverId === p.id)) &&
         p.teamId &&
         w.teams.find((t) => t.id === p.teamId)?.seriesId === w.playerSeriesId,
     )

@@ -1,6 +1,8 @@
 import { getSeries } from "@/game/world/series";
 import { playerTeam } from "@/game/world/world";
 import { advanceWorld, nextWorldSeason } from "@/game/world/simulation";
+import { createWeekend, runWeekend } from "@/game/racing/engine";
+import { registerPlayerCrews } from "@/game/racing/crews";
 import {
   advanceRoundFlow,
   createRoundFlowState,
@@ -144,7 +146,7 @@ export function reviewSeason(source: RoundFlowState): RoundFlowState {
   );
   return next;
 }
-export function advanceCareerFlow(
+export function beginCareerWeekend(
   source: RoundFlowState,
   events: RoundEventDefinition[],
   definitions: IssueDefinition[] = [],
@@ -152,6 +154,11 @@ export function advanceCareerFlow(
   if (!source.career) return advanceRoundFlow(source, events, definitions);
   if (source.career.status !== "RUNNING")
     throw new Error("Start a new season or reset after dismissal.");
+  if (source.career.weekend && !source.career.weekend.committed)
+    throw new Error("Finish the current race weekend first.");
+  source = structuredClone(source);
+  delete source.career!.weekend;
+  registerPlayerCrews(source);
   // Authored politics are a one-time introductory story. Sporting results always come from the simulator.
   const activeEvents = events
     .filter(
@@ -182,7 +189,19 @@ export function advanceCareerFlow(
   next.career = structuredClone(source.career);
   next = completeDevelopment(next);
   next = advanceActors(next);
-  next = simulateRace(next);
+  next.career!.weekend = createWeekend(next);
+  next.complete = false;
+  return next;
+}
+export function finishCareerWeekend(source: RoundFlowState): RoundFlowState {
+  if (
+    !source.career?.weekend ||
+    source.career.weekend.phase !== "COMPLETE" ||
+    source.career.weekend.committed
+  )
+    throw new Error("The race has not finished or was already committed.");
+  let next = simulateRace(source);
+  next.complete = next.nextRoundIndex >= next.scheduledRounds.length;
   advanceWorld(next);
   for (const actor of next.political.characters.filter((a) =>
     next.career!.activeActorIds.includes(a.id),
@@ -213,6 +232,19 @@ export function advanceCareerFlow(
   next.career = validateCareer(next.career, next.political, next.currentRound);
   return next;
 }
+export function advanceCareerFlow(
+  source: RoundFlowState,
+  events: RoundEventDefinition[],
+  definitions: IssueDefinition[] = [],
+): RoundFlowState {
+  if (!source.career) return advanceRoundFlow(source, events, definitions);
+  const next =
+    source.career.weekend && !source.career.weekend.committed
+      ? structuredClone(source)
+      : beginCareerWeekend(source, events, definitions);
+  runWeekend(next.career!.weekend!);
+  return finishCareerWeekend(next);
+}
 export function startNextSeason(
   source: RoundFlowState,
   ambition: "CONSOLIDATE" | "CHALLENGE" = "CONSOLIDATE",
@@ -234,6 +266,7 @@ export function startNextSeason(
   c.seasonStart = next.currentRound + 1;
   c.seasonEnd = next.currentRound + length;
   c.status = "RUNNING";
+  delete c.weekend;
   c.targets = {
     teamPosition: ambition === "CHALLENGE" ? 2 : 5,
     cash:

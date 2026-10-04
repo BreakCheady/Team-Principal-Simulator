@@ -1,5 +1,6 @@
 "use client";
 
+import { RacePanel } from "./RacePanel";
 import { SERIES, getSeries } from "@/game/world/series";
 import { playerTeam } from "@/game/world/world";
 
@@ -14,8 +15,8 @@ import {
   releaseContract,
 } from "@/game/career/market";
 import { respondActorRequest } from "@/game/career/actors";
-import { startDevelopment, PROJECTS, teamTable } from "@/game/career/sport";
-import { startNextSeason, setRaceStrategy } from "@/game/career/career";
+import { startDevelopment, PROJECTS } from "@/game/career/sport";
+import { startNextSeason } from "@/game/career/career";
 import { isReleaseClauseInForce } from "@/game/contracts/contracts";
 
 type Props = {
@@ -462,124 +463,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         ))}
       </div>
     );
-  if (view === "RACING") {
-    const standings = [...c.standings].sort(
-      (a, b) =>
-        b.points - a.points || b.wins - a.wins || a.id.localeCompare(b.id),
-    );
-    const race = c.races.at(-1);
-    return (
-      <div className="space-y-5">
-        <h3 className="text-xl font-semibold">Championship & race strategy</h3>
-        <p className="text-sm text-zinc-400">
-          Season {2025 + c.season} · {c.world?.playerSeriesId ?? "F1"} · race{" "}
-          {Math.max(0, flow.currentRound - c.seasonStart + 1)}/
-          {c.seasonEnd - c.seasonStart + 1} · Car {c.car.pace} pace /{" "}
-          {c.car.reliability} reliability. Results depend on driver skill,
-          staff, momentum, stability and seeded race variance.{" "}
-          {c.world
-            ? "Each new career starts before race 1 with a full calendar and zero championship points."
-            : "This legacy career retains its original starting round."}
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {(["BALANCED", "ATTACK", "CONSERVE"] as const).map((strategy) => (
-            <button
-              key={strategy}
-              className={
-                button + (c.strategy === strategy ? " bg-sky-950" : "")
-              }
-              aria-pressed={c.strategy === strategy}
-              onClick={() => onAction((s) => setRaceStrategy(s, strategy))}
-            >
-              {strategy}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-zinc-500">
-          Attack: +5 pace, +5 percentage points failure risk. Conserve: −3 pace,
-          −3 percentage points risk.
-        </p>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <article className={card}>
-            <h4>Constructors</h4>
-            <table className="mt-3 w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th>Pos</th>
-                  <th>Team</th>
-                  <th>Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamTable(c).map((t, i) => (
-                  <tr key={t.team} className="border-t border-zinc-800">
-                    <td className="py-2">{i + 1}</td>
-                    <td>{t.team}</td>
-                    <td>{t.points}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </article>
-          <article className={card}>
-            <h4>Drivers</h4>
-            <div className="max-h-96 overflow-auto">
-              <table className="mt-3 w-full text-left text-sm">
-                <thead>
-                  <tr>
-                    <th>Pos</th>
-                    <th>Driver</th>
-                    <th>Pts</th>
-                    <th>Wins</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standings.map((d, i) => (
-                    <tr key={d.id} className="border-t border-zinc-800">
-                      <td className="py-2">{i + 1}</td>
-                      <td>
-                        {d.name}
-                        <span className="block text-xs text-zinc-500">
-                          {d.team}
-                        </span>
-                      </td>
-                      <td>{d.points}</td>
-                      <td>{d.wins}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-        {race ? (
-          <article className={card}>
-            <h4>Last Grand Prix · R{race.round}</h4>
-            <table className="mt-3 w-full text-left text-sm">
-              <thead>
-                <tr>
-                  <th>Pos</th>
-                  <th>Driver</th>
-                  <th>Team</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {race.results.map((r) => (
-                  <tr key={r.characterId} className="border-t border-zinc-800">
-                    <td className="py-2">{r.position}</td>
-                    <td>{r.name}</td>
-                    <td>{r.team}</td>
-                    <td>{r.dnf ? "DNF" : `${r.points} pts`}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </article>
-        ) : null}
-      </div>
-    );
-  }
+  if (view === "RACING") return <RacePanel flow={flow} onAction={onAction} />;
   return (
     <div className="space-y-5">
       <h3 className="text-xl font-semibold">Career & board</h3>

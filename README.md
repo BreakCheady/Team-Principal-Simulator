@@ -4,29 +4,28 @@ A browser-based motorsport management game about **people, power and paddock pol
 
 ## Current milestone
 
-**v0.7 – Motorsport World and Full Season Start**
+**v0.8 – Race Weekends, Strategy and Series Sporting Profiles**
 
-Start a new career in preseason, select one of nine series and any of 106 fictional
-teams, then begin at race 1 with fresh contracts, finances and championship tables.
+Start in preseason, choose one of nine series and 106 fictional teams, then manage
+practice, setup, qualifying and live racing. Plan tyres, fuel, repairs and driver
+changes separately for every car. Run lap by lap, pause for strategy decisions or
+simulate the rest of the weekend.
 
-**F1, F2, F3, F4, GT3, GT4, LMP1, IndyCar and Rally** have their own fields, calendars,
-team capabilities and game budgets. The world contains **666 drivers and 748 staff**,
-including employed professionals and free agents with age, nationality, skill,
-potential, career traits and salary demands.
+The 666-driver / 748-staff world now supplies real endurance partners and rally
+co-drivers with employment and salary contracts. Series profiles cover F1 sprints,
+F2/F3 reverse grids, Italian F4 scoring, GT pit windows, historical WEC endurance,
+IndyCar tyre/bonus rules and rally stages with service parks.
 
-Recruit through a searchable, filtered and paginated market. Transfers change real
-world rosters. Follow all nine championship tables, scout team personnel and continue
-into further seasons with aging, development and recorded champions.
+Weather, neutralisations, incidents, passing, pit queues, fuel and tyre consumption
+feed live timing, replay and race debriefs. Results affect championships, contract
+triggers, repair costs, sponsor support and paddock politics. Save and resume an
+unfinished race; v6–v9 saves retain their history when upgraded to v10.
 
-Contracts, autonomous political actors, finance, racing, development and board reviews
-remain connected. New careers start from the beginning; older v6–v8 saves preserve
-their progress when migrated to v9.
-
-This is a fictional, sport-inspired management simulation. LMP1 is a historical
-heritage championship; endurance crews and rally stages are abstracted. See
-[motorsport world](docs/motorsport-world.md) for series formats and scope,
-[career gameplay](docs/career.md), [contracts](docs/contracts.md) and
-[finances](docs/finances.md).
+Official sporting references and the exact modeled scope are listed in
+[racing and strategy](docs/racing.md). Calendars, teams and people are fictional;
+LMP1 uses a historical profile and GT4 explicitly uses the published 2024 rules.
+See also [motorsport world](docs/motorsport-world.md), [career gameplay](docs/career.md),
+[contracts](docs/contracts.md) and [finances](docs/finances.md).
 
 ## Stack
 

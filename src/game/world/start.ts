@@ -3,6 +3,7 @@ import { createTeamFinance } from "@/game/finance/defaults";
 import { createCareerFlow } from "@/game/career/career";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import type { Seat } from "@/game/career/state";
+import { ensureWorldCrews, supportIds } from "@/game/racing/crews";
 import { getSeries, type SeriesId } from "./series";
 import {
   createWorld,
@@ -18,7 +19,9 @@ export function createNewCareer(
   const world = createWorld(seriesId, teamId),
     team = playerTeam(world),
     cfg = getSeries(seriesId);
-  const roster = [...team.drivers, ...team.staff, team.principalId];
+  ensureWorldCrews(world);
+  const support = supportIds(world, team.id);
+  const roster = [...team.drivers, ...support, ...team.staff, team.principalId];
   const characters = roster.map((id) =>
     characterFromPerson(world.people.find((p) => p.id === id)!),
   );
@@ -53,7 +56,9 @@ export function createNewCareer(
     ownerIncomeMillionsPerRound: Number(
       ((team.budget * 0.25) / cfg.rounds).toFixed(6),
     ),
-    payrollBudgetMillionsPerSeason: Number((team.budget * 0.32).toFixed(6)),
+    payrollBudgetMillionsPerSeason: Number(
+      (team.budget * (support.length ? 0.48 : 0.32)).toFixed(6),
+    ),
     commitmentBudgetMillions: Number((team.budget * 1.5).toFixed(6)),
   });
   const political: PoliticalCoreState = {
@@ -100,7 +105,7 @@ export function createNewCareer(
           resentment: 0,
           personalLeverage: 15,
         });
-  for (const id of [...team.drivers, ...team.staff]) {
+  for (const id of [...team.drivers, ...support, ...team.staff]) {
     const p = world.people.find((p) => p.id === id)!;
     const seasons = p.role === "DRIVER" ? 1 : 2;
     const end = seasons * cfg.rounds;
@@ -180,6 +185,9 @@ export function createNewCareer(
     .filter(
       (p) =>
         p.role === "DRIVER" &&
+        !world.teams.some((t) =>
+          t.raceCrews?.some((c) => c.coDriverId === p.id),
+        ) &&
         p.teamId &&
         world.teams.find((t) => t.id === p.teamId)?.seriesId === seriesId,
     )

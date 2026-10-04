@@ -280,6 +280,9 @@ export function resetWorldStandings(world: MotorsportWorld) {
       .filter(
         (p) =>
           p.role === "DRIVER" &&
+          !world.teams.some((t) =>
+            t.raceCrews?.some((c) => c.coDriverId === p.id),
+          ) &&
           p.teamId &&
           world.teams.find((t) => t.id === p.teamId)?.seriesId === cfg.id,
       )
@@ -392,6 +395,7 @@ export function transferWorldPerson(
   world: MotorsportWorld,
   personId: string,
   teamId: string | null,
+  crewLeadId?: string,
 ) {
   const p = world.people.find((p) => p.id === personId);
   if (!p) throw new Error("Unknown person in world transfer.");
@@ -399,6 +403,31 @@ export function transferWorldPerson(
   if (teamId && !target) throw new Error("Unknown destination team.");
   const old = world.teams.find((t) => t.id === p.teamId);
   if (old && old.id !== teamId) {
+    for (const crew of old.raceCrews ?? []) {
+      const removed =
+        crew.members.includes(personId) || crew.coDriverId === personId;
+      crew.members = crew.members.filter((id) => id !== personId);
+      if (crew.coDriverId === personId) crew.coDriverId = null;
+      if (removed && old.id !== world.playerTeamId) {
+        const replacement = world.people
+          .filter(
+            (x) =>
+              !x.teamId &&
+              x.role === "DRIVER" &&
+              x.specialties.includes(old.seriesId),
+          )
+          .sort(
+            (a, b) => Math.abs(a.skill - p.skill) - Math.abs(b.skill - p.skill),
+          )[0];
+        if (replacement) {
+          replacement.teamId = old.id;
+          replacement.seriesId = old.seriesId;
+          replacement.contractEndSeason = world.season + 1;
+          if (old.seriesId === "RALLY") crew.coDriverId = replacement.id;
+          else crew.members.push(replacement.id);
+        }
+      }
+    }
     const list = p.role === "DRIVER" ? old.drivers : old.staff;
     const index = list.indexOf(personId);
     if (index >= 0) {
@@ -421,12 +450,27 @@ export function transferWorldPerson(
           replacement.seriesId = old.seriesId;
           replacement.contractEndSeason = world.season + 1;
           list.splice(index, 0, replacement.id);
+          const crew = old.raceCrews?.find((c) => c.leadId === personId);
+          if (crew) crew.leadId = replacement.id;
         }
       }
     }
   }
   p.teamId = teamId;
   if (target) {
+    if (crewLeadId) {
+      const crew = target.raceCrews?.find((c) => c.leadId === crewLeadId);
+      if (!crew || p.role !== "DRIVER")
+        throw new Error("Unknown crew destination.");
+      if (target.seriesId === "RALLY") {
+        if (crew.coDriverId && crew.coDriverId !== personId)
+          world.people.find((x) => x.id === crew.coDriverId)!.teamId = null;
+        crew.coDriverId = personId;
+      } else if (!crew.members.includes(personId)) crew.members.push(personId);
+      p.seriesId = target.seriesId;
+      p.contractEndSeason = world.season + 1;
+      return;
+    }
     const roster = p.role === "DRIVER" ? target.drivers : target.staff;
     const replace =
       p.role === "DRIVER"
@@ -439,11 +483,17 @@ export function transferWorldPerson(
     if (replace && replace !== personId) {
       world.people.find((x) => x.id === replace)!.teamId = null;
       roster.splice(roster.indexOf(replace), 1);
+      const crew = target.raceCrews?.find((c) => c.leadId === replace);
+      if (crew) crew.leadId = personId;
     }
     p.seriesId = target.seriesId;
     p.contractEndSeason = world.season + 1;
     const list = p.role === "DRIVER" ? target.drivers : target.staff;
     if (!list.includes(personId)) list.push(personId);
+    const vacantCrew = target.raceCrews?.find(
+      (c) => !target.drivers.includes(c.leadId),
+    );
+    if (p.role === "DRIVER" && vacantCrew) vacantCrew.leadId = personId;
   }
 }
 export function validateWorld(input: unknown): MotorsportWorld {
@@ -487,6 +537,32 @@ export function validateWorld(input: unknown): MotorsportWorld {
         (id === t.principalId && p.role !== "TEAM_PRINCIPAL")
       )
         throw new Error("Invalid world role assignment.");
+    }
+    for (const crew of t.raceCrews ?? []) {
+      if (
+        persons.get(crew.leadId)?.role !== "DRIVER" ||
+        new Set(t.raceCrews?.map((c) => c.leadId)).size !==
+          t.raceCrews?.length ||
+        (t.raceCrews?.length ?? 0) > getSeries(t.seriesId).driversPerTeam ||
+        crew.members.length > 2 ||
+        (crew.coDriverId && t.seriesId !== "RALLY")
+      )
+        throw new Error("Invalid world race crew.");
+      for (const id of [
+        ...crew.members,
+        ...(crew.coDriverId ? [crew.coDriverId] : []),
+      ]) {
+        const p = persons.get(id);
+        if (
+          !p ||
+          p.role !== "DRIVER" ||
+          p.teamId !== t.id ||
+          p.seriesId !== t.seriesId ||
+          assigned.has(id)
+        )
+          throw new Error("Invalid world crew employment.");
+        assigned.add(id);
+      }
     }
   }
   for (const p of w.people)
