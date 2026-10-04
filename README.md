@@ -4,16 +4,19 @@ A browser-based motorsport management game about **people, power and paddock pol
 
 ## Current milestone
 
-**v0.1 – Political Conflict Prototype**
+**v0.4 – Multi-Actor Political Sandbox with playable contracts**
 
-The first vertical slice focuses on a single conflict at Vanguard Racing:
+Lead Vanguard Racing through sequential conflicts, round events and inbox decisions.
+Sporting Director, Owner/CEO, Sponsor and Staff actors have their own goals, leverage
+and political follow-up issues. Decisions persist and change later power struggles.
 
-- Luca Moretti wants more influence over technical development.
-- Dr. Adrian Chen defends the technical department's authority.
-- Noah Keller supports institutional consistency.
-- Team Principal Daniel Hartmann is the swing actor.
+Contracts contain terms, salary, guaranteed value, options, release clauses and
+performance triggers. Authored cumulative results automatically award bonuses and
+activate clauses. Exercise eligible team options in the Contract Room, or negotiate
+renewals through offers and counteroffers with political consequences.
 
-The prototype validates the game state, calculates context-dependent power, builds faction strength, and derives success chances and escalation.
+Save and load the current game locally. See [contract gameplay](docs/contracts.md)
+for lifecycle rules and the result-to-contract flow.
 
 ## Stack
 

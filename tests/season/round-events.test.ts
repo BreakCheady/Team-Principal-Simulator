@@ -10,6 +10,42 @@ function character(state: typeof demoState, id: string) {
 }
 
 describe("round event system", () => {
+  it("awards race performance to the correct character's contract only", () => {
+    const original = structuredClone(demoState);
+    const result = processRound(demoState, 16, demoRoundEvents);
+    const keller = result.nextState.contracts.find((item) => item.characterId === "char_keller")!;
+    expect(keller.earnedBonusesMillions).toBe(1.2);
+    expect(keller.options[0].available).toBe(true);
+    expect(result.nextState.contracts[0]).toEqual(demoState.contracts[0]);
+    expect(result.events[0].contractTriggers?.map((item) => item.triggerId)).toEqual([
+      "trigger_keller_podium_bonus", "trigger_keller_option",
+    ]);
+    expect(demoState).toEqual(original);
+  });
+
+  it("activates all three contract consequences from authored results and reports them once", () => {
+    const result = processRound(demoState, 22, demoRoundEvents);
+    const moretti = result.nextState.contracts[0];
+    expect(moretti.earnedBonusesMillions).toBe(2.5);
+    expect(moretti.options[0].available).toBe(true);
+    expect(moretti.releaseClauses[0].active).toBe(true);
+    expect(character(result.nextState, "char_moretti").career.transferInterest).toBeGreaterThanOrEqual(60);
+    expect(result.events[1].contractTriggers?.map((item) => item.consequence)).toEqual([
+      "SALARY_BONUS", "OPTION_ACTIVATION", "RELEASE_CLAUSE_ACTIVATION",
+    ]);
+    const repeated = processRound(result.nextState, 22, demoRoundEvents);
+    expect(repeated.events[1].contractTriggers).toBeUndefined();
+    expect(repeated.nextState.contracts[0].earnedBonusesMillions).toBe(2.5);
+  });
+
+  it("rejects performance snapshots for an unknown character", () => {
+    expect(() => processRound(demoState, 22, [{
+      id: "event_bad_performance", type: "RACE_RESULT", title: "Bad result",
+      summary: "An unknown character receives a result.", round: 22, effects: [],
+      contractPerformance: [{ characterId: "char_missing", snapshot: { wins: 5 } }],
+    }])).toThrow(/was not found/);
+  });
+
   it("applies race results and activates a dormant political conflict", () => {
     const original = structuredClone(demoState);
     const result = processRound(demoState, 16, demoRoundEvents);

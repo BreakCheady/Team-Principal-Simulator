@@ -1,0 +1,47 @@
+# Contract gameplay
+
+Contracts are persistent objects in `PoliticalCoreState.contracts`, linked to a
+character. They store signing, start and end rounds; status; seasonal salary;
+guaranteed salary; earned bonuses; options; release clauses; and performance triggers.
+Round boundaries are inclusive. The round flow expires contracts after their end
+round, and contract evaluation cannot award performance benefits outside the active
+term or revive an expired or terminated agreement.
+
+## Performance results
+
+An authored round event can provide `contractPerformance` entries containing a
+`characterId` and a cumulative season-result snapshot. Supported results are driver
+and team championship position, points, wins and podiums. Each snapshot applies only
+to contracts for that character; missing metrics do not satisfy a trigger.
+
+The event processor evaluates each trigger once. Consequences pay a bonus into
+`earnedBonusesMillions`, unlock a named option, or activate a named release clause.
+The round report records newly triggered consequences, and contract cards show the
+resulting state. Repeated results cannot pay an already triggered bonus again.
+
+Vanguard's demo gives Keller 145 points and three podiums in round 16, earning his
+bonus and unlocking his team option. A result report in round 22 gives Moretti four
+wins, second in the drivers' standings and Vanguard fourth in the team championship.
+Those results evaluate his bonus, option and release-clause triggers against the
+contract currently signed.
+
+## Options and release clauses
+
+The Contract Room allows the team to exercise an unlocked team-held option within
+its exercise window and the active contract term. Exercising extends the end round,
+applies the salary multiplier, marks the option exercised and updates contract
+security. It can happen only once, and ongoing renewal talks must finish first.
+Character-held options belong to that character; mutual options require agreement
+from both parties and cannot be exercised unilaterally through the team action.
+
+A release clause is in force only while both the contract term and its clause window
+are active. In-force release clauses increase the character's transfer interest.
+The UI distinguishes locked clauses from activated clauses outside their window.
+An option whose exercise window has passed no longer adds extension security.
+
+## Persistence
+
+Option exercise and performance evaluation return a new political state; they do
+not mutate the previous game state. Existing round-flow saves persist contracts and
+the new optional report entries. Save version 6 remains compatible: reports from
+older saves can omit `contractTriggers`.

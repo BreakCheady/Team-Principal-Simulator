@@ -18,6 +18,43 @@ function clamp(min: number, max: number, value: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function requireRound(round: number): void {
+  if (!Number.isInteger(round) || round < 1) {
+    throw new RangeError("round must be a positive integer.");
+  }
+}
+
+export function isContractInForce(contract: Contract, round: number): boolean {
+  return (
+    contract.status === "ACTIVE" &&
+    round >= contract.startRound &&
+    round <= contract.endRound
+  );
+}
+
+export function isReleaseClauseInForce(
+  contract: Contract,
+  clause: Contract["releaseClauses"][number],
+  round: number,
+): boolean {
+  return (
+    isContractInForce(contract, round) && clause.active &&
+    round >= clause.activeFromRound && round <= clause.expiresAfterRound
+  );
+}
+
+export function canExerciseTeamOption(
+  contract: Contract,
+  option: Contract["options"][number],
+  round: number,
+): boolean {
+  return (
+    isContractInForce(contract, round) && option.holder === "TEAM" &&
+    option.available && !option.exercised &&
+    round >= option.exerciseFromRound && round <= option.exerciseUntilRound
+  );
+}
+
 function requireContract(state: PoliticalCoreState, contractId: string) {
   const contract = state.contracts.find((item) => item.id === contractId);
   if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
@@ -65,6 +102,7 @@ export function syncContractCareerState(
   contractId: string,
   currentRound: number,
 ): PoliticalCoreState {
+  requireRound(currentRound);
   const nextState = structuredClone(sourceState);
   const contract = requireContract(nextState, contractId);
   const character = requireCharacter(nextState, contract.characterId);
@@ -81,13 +119,12 @@ export function syncContractCareerState(
 
   const remainingRounds = Math.max(0, contract.endRound - currentRound);
   const availableExtensionRounds = contract.options
-    .filter((option) => option.available && !option.exercised)
+    .filter((option) => option.available && !option.exercised &&
+      currentRound <= option.exerciseUntilRound)
     .reduce((sum, option) => sum + option.extensionRounds, 0);
   const activeReleaseClause = contract.releaseClauses.some(
     (clause) =>
-      clause.active &&
-      currentRound >= clause.activeFromRound &&
-      currentRound <= clause.expiresAfterRound,
+      isReleaseClauseInForce(contract, clause, currentRound),
   );
 
   character.career.contractSecurity = clamp(
@@ -109,9 +146,22 @@ export function evaluateContractPerformance(
   snapshot: ContractPerformanceSnapshot,
   currentRound: number,
 ): ContractEvaluationResult {
+  requireRound(currentRound);
+  for (const [metric, value] of Object.entries(snapshot)) {
+    if (value === undefined) continue;
+    const position = metric.endsWith("ChampionshipPosition");
+    if (!Number.isFinite(value) || value < (position ? 1 : 0) ||
+      (metric !== "points" && !Number.isInteger(value))) {
+      throw new RangeError(`Invalid contract performance metric "${metric}".`);
+    }
+  }
   let nextState = structuredClone(sourceState);
   const contract = requireContract(nextState, contractId);
   const triggeredPerformanceTriggerIds: string[] = [];
+
+  if (!isContractInForce(contract, currentRound)) {
+    return { nextState, triggeredPerformanceTriggerIds };
+  }
 
   for (const trigger of contract.performanceTriggers) {
     if (trigger.triggered || !triggerMatches(trigger, snapshot)) continue;
@@ -169,11 +219,12 @@ export function exerciseContractOption(
   optionId: string,
   currentRound: number,
 ): PoliticalCoreState {
+  requireRound(currentRound);
   let nextState = structuredClone(sourceState);
   const contract = requireContract(nextState, contractId);
 
-  if (contract.status !== "ACTIVE") {
-    throw new Error("Only active contracts can exercise options.");
+  if (!isContractInForce(contract, currentRound)) {
+    throw new Error("Only contracts within their active term can exercise options.");
   }
 
   const option = contract.options.find((item) => item.id === optionId);
@@ -207,6 +258,7 @@ export function advanceContractsForRound(
   sourceState: PoliticalCoreState,
   round: number,
 ): PoliticalCoreState {
+  requireRound(round);
   let nextState = structuredClone(sourceState);
 
   for (const contract of nextState.contracts) {

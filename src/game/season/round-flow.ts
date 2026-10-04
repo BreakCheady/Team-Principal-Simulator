@@ -6,7 +6,10 @@ import {
   submitNegotiationOffer,
   type ContractNegotiationSession,
 } from "@/game/contracts/negotiations";
-import { advanceContractsForRound } from "@/game/contracts/contracts";
+import {
+  advanceContractsForRound,
+  exerciseContractOption,
+} from "@/game/contracts/contracts";
 import {
   advanceWatchingIssue,
   createChainedIssue,
@@ -338,6 +341,33 @@ function appendNegotiationFollowUps(
         ...state,
         issues: [...state.issues, ...additions],
       };
+}
+
+export function exerciseRoundContractOption(
+  state: RoundFlowState,
+  contractId: string,
+  optionId: string,
+): RoundFlowState {
+  const contract = state.political.contracts.find((item) => item.id === contractId);
+  if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
+  const option = contract.options.find((item) => item.id === optionId);
+  if (!option) throw new Error(`Contract option "${optionId}" was not found.`);
+  if (option.holder !== "TEAM") {
+    throw new Error("Only team-held options can be exercised unilaterally by the team.");
+  }
+  const openNegotiation = state.negotiations.some(
+    (session) => session.contractId === contractId &&
+      ["OPEN", "COUNTERED"].includes(session.status),
+  );
+  if (openNegotiation) {
+    throw new Error("Finish renewal talks before exercising an option.");
+  }
+  return {
+    ...state,
+    political: exerciseContractOption(
+      state.political, contractId, optionId, state.currentRound,
+    ),
+  };
 }
 
 export function startRoundContractNegotiation(
