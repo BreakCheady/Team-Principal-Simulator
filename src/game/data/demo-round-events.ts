@@ -8,6 +8,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
     summary:
       "Keller beats Moretti on merit. His confidence rises and the equality question becomes harder to ignore.",
     round: 16,
+    contractPerformance: [
+      { characterId: "char_keller", snapshot: { points: 145, podiums: 3 } },
+    ],
     effects: [
       {
         type: "CHARACTER_MOMENTUM_DELTA",
@@ -219,6 +222,19 @@ export const demoRoundEvents: RoundEventDefinition[] = [
       { type: "GOAL_URGENCY_DELTA", goalId: "goal_bellini_engineering", delta: 10 },
       { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
       { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 }
+    ],
+  },
+  {
+    id: "event_round_22_contract_results",
+    type: "RACE_RESULT",
+    title: "Moretti reaches four wins as Vanguard slips to fourth",
+    summary: "Moretti reaches four wins and second in the drivers' standings, while Vanguard slips to fourth in the team championship. The Contract Room reflects the bonuses and clauses unlocked by these results.",
+    round: 22,
+    effects: [],
+    contractPerformance: [
+      { characterId: "char_moretti", snapshot: {
+        wins: 4, driverChampionshipPosition: 2, teamChampionshipPosition: 4,
+      } },
     ],
   }
 ];

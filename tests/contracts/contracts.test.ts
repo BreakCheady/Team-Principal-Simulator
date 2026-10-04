@@ -4,10 +4,59 @@ import {
   advanceContractsForRound,
   evaluateContractPerformance,
   exerciseContractOption,
+  canExerciseTeamOption,
+  isReleaseClauseInForce,
 } from "../../src/game/contracts/contracts";
 import { validatePoliticalCoreState } from "../../src/game/political/validation";
 
 describe("contract engine", () => {
+  it.each([
+    ["EXPIRED", 22], ["TERMINATED", 22], ["ACTIVE", 27], ["ACTIVE", 1],
+  ] as const)("does not award performance outside an active term (%s, R%s)", (status, round) => {
+    const state = structuredClone(demoState);
+    const contract = state.contracts[0];
+    contract.status = status;
+    contract.startRound = 2;
+    const original = structuredClone(state);
+    const result = evaluateContractPerformance(state, contract.id, {
+      wins: 5, driverChampionshipPosition: 1, teamChampionshipPosition: 4,
+    }, round);
+    expect(result.triggeredPerformanceTriggerIds).toEqual([]);
+    expect(result.nextState).toEqual(original);
+    expect(state).toEqual(original);
+  });
+
+  it("does not extend a stale active contract after its end round", () => {
+    const state = structuredClone(demoState);
+    const contract = state.contracts[0];
+    contract.options[0].available = true;
+    contract.options[0].exerciseUntilRound = 30;
+    expect(() => exerciseContractOption(state, contract.id, contract.options[0].id, 27))
+      .toThrow(/active term/);
+  });
+
+  it("uses inclusive option and release-clause windows", () => {
+    const contract = structuredClone(demoState.contracts[0]);
+    const option = contract.options[0];
+    option.available = true;
+    expect([21, 22, 25, 26].map((round) => canExerciseTeamOption(contract, option, round)))
+      .toEqual([false, true, true, false]);
+    const clause = contract.releaseClauses[0];
+    clause.active = true;
+    expect([19, 20, 26, 27].map((round) => isReleaseClauseInForce(contract, clause, round)))
+      .toEqual([false, true, true, false]);
+    contract.status = "TERMINATED";
+    expect(isReleaseClauseInForce(contract, clause, 22)).toBe(false);
+  });
+
+  it("rejects invalid performance results and round numbers", () => {
+    for (const snapshot of [{ wins: -1 }, { wins: 1.5 }, { points: Infinity }, { driverChampionshipPosition: 0 }]) {
+      expect(() => evaluateContractPerformance(demoState, demoState.contracts[0].id, snapshot, 22))
+        .toThrow(/Invalid contract performance/);
+    }
+    expect(() => advanceContractsForRound(demoState, 0)).toThrow(/positive integer/);
+  });
+
   it("validates persistent Vanguard contract objects", () => {
     const validation = validatePoliticalCoreState(demoState);
 

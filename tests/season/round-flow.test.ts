@@ -5,13 +5,51 @@ import { demoState } from "../../src/game/data/demo-state";
 import {
   advanceRoundFlow,
   createRoundFlowState,
+  exerciseRoundContractOption,
+  startRoundContractNegotiation,
   getNextRound,
   getOpenIssues,
   resolveRoundConflict,
   resolveRoundIssue,
 } from "../../src/game/season/round-flow";
+import { encodeSave, decodeSave } from "../../src/game/save/save-game";
+import type { RoundFlowState } from "../../src/game/season/round-flow";
 
 describe("round flow", () => {
+  it("persists event-earned bonuses and an exercised team option through save/load", () => {
+    const initial = createRoundFlowState(demoState, demoRoundEvents, 21);
+    const flow = advanceRoundFlow(initial, demoRoundEvents);
+    const original = structuredClone(flow);
+    const contract = flow.political.contracts[0];
+    const extended = exerciseRoundContractOption(flow, contract.id, contract.options[0].id);
+    const restored = decodeSave<RoundFlowState>(encodeSave("ROUND_FLOW", extended), "ROUND_FLOW").state;
+    expect(flow).toEqual(original);
+    expect(restored.political.contracts[0].endRound).toBe(50);
+    expect(restored.political.contracts[0].salaryMillionsPerSeason).toBe(34.56);
+    expect(restored.political.contracts[0].earnedBonusesMillions).toBe(2.5);
+    expect(restored.history[0].events[1].contractTriggers).toHaveLength(3);
+    expect(restored.currentRound).toBe(22);
+    expect(restored.history).toEqual(flow.history);
+    expect(() => exerciseRoundContractOption(restored, contract.id, contract.options[0].id))
+      .toThrow(/already exercised/);
+  });
+
+  it.each(["CHARACTER", "MUTUAL"] as const)("does not let the team unilaterally exercise a %s option", (holder) => {
+    const flow = advanceRoundFlow(createRoundFlowState(demoState, demoRoundEvents, 21), demoRoundEvents);
+    const contract = flow.political.contracts[0];
+    contract.options[0].holder = holder;
+    expect(() => exerciseRoundContractOption(flow, contract.id, contract.options[0].id))
+      .toThrow(/team-held options/);
+  });
+
+  it("requires renewal talks to finish before exercising a team option", () => {
+    let flow = advanceRoundFlow(createRoundFlowState(demoState, demoRoundEvents, 21), demoRoundEvents);
+    const contract = flow.political.contracts[0];
+    flow = startRoundContractNegotiation(flow, contract.id);
+    expect(() => exerciseRoundContractOption(flow, contract.id, contract.options[0].id))
+      .toThrow(/Finish renewal talks/);
+  });
+
   it("schedules authored event rounds after the completed conflict sequence", () => {
     const flow = createRoundFlowState(demoState, demoRoundEvents, 15);
 

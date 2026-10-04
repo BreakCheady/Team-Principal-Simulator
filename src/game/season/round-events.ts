@@ -1,5 +1,9 @@
-import type { Conflict, PoliticalCoreState } from "@/game/political/types";
+import type { Conflict, Contract, PoliticalCoreState } from "@/game/political/types";
 import { validatePoliticalCoreState } from "@/game/political/validation";
+import {
+  evaluateContractPerformance,
+  type ContractPerformanceSnapshot,
+} from "@/game/contracts/contracts";
 
 export type RoundEventType =
   | "RACE_RESULT"
@@ -100,6 +104,19 @@ export type RoundEventDefinition = {
   round: number;
   effects: RoundEventEffect[];
   conflictTriggers?: RoundConflictTrigger[];
+  // Cumulative season results, scoped to the character whose contract they affect.
+  contractPerformance?: {
+    characterId: string;
+    snapshot: ContractPerformanceSnapshot;
+  }[];
+};
+
+export type AppliedContractTrigger = {
+  contractId: string;
+  characterId: string;
+  triggerId: string;
+  consequence: Contract["performanceTriggers"][number]["consequence"];
+  amountMillions?: number;
 };
 
 export type AppliedRoundEvent = {
@@ -109,6 +126,7 @@ export type AppliedRoundEvent = {
   summary: string;
   activatedConflictIds: string[];
   spawnedConflictIds: string[];
+  contractTriggers?: AppliedContractTrigger[];
 };
 
 export type RoundResolution = {
@@ -305,12 +323,39 @@ export function processRound(
     throw new RangeError("round must be a positive integer.");
   }
 
-  const nextState = structuredClone(sourceState);
+  let nextState = structuredClone(sourceState);
   const applied: AppliedRoundEvent[] = [];
 
   for (const event of events.filter((item) => item.round === round)) {
     for (const effect of event.effects) {
       applyEffect(nextState, effect);
+    }
+
+    const contractTriggers: AppliedContractTrigger[] = [];
+    for (const performance of event.contractPerformance ?? []) {
+      requireCharacter(nextState, performance.characterId);
+      const contracts = nextState.contracts.filter(
+        (contract) => contract.characterId === performance.characterId,
+      );
+      for (const contract of contracts) {
+        const result = evaluateContractPerformance(
+          nextState,
+          contract.id,
+          performance.snapshot,
+          round,
+        );
+        nextState = result.nextState;
+        for (const trigger of contract.performanceTriggers) {
+          if (!result.triggeredPerformanceTriggerIds.includes(trigger.id)) continue;
+          contractTriggers.push({
+            contractId: contract.id,
+            characterId: contract.characterId,
+            triggerId: trigger.id,
+            consequence: trigger.consequence,
+            ...(trigger.amountMillions === undefined ? {} : { amountMillions: trigger.amountMillions }),
+          });
+        }
+      }
     }
 
     const activatedConflictIds: string[] = [];
@@ -329,6 +374,7 @@ export function processRound(
       summary: event.summary,
       activatedConflictIds,
       spawnedConflictIds,
+      ...(contractTriggers.length === 0 ? {} : { contractTriggers }),
     });
   }
 

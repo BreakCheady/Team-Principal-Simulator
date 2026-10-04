@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { canExerciseTeamOption, isReleaseClauseInForce } from "@/game/contracts/contracts";
 import type { IssueDefinition } from "@/game/issues/issues";
 import { calculateConflict } from "@/game/political/conflicts";
 import { getConflictDecisions } from "@/game/political/decisions";
@@ -9,6 +10,7 @@ import { decodeSave, encodeSave } from "@/game/save/save-game";
 import {
   advanceRoundFlow,
   createRoundFlowState,
+  exerciseRoundContractOption,
   getNextRound,
   getOpenIssues,
   acceptRoundContractCounter,
@@ -107,6 +109,11 @@ export function RoundEventsPanel({
     setRoundFlow((current) =>
       startRoundContractNegotiation(current, contractId),
     );
+    setSaveMessage(null);
+  }
+
+  function exerciseTeamOption(contractId: string, optionId: string) {
+    setRoundFlow((current) => exerciseRoundContractOption(current, contractId, optionId));
     setSaveMessage(null);
   }
 
@@ -296,6 +303,13 @@ export function RoundEventsPanel({
                       <p className="mt-2 text-sm leading-6 text-zinc-500">
                         {event.summary}
                       </p>
+                      {(event.contractTriggers ?? []).map((trigger) => (
+                        <p key={trigger.contractId + trigger.triggerId} className="mt-2 text-xs text-emerald-300">
+                          {roundFlow.political.characters.find((item) => item.id === trigger.characterId)?.name}
+                          {" · "}{label(trigger.consequence)}
+                          {trigger.consequence === "SALARY_BONUS" ? ` · €${trigger.amountMillions}m earned` : ""}
+                        </p>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -661,7 +675,10 @@ export function RoundEventsPanel({
                   .reverse()
                   .find((item) => item.contractId === contract.id);
                 const activeClauses = contract.releaseClauses.filter(
-                  (clause) => clause.active,
+                  (clause) => isReleaseClauseInForce(contract, clause, roundFlow.currentRound),
+                );
+                const openNegotiation = roundFlow.negotiations.some((session) =>
+                  session.contractId === contract.id && ["OPEN", "COUNTERED"].includes(session.status),
                 );
                 const pendingTriggers = contract.performanceTriggers.filter(
                   (trigger) => !trigger.triggered,
@@ -709,6 +726,23 @@ export function RoundEventsPanel({
                                 : option.available
                                   ? " available"
                                   : " locked"}
+                              <p className="mt-1">Salary on exercise: €{(contract.salaryMillionsPerSeason * (option.exercised ? 1 : option.salaryMultiplier)).toFixed(2)}m / season</p>
+                              {option.holder === "TEAM" && !option.exercised ? (
+                                <button
+                                  type="button"
+                                  onClick={() => exerciseTeamOption(contract.id, option.id)}
+                                  disabled={!canExerciseTeamOption(contract, option, roundFlow.currentRound) || openNegotiation}
+                                  className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
+                                >
+                                  Exercise team option
+                                </button>
+                              ) : null}
+                              {option.holder !== "TEAM" && !option.exercised ? (
+                                <p className="mt-2">{option.holder === "MUTUAL" ? "Requires agreement from both parties." : "The character controls this option."}</p>
+                              ) : null}
+                              {openNegotiation && option.holder === "TEAM" && !option.exercised ? (
+                                <p className="mt-2">Finish renewal talks before exercising this option.</p>
+                              ) : null}
                             </div>
                           ))}
                         </div>
@@ -728,7 +762,9 @@ export function RoundEventsPanel({
                             >
                               €{clause.amountMillions}m · {clause.beneficiary} ·
                               R{clause.activeFromRound}–R{clause.expiresAfterRound} ·
-                              {clause.active ? " active" : " inactive"}
+                              {isReleaseClauseInForce(contract, clause, roundFlow.currentRound)
+                                ? " in force"
+                                : clause.active ? " outside active term or window" : " locked"}
                             </div>
                           ))}
                         </div>
