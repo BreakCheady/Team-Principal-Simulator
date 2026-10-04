@@ -1,3 +1,4 @@
+import type { CareerState } from "@/game/career/state";
 import {
   acceptNegotiationCounter,
   createNegotiationOffer,
@@ -10,7 +11,11 @@ import {
   advanceContractsForRound,
   exerciseContractOption,
 } from "@/game/contracts/contracts";
-import { cutOperatingCosts, requestOwnerFunding, settleTeamFinancesThroughRound } from "@/game/finance/finances";
+import {
+  cutOperatingCosts,
+  requestOwnerFunding,
+  settleTeamFinancesThroughRound,
+} from "@/game/finance/finances";
 import {
   advanceWatchingIssue,
   createChainedIssue,
@@ -36,6 +41,7 @@ export type RoundFlowHistoryEntry = {
 };
 
 export type RoundFlowState = {
+  career?: CareerState;
   political: PoliticalCoreState;
   scheduledRounds: number[];
   nextRoundIndex: number;
@@ -45,7 +51,6 @@ export type RoundFlowState = {
   negotiations: ContractNegotiationSession[];
   complete: boolean;
 };
-
 
 function clamp(min: number, max: number, value: number): number {
   return Math.min(max, Math.max(min, value));
@@ -105,12 +110,7 @@ function ageWatchingIssues(
       continue;
     }
 
-    const result = advanceWatchingIssue(
-      political,
-      issue,
-      definitions,
-      round,
-    );
+    const result = advanceWatchingIssue(political, issue, definitions, round);
     political = result.political;
     agedIssues.push(result.issue);
   }
@@ -159,6 +159,8 @@ export function advanceRoundFlow(
   events: RoundEventDefinition[],
   issueDefinitions: IssueDefinition[] = [],
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   if (state.complete) {
     throw new Error("Round flow is already complete.");
   }
@@ -200,6 +202,7 @@ export function advanceRoundFlow(
   const nextRoundIndex = state.nextRoundIndex + 1;
 
   return {
+    ...(state.career ? { career: structuredClone(state.career) } : {}),
     political: result.nextState,
     scheduledRounds: state.scheduledRounds,
     nextRoundIndex,
@@ -225,6 +228,8 @@ export function resolveRoundIssue(
   actionId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   const issue = state.issues.find((item) => item.id === issueId);
   if (!issue) {
     throw new Error(`Issue "${issueId}" was not found.`);
@@ -280,12 +285,13 @@ export function resolveRoundIssue(
   };
 }
 
-
 export function resolveRoundConflict(
   state: RoundFlowState,
   conflictId: string,
   decisionId: string,
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   const conflict = state.political.conflicts.find(
     (item) => item.id === conflictId,
   );
@@ -309,7 +315,6 @@ export function resolveRoundConflict(
   };
 }
 
-
 function appendNegotiationFollowUps(
   state: RoundFlowState,
   session: ContractNegotiationSession,
@@ -317,24 +322,28 @@ function appendNegotiationFollowUps(
 ): RoundFlowState {
   if (session.followUpIssueDefinitionIds.length === 0) return state;
 
-  const additions = session.followUpIssueDefinitionIds.flatMap((definitionId) => {
-    const definition = issueDefinitions.find((item) => item.id === definitionId);
-    if (!definition) {
-      throw new Error(
-        `Negotiation follow-up issue definition "${definitionId}" was not found.`,
+  const additions = session.followUpIssueDefinitionIds.flatMap(
+    (definitionId) => {
+      const definition = issueDefinitions.find(
+        (item) => item.id === definitionId,
       );
-    }
+      if (!definition) {
+        throw new Error(
+          `Negotiation follow-up issue definition "${definitionId}" was not found.`,
+        );
+      }
 
-    const alreadyExists = state.issues.some(
-      (issue) =>
-        issue.definitionId === definitionId &&
-        issue.parentIssueId === session.id,
-    );
+      const alreadyExists = state.issues.some(
+        (issue) =>
+          issue.definitionId === definitionId &&
+          issue.parentIssueId === session.id,
+      );
 
-    return alreadyExists
-      ? []
-      : [createChainedIssue(state.currentRound, definition, session.id)];
-  });
+      return alreadyExists
+        ? []
+        : [createChainedIssue(state.currentRound, definition, session.id)];
+    },
+  );
 
   return additions.length === 0
     ? state
@@ -349,15 +358,22 @@ export function exerciseRoundContractOption(
   contractId: string,
   optionId: string,
 ): RoundFlowState {
-  const contract = state.political.contracts.find((item) => item.id === contractId);
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
+  const contract = state.political.contracts.find(
+    (item) => item.id === contractId,
+  );
   if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
   const option = contract.options.find((item) => item.id === optionId);
   if (!option) throw new Error(`Contract option "${optionId}" was not found.`);
   if (option.holder !== "TEAM") {
-    throw new Error("Only team-held options can be exercised unilaterally by the team.");
+    throw new Error(
+      "Only team-held options can be exercised unilaterally by the team.",
+    );
   }
   const openNegotiation = state.negotiations.some(
-    (session) => session.contractId === contractId &&
+    (session) =>
+      session.contractId === contractId &&
       ["OPEN", "COUNTERED"].includes(session.status),
   );
   if (openNegotiation) {
@@ -366,7 +382,10 @@ export function exerciseRoundContractOption(
   return {
     ...state,
     political: exerciseContractOption(
-      state.political, contractId, optionId, state.currentRound,
+      state.political,
+      contractId,
+      optionId,
+      state.currentRound,
     ),
   };
 }
@@ -375,12 +394,18 @@ export function takeRoundFinanceAction(
   state: RoundFlowState,
   action: "OWNER_FUNDING" | "CUT_OPERATING_COSTS",
 ): RoundFlowState {
-  const political = settleTeamFinancesThroughRound(state.political, state.currentRound);
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
+  const political = settleTeamFinancesThroughRound(
+    state.political,
+    state.currentRound,
+  );
   return {
     ...state,
-    political: action === "OWNER_FUNDING"
-      ? requestOwnerFunding(political, state.currentRound)
-      : cutOperatingCosts(political),
+    political:
+      action === "OWNER_FUNDING"
+        ? requestOwnerFunding(political, state.currentRound)
+        : cutOperatingCosts(political),
   };
 }
 
@@ -388,6 +413,19 @@ export function startRoundContractNegotiation(
   state: RoundFlowState,
   contractId: string,
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
+  if (
+    state.career &&
+    !state.career.activeActorIds.includes(
+      state.political.contracts.find((c) => c.id === contractId)?.characterId ??
+        "",
+    )
+  ) {
+    throw new Error(
+      "This actor has left the team; use the transfer market to fill the vacant seat.",
+    );
+  }
   const existingOpen = state.negotiations.find(
     (session) =>
       session.contractId === contractId &&
@@ -403,7 +441,8 @@ export function startRoundContractNegotiation(
     state.currentRound,
   );
   const sameBaseIdCount = state.negotiations.filter(
-    (session) => session.id === created.id || session.id.startsWith(created.id + "_n"),
+    (session) =>
+      session.id === created.id || session.id.startsWith(created.id + "_n"),
   ).length;
   const session =
     sameBaseIdCount === 0
@@ -422,8 +461,16 @@ export function submitRoundContractOffer(
   posture: "FIRM" | "BALANCED" | "GENEROUS",
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
-  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+  if (!session)
+    throw new Error(`Negotiation "${negotiationId}" was not found.`);
+  if (
+    state.career &&
+    !state.career.activeActorIds.includes(session.characterId)
+  )
+    throw new Error("The actor has left the team.");
 
   const offer = createNegotiationOffer(session, posture);
   const result = submitNegotiationOffer(
@@ -442,7 +489,11 @@ export function submitRoundContractOffer(
     ),
   };
 
-  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(
+    nextState,
+    result.session,
+    issueDefinitions,
+  );
 }
 
 export function acceptRoundContractCounter(
@@ -450,8 +501,16 @@ export function acceptRoundContractCounter(
   negotiationId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
-  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+  if (!session)
+    throw new Error(`Negotiation "${negotiationId}" was not found.`);
+  if (
+    state.career &&
+    !state.career.activeActorIds.includes(session.characterId)
+  )
+    throw new Error("The actor has left the team.");
 
   const result = acceptNegotiationCounter(
     state.political,
@@ -467,7 +526,11 @@ export function acceptRoundContractCounter(
     ),
   };
 
-  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(
+    nextState,
+    result.session,
+    issueDefinitions,
+  );
 }
 
 export function rejectRoundContractNegotiation(
@@ -475,8 +538,11 @@ export function rejectRoundContractNegotiation(
   negotiationId: string,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.status === "DISMISSED")
+    throw new Error("Your tenure has ended.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
-  if (!session) throw new Error(`Negotiation "${negotiationId}" was not found.`);
+  if (!session)
+    throw new Error(`Negotiation "${negotiationId}" was not found.`);
 
   const result = rejectContractNegotiation(state.political, session);
 
@@ -488,5 +554,9 @@ export function rejectRoundContractNegotiation(
     ),
   };
 
-  return appendNegotiationFollowUps(nextState, result.session, issueDefinitions);
+  return appendNegotiationFollowUps(
+    nextState,
+    result.session,
+    issueDefinitions,
+  );
 }

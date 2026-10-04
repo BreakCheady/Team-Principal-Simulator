@@ -26,7 +26,7 @@ describe("local save envelope", () => {
     delete legacy.state.political.finance;
     for (const contract of legacy.state.political.contracts) delete contract.salaryPaidMillions;
     const restored = decodeSave<typeof state>(JSON.stringify(legacy), "ROUND_FLOW");
-    expect(restored.version).toBe(7);
+    expect(restored.version).toBe(8);
     expect(restored.state.currentRound).toBe(22);
     expect(restored.state.political.finance.openedAfterRound).toBe(22);
     expect(restored.state.political.finance.transactions).toEqual([]);
@@ -53,7 +53,7 @@ describe("local save envelope", () => {
     const raw = encodeSave("ROUND_FLOW", state);
     const decoded = decodeSave<typeof state>(raw, "ROUND_FLOW");
 
-    expect(decoded.version).toBe(7);
+    expect(decoded.version).toBe(8);
     expect(decoded.kind).toBe("ROUND_FLOW");
     expect(decoded.state).toEqual(state);
   });
