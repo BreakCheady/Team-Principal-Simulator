@@ -6,7 +6,7 @@ export const SeriesIdSchema = z.enum([
   "F4",
   "GT3",
   "GT4",
-  "LMP1",
+  "WEC",
   "INDYCAR",
   "RALLY",
 ]);
@@ -86,17 +86,12 @@ function calendar(id: SeriesId, rounds: number) {
             ? "TARMAC"
             : "GRAVEL") as EventKind,
       };
-    if (id === "LMP1")
+    if (id === "WEC")
       return {
         name: [
-          "Desert 6 Hours",
-          "Riviera 6 Hours",
-          "Ardennes 6 Hours",
-          "La Sarthe Classic 24 Hours",
-          "Atlantic 6 Hours",
-          "Pacific 6 Hours",
-          "Sakura 6 Hours",
-          "Gulf 8 Hours",
+          "6 Hours of Imola", "6 Hours of Spa-Francorchamps", "24 Hours of Le Mans",
+          "6 Hours of São Paulo", "Lone Star Le Mans · 6 Hours", "6 Hours of Fuji",
+          "6 Hours of Barcelona", "6 Hours of Monza",
         ][i],
         kind: "ENDURANCE" as const,
       };
@@ -302,13 +297,13 @@ const specs: [
     ],
   ],
   [
-    "LMP1",
-    "LMP1 Heritage Championship",
+    "WEC",
+    "FIA World Endurance Championship",
     "PROTOTYPE",
     2,
     8,
     80,
-    65,
+    55,
     [
       "Takumi Gazoo",
       "Aurex Sport",
@@ -318,6 +313,10 @@ const specs: [
       "Ginetra Prototype",
       "Nissanora Nismo",
       "Vanguard Prototype",
+      "Genesis Crest",
+      "Mantler Endurance", "Vista Corse", "Heartland Racing", "WRT Horizon GT",
+      "TF Crest", "Iron Lantern", "Proton Heritage", "ASP Aurora", "United Endurance",
+
     ],
   ],
   [
@@ -393,8 +392,8 @@ export const SERIES: SeriesDefinition[] = specs.map(
           ]
         : standard,
     description:
-      id === "LMP1"
-        ? "Historical prototype category, reimagined as a fictional heritage championship."
+      id === "WEC"
+        ? "FIA WEC 2026: Hypercar and LMGT3 share eight endurance races, with class championships, Hyperpole and three-driver crews. Fictional teams and drivers."
         : id === "RALLY"
           ? "Gravel, tarmac and snow rallies with terrain-dependent performance."
           : id === "INDYCAR"
@@ -421,3 +420,11 @@ export function pointsForEvent(series: SeriesDefinition, index: number) {
       : [10, 8, 6, 5, 4, 3, 2, 1];
   return series.points;
 }
+
+
+export type WecClass = "HYPERCAR" | "LMGT3";
+export const WEC_CLASSES: WecClass[] = ["HYPERCAR", "LMGT3"];
+export function wecClassForTeamIndex(index: number): WecClass {
+  return index < 9 ? "HYPERCAR" : "LMGT3";
+}
+export const WEC_CALENDAR_REFERENCE = "https://www.fia.com/news/fia-and-fia-wec-confirm-venues-final-two-rounds-2026";

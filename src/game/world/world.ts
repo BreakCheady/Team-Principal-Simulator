@@ -1,4 +1,4 @@
-import { getSeries, SERIES, type SeriesId } from "./series";
+import { getSeries, SERIES, wecClassForTeamIndex, type SeriesId } from "./series";
 import {
   WorldSchema,
   type MotorsportWorld,
@@ -205,6 +205,7 @@ export function createWorld(
       name: `${first[index % first.length]} ${last[Math.floor(index / first.length) % last.length]}`,
       age,
       nationality: nationalities[index % nationalities.length],
+      ...(role === "DRIVER" ? { rating: skill < 70 ? "BRONZE" as const : skill < 80 ? "SILVER" as const : skill < 90 ? "GOLD" as const : "PLATINUM" as const } : {}),
       role,
       seriesId,
       specialties:
@@ -234,6 +235,7 @@ export function createWorld(
         id: `team_${cfg.id.toLowerCase()}_${index}`,
         name,
         seriesId: cfg.id,
+        ...(cfg.id === "WEC" ? { classId: wecClassForTeamIndex(index) } : {}),
         reputation: strength,
         pace: Math.max(48, 92 - index * 3),
         reliability: Math.max(70, 91 - index),
@@ -244,9 +246,19 @@ export function createWorld(
         staff: [],
         principalId: "placeholder_id",
       };
+      if (team.classId === "LMGT3") {
+        team.budget = Number((team.budget * 0.18).toFixed(3));
+        team.pace = Math.max(55, 88 - (index - 9) * 3);
+        team.reputation = Math.max(55, 88 - (index - 9) * 3);
+      }
       world.teams.push(team);
       for (let i = 0; i < cfg.driversPerTeam; i++)
-        team.drivers.push(person(cfg.id, "DRIVER", team, i));
+        {
+          const id = person(cfg.id, "DRIVER", team, i);
+          team.drivers.push(id);
+          if (team.classId === "LMGT3") world.people.find((p) => p.id === id)!.rating = "BRONZE";
+          else if (team.classId === "HYPERCAR" && world.people.find((p) => p.id === id)!.rating === "BRONZE") world.people.find((p) => p.id === id)!.rating = "SILVER";
+        }
       for (const role of [
         "TECHNICAL_DIRECTOR",
         "SPORTING_DIRECTOR",
@@ -255,7 +267,10 @@ export function createWorld(
         team.staff.push(person(cfg.id, role, team, 0));
       team.principalId = person(cfg.id, "TEAM_PRINCIPAL", team, 0);
     });
-    for (let i = 0; i < 48; i++) person(cfg.id, "DRIVER", null, i % 3);
+    for (let i = 0; i < (cfg.id === "WEC" ? 192 : 48); i++) {
+      const id = person(cfg.id, "DRIVER", null, i % 3);
+      if (cfg.id === "WEC") world.people.find((p) => p.id === id)!.rating = (["BRONZE", "SILVER", "GOLD", "GOLD"] as const)[i % 4];
+    }
     for (const role of [
       "TECHNICAL_DIRECTOR",
       "SPORTING_DIRECTOR",
@@ -276,6 +291,7 @@ export function resetWorldStandings(world: MotorsportWorld) {
   world.series = SERIES.map((cfg) => ({
     seriesId: cfg.id,
     completedRounds: 0,
+    ...(cfg.id === "WEC" ? { entries: world.teams.filter((t) => t.seriesId === "WEC").flatMap((t) => Array.from({ length: getSeries(t.seriesId).driversPerTeam }, (_, index) => ({ id: `${t.id}_car_${index + 1}`, teamId: t.id, classId: t.classId!, points: 0 }))) } : {}),
     drivers: world.people
       .filter(
         (p) =>
@@ -286,10 +302,10 @@ export function resetWorldStandings(world: MotorsportWorld) {
           p.teamId &&
           world.teams.find((t) => t.id === p.teamId)?.seriesId === cfg.id,
       )
-      .map((p) => ({ personId: p.id, points: 0, wins: 0, podiums: 0 })),
+      .map((p) => ({ personId: p.id, ...(cfg.id === "WEC" ? { classId: world.teams.find((t) => t.id === p.teamId)!.classId } : {}), points: 0, wins: 0, podiums: 0 })),
     teams: world.teams
       .filter((t) => t.seriesId === cfg.id)
-      .map((t) => ({ teamId: t.id, points: 0 })),
+      .map((t) => ({ teamId: t.id, ...(t.classId ? { classId: t.classId } : {}), points: 0 })),
     lastResults: [],
   }));
 }
@@ -350,6 +366,7 @@ export function worldCandidates(
     .map((p) => {
       const employer = world.teams.find((t) => t.id === p.teamId);
       const compatible =
+        !(world.playerSeriesId === "WEC" && playerTeam(world).classId === "HYPERCAR" && p.role === "DRIVER" && p.rating === "BRONZE") &&
         p.specialties.includes(world.playerSeriesId) &&
         (p.role !== "DRIVER" || p.skill >= cfg.minDriverSkill);
       return {
@@ -414,7 +431,8 @@ export function transferWorldPerson(
             (x) =>
               !x.teamId &&
               x.role === "DRIVER" &&
-              x.specialties.includes(old.seriesId),
+              x.specialties.includes(old.seriesId) &&
+              (old.classId === "HYPERCAR" ? x.rating !== "BRONZE" : old.classId === "LMGT3" ? x.rating === p.rating : true),
           )
           .sort(
             (a, b) => Math.abs(a.skill - p.skill) - Math.abs(b.skill - p.skill),
@@ -438,7 +456,8 @@ export function transferWorldPerson(
             (x) =>
               !x.teamId &&
               x.role === p.role &&
-              x.specialties.includes(old.seriesId),
+              x.specialties.includes(old.seriesId) &&
+              (old.classId === "HYPERCAR" ? x.rating !== "BRONZE" : old.classId === "LMGT3" ? x.rating === p.rating : true),
           )
           .sort(
             (a, b) =>
@@ -516,6 +535,7 @@ export function validateWorld(input: unknown): MotorsportWorld {
       t.staff.length > 3
     )
       throw new Error("Invalid world roster size.");
+    if ((t.seriesId === "WEC") !== !!t.classId) throw new Error("Invalid WEC class assignment.");
     for (const id of [...t.drivers, ...t.staff, t.principalId]) {
       const p = persons.get(id);
       if (
@@ -587,6 +607,16 @@ export function validateWorld(input: unknown): MotorsportWorld {
       s.teams.length !== getSeries(s.seriesId).teamNames.length
     )
       throw new Error("Invalid series calendar or grid.");
+    if (s.seriesId === "WEC") {
+      if (!s.entries || new Set(s.entries.map((e) => e.id)).size !== s.entries.length)
+        throw new Error("Invalid WEC entry standings.");
+      for (const entry of s.entries) {
+        const team = teams.get(entry.teamId);
+        if (team?.seriesId !== "WEC" || team.classId !== entry.classId ||
+            ![`${entry.teamId}_car_1`, `${entry.teamId}_car_2`].includes(entry.id))
+          throw new Error("Invalid WEC car entry.");
+      }
+    }
     for (const d of s.drivers)
       if (!ids.has(d.personId)) throw new Error("Unknown championship driver.");
     for (const t of s.teams)
@@ -611,6 +641,7 @@ export function syncWorldCandidates(
   for (const standing of c.standings) {
     const p = w.people.find((p) => p.id === standing.id),
       team = w.teams.find((t) => t.id === p?.teamId);
+    if (team?.classId) standing.classId = team.classId;
     standing.team =
       team?.seriesId === w.playerSeriesId ? team.name : "Departed";
   }
@@ -623,9 +654,11 @@ export function syncWorldCandidates(
           name: p.name,
           team: team.name,
           skill: p.skill,
+          ...(team.classId ? { classId: team.classId } : {}),
           points: 0,
           wins: 0,
           podiums: 0,
         });
       }
 }
+

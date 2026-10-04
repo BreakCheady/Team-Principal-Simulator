@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { MotorsportWorld } from "@/game/world/schemas";
+import { WecStandings } from "./WecStandings";
 import { SERIES, getSeries } from "@/game/world/series";
 export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
   const [series, setSeries] = useState(world.playerSeriesId),
@@ -55,12 +56,10 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
         </h4>
         <p className="mt-2 text-sm text-zinc-400">{cfg.description}</p>
         <p className="mt-2 text-xs text-zinc-500">
-          Fictional game calendars, budgets and rosters; format inspired by the
-          sport. Formula 4, GT and rally fields are game-defined, not a
-          reproduction of a specific championship.
+          {series === "WEC" ? "WEC 2026 calendar and class structure; fictional budgets, teams and drivers." : "Fictional game calendars, budgets and rosters. Formula 4, GT and rally fields are game-defined."}
         </p>
       </article>
-      <div className="grid gap-4 lg:grid-cols-2">
+      {series === "WEC" ? <WecStandings world={world} /> : <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-xl border border-zinc-800 p-5">
           <h4>Team championship</h4>
           <table className="mt-3 w-full text-left text-sm">
@@ -118,7 +117,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
             </table>
           </div>
         </article>
-      </div>
+      </div>}
       <h4 className="text-lg font-semibold">Teams & personnel</h4>
       <div className="grid gap-3 lg:grid-cols-2">
         {world.teams
@@ -129,7 +128,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               className="rounded-xl border border-zinc-800 p-4"
             >
               <p className="font-semibold">
-                {t.name}
+                {t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}
                 {t.id === world.playerTeamId ? " · Your team" : ""}
               </p>
               <p className="mt-2 text-xs text-zinc-400">
@@ -198,7 +197,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <tbody>
             {people.slice(index * 30, (index + 1) * 30).map((p) => (
               <tr key={p.id} className="border-t border-zinc-800">
-                <td className="py-3 pr-3">{p.name}</td>
+                <td className="py-3 pr-3">{p.name}{p.rating ? <span className="block text-xs text-zinc-500">{p.rating}</span> : null}</td>
                 <td className="pr-3 text-xs">{p.role.replaceAll("_", " ")}</td>
                 <td>{p.age}</td>
                 <td>{p.nationality}</td>

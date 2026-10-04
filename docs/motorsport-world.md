@@ -6,10 +6,10 @@ through the old R14/R15 tutorial conflicts. Old saves preserve their actual prog
 
 ## World size and series
 
-There are 106 fictional teams, 666 drivers and 748 staff members (1,414 people total).
+There are 116 fictional teams, 830 drivers and 788 staff members (1,618 people total).
 Each team has a principal, technical director, sporting director, engineering lead
-and its series-specific number of driver/car entries. The initial pool includes 48 reserve
-drivers and 12 free candidates for each of the three recruitable staff roles per
+and its series-specific number of driver/car entries. The initial pool includes 192 WEC reserve drivers and 48 reserve
+drivers for every other series and 12 free candidates for each of the three recruitable staff roles per
 series. Endurance partners and rally co-drivers are employed from these reserves
 without creating extra people. People have unique stable IDs and names, age, nationality, ability, potential,
 experience, ambition, compromise, consistency, risk tolerance, terrain skill, salary,
@@ -23,19 +23,21 @@ series experience and current employer.
 | F4      |    12 |             2 |               21 | 7 meetings with three races         |
 | GT3     |    16 |             2 |               10 | Sprint/endurance events             |
 | GT4     |    16 |             2 |               12 | Customer GT meetings                |
-| LMP1    |     8 |             2 |                8 | Historical prototype endurance tour |
+| WEC     |    18 |             2 |                8 | Hypercar / LMGT3 endurance           |
 | IndyCar |    12 |             3 |               17 | Road, street and oval events        |
 | Rally   |    10 |             2 |               14 | Snow, gravel and tarmac rallies     |
 
 Names include Silvercrest GP, Sky Bull Racing, Scuderia Rosso, Marlow Racing,
 Premio Racing, ARTEM Grand Prix, Mantler Racing, Takumi Gazoo and Granassi Racing.
-All team identities, people, venues and financial values are fictional game content.
+Team identities, people and financial values are fictional game content. WEC uses
+the real revised 2026 venues; other series use fictional venues.
 All teams can be selected at the start, with distinct pace, reliability and budgets.
 
 Series use explicit sporting profiles described in [racing.md](racing.md), including
 actual rotating endurance crews, rally co-drivers/stages, qualifying, sprint and
-bonus points. Regional grids and all calendars remain fictional. LMP1 is historical,
-not presented as the current top FIA WEC class.
+bonus points. Regional grids and calendars outside WEC remain fictional. WEC has nine Hypercar
+and nine LMGT3 teams, 36 cars and 108 employed crew drivers. Each car has a stable
+entry identity; LMGT3 entry points survive a change of lead driver. See [wec.md](wec.md).
 
 Format references used while designing the fictional setup:
 
@@ -87,12 +89,15 @@ or recruitment before they regain sporting capacity.
 
 ## Saves and validation
 
-Save version 10 persists the world, selected team/series, calendars, people, transfers,
+Save version 11 persists the world, selected team/series, calendars, people, transfers,
 championship counters, live race weekends, bounded replay and independent PRNG state. Preseason and midseason saves replay
-deterministically. Versions 8/9 careers retain their existing round and source history;
-v6/v7 retain the earlier migration rules. Existing careers are not silently restarted.
+deterministically. Versions 8–10 careers retain their existing round and source history;
+v6/v7 retain the earlier migration rules. Existing careers are not silently restarted. Old LMP1 worlds become WEC worlds;
+existing teams, contracts and points remain, while new entries start on zero.
+An active legacy weekend retains its original venue, duration and race clock.
 
 Validation checks employer references, team rosters and roles, unique identities,
 championship references, calendar length and world/selected-career season consistency.
 The starting save is below the local-storage budget; recruitment and scouting views
 paginate the large pool instead of rendering every profile at once.
+

@@ -43,7 +43,7 @@ describe("local save envelope", () => {
       JSON.stringify(legacy),
       "ROUND_FLOW",
     );
-    expect(restored.version).toBe(10);
+    expect(restored.version).toBe(11);
     expect(restored.state.currentRound).toBe(22);
     expect(restored.state.political.finance.openedAfterRound).toBe(22);
     expect(restored.state.political.finance.transactions).toEqual([]);
@@ -84,7 +84,7 @@ describe("local save envelope", () => {
     const raw = encodeSave("ROUND_FLOW", state);
     const decoded = decodeSave<typeof state>(raw, "ROUND_FLOW");
 
-    expect(decoded.version).toBe(10);
+    expect(decoded.version).toBe(11);
     expect(decoded.kind).toBe("ROUND_FLOW");
     expect(decoded.state).toEqual(state);
   });
@@ -109,3 +109,4 @@ describe("local save envelope", () => {
     );
   });
 });
+

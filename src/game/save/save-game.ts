@@ -5,7 +5,9 @@ import { createTeamFinance } from "@/game/finance/defaults";
 import { roundMoney } from "@/game/finance/finances";
 import { validatePoliticalCoreState } from "@/game/political/validation";
 
-export const SAVE_VERSION = 10;
+import { migrateLegacyWec } from "./migrate-wec";
+
+export const SAVE_VERSION = 11;
 
 export type SaveEnvelope<T> = {
   version: typeof SAVE_VERSION;
@@ -36,7 +38,7 @@ export function decodeSave<T>(
 
   if (
     parsed.version !== SAVE_VERSION &&
-    ![6, 7, 8, 9].includes(Number(parsed.version))
+    ![6, 7, 8, 9, 10].includes(Number(parsed.version))
   ) {
     throw new Error("Unsupported save version.");
   }
@@ -48,6 +50,7 @@ export function decodeSave<T>(
   }
 
   if (parsed.kind === "ROUND_FLOW") {
+    if (Number(parsed.version) < 11) parsed.state = migrateLegacyWec(parsed.state) as T;
     const state = parsed.state as Record<string, unknown>;
     const currentRound = state.currentRound;
     if (!Number.isInteger(currentRound) || Number(currentRound) < 0) {

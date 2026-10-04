@@ -74,7 +74,7 @@ describe("series sporting profiles", () => {
       minStopLap: 6,
     });
   });
-  it("uses Italian F4 2026 top-15 points, regional GT pit windows and historical WEC durations", () => {
+  it("uses Italian F4 2026 top-15 points, regional GT pit windows and current WEC durations", () => {
     expect(getRaceRules("F4", 0, "SPRINT").points).toEqual([
       30, 26, 22, 20, 18, 16, 14, 12, 10, 9, 8, 6, 4, 2, 1,
     ]);
@@ -88,12 +88,12 @@ describe("series sporting profiles", () => {
       requiredStops: 2,
       refuel: true,
     });
-    expect(getRaceRules("LMP1", 3, "ENDURANCE")).toMatchObject({
+    expect(getRaceRules("WEC", 2, "ENDURANCE")).toMatchObject({
       minutes: 1440,
       sequentialService: true,
       points: [50, 36, 30, 24, 20, 16, 12, 8, 4, 2],
     });
-    expect(getRaceRules("LMP1", 7, "ENDURANCE").minutes).toBe(480);
+    expect(getRaceRules("WEC", 7, "ENDURANCE").minutes).toBe(360);
   });
   it("counts dry specifications used under a Safety Car in F1 but retains IndyCar green-lap requirements", () => {
     const car = prepared().career!.weekend!.cars[0];
@@ -468,3 +468,4 @@ describe("interactive race weekends", () => {
     ).toThrow(/clock/);
   });
 });
+

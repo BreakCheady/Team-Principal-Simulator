@@ -12,9 +12,9 @@ describe("new career and large pool UI", () => {
     const html = renderToStaticMarkup(createElement(MotorsportGame));
     for (const s of SERIES) expect(html).toContain(s.name);
     expect(html).toContain("Start season from round 1");
-    expect(html).toContain("666");
-    expect(html).toContain("748");
-    expect(html).toContain("106");
+    expect(html).toContain("830");
+    expect(html).toContain("788");
+    expect(html).toContain("116");
   });
   it("renders paginated recruitment with global search and source-series filters", () => {
     const flow = createNewCareer("F1"),

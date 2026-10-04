@@ -106,7 +106,7 @@ export function MotorsportGame() {
               onClick={() => setSelected(t.id)}
               className={`rounded-2xl border p-4 text-left ${team.id === t.id ? "border-emerald-500 bg-emerald-950/30" : "border-zinc-800"}`}
             >
-              <span className="font-semibold">{t.name}</span>
+              <span className="font-semibold">{t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}</span>
               <span className="mt-2 block text-sm text-zinc-400">
                 Pace {t.pace} · Reliability {t.reliability} · Budget €
                 {t.budget.toFixed(2)}m

@@ -142,7 +142,7 @@ export function completeDevelopment(flow: RoundFlowState): RoundFlowState {
   }
   return next;
 }
-export function teamTable(career: CareerState) {
+export function teamTable(career: CareerState, classId = career.world?.playerSeriesId === "WEC" ? playerTeam(career.world).classId : undefined) {
   const teams = new Map<string, number>();
   // Driver moves preserve historical constructor points through race records.
   for (const race of career.races.filter((r) => r.season === career.season))
@@ -157,6 +157,7 @@ export function teamTable(career: CareerState) {
       if (!teams.has(team.name)) teams.set(team.name, 0);
   if (!teams.has(ourTeam)) teams.set(ourTeam, 0);
   return [...teams]
+    .filter(([name]) => !classId || career.world?.teams.find((t) => t.name === name)?.classId === classId)
     .map(([team, points]) => ({ team, points }))
     .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team));
 }
@@ -185,6 +186,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
     characterId: car.id,
     name: car.name,
     team: car.team,
+    ...(weekend.seriesId === "WEC" ? { classId: car.classId as "HYPERCAR" | "LMGT3", classPosition: summary.entries[index].classPosition } : {}),
     position: index + 1,
     points: car.finishPoints + car.bonusPoints,
     dnf: car.retired || car.dsq,
@@ -201,12 +203,14 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
           name: driver.name,
           team: car.team,
           skill: person?.skill ?? car.skill,
+          ...(weekend.seriesId === "WEC" ? { classId: car.classId as "HYPERCAR" | "LMGT3" } : {}),
           points: 0,
           wins: 0,
           podiums: 0,
         };
         career.standings.push(standing);
       }
+      if (weekend.seriesId === "WEC") standing.classId = car.classId as "HYPERCAR" | "LMGT3";
       if (driver.eligible) {
         standing.points += results[index].points;
         standing.wins += car.raceWins;
@@ -219,7 +223,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
           Math.min(
             25,
             actor.dynamic.momentum +
-              (car.retired || car.dsq ? -3 : index < 3 ? 3 : 1),
+              (car.retired || car.dsq ? -3 : (entry.classPosition ?? index + 1) <= 3 ? 3 : 1),
           ),
         );
         actor.dynamic.instability = Math.max(
@@ -323,13 +327,13 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
   );
   if (
     sponsor &&
-    results.some((r) => r.team === ourTeam && r.position <= 3 && !r.dnf)
+    results.some((r) => r.team === ourTeam && (r.classPosition ?? r.position) <= 3 && !r.dnf)
   )
     sponsor.power.commercialBacking = Math.min(
       100,
       sponsor.power.commercialBacking + 1,
     );
-  const ordered = [...career.standings].sort(
+  const ordered = career.standings.filter((s) => !career.world || career.world.playerSeriesId !== "WEC" || s.classId === playerTeam(career.world).classId).sort(
     (a, b) =>
       b.points - a.points || b.wins - a.wins || a.id.localeCompare(b.id),
   );
@@ -377,3 +381,4 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
   weekend.committed = true;
   return next;
 }
+

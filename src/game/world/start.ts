@@ -196,6 +196,7 @@ export function createNewCareer(
       name: p.name,
       team: world.teams.find((t) => t.id === p.teamId)!.name,
       skill: p.skill,
+      ...(world.teams.find((t) => t.id === p.teamId)?.classId ? { classId: world.teams.find((t) => t.id === p.teamId)!.classId } : {}),
       points: 0,
       wins: 0,
       podiums: 0,
@@ -224,3 +225,4 @@ export function createNewCareer(
   flow.complete = false;
   return flow;
 }
+
