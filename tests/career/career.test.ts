@@ -28,7 +28,10 @@ import {
   teamTable,
 } from "../../src/game/career/sport";
 import { validateCareer } from "../../src/game/career/state";
-import { getCashBalance } from "../../src/game/finance/finances";
+import {
+  bookFinanceTransaction,
+  getCashBalance,
+} from "../../src/game/finance/finances";
 import { validatePoliticalCoreState } from "../../src/game/political/validation";
 import { decodeSave, encodeSave } from "../../src/game/save/save-game";
 import {
@@ -98,6 +101,27 @@ describe("career market and contractual rights", () => {
       submitRoundContractOffer(next, next.negotiations[0].id, "GENEROUS", []),
     ).toThrow(/left/);
     valid(after);
+  });
+  it("models the previously contractless engineering seat so staff can be replaced", () => {
+    const state = flow();
+    expect(
+      state.political.contracts.find((c) => c.characterId === "char_bellini"),
+    ).toMatchObject({
+      salaryMillionsPerSeason: 1.5,
+      guaranteedSalaryMillions: 1.5,
+    });
+    const departed = terminateEmployment(state, "char_bellini");
+    const signed = signCandidate(
+      departed,
+      "candidate_kovac",
+      "ENGINEERING",
+      1.5,
+      24,
+    );
+    expect(
+      signed.career!.seats.find((s) => s.seat === "ENGINEERING")!.characterId,
+    ).toBe("char_kovac");
+    valid(signed);
   });
   it("excludes alumni from newly derived political coalitions", () => {
     const state = terminateEmployment(flow(), "char_keller");
@@ -535,6 +559,34 @@ describe("autonomous actors, seasons and saves", () => {
       startRoundContractNegotiation(completed, "contract_chen_2026"),
     ).toThrow(/tenure/);
     expect(() => advanceCareerFlow(completed, [])).toThrow(/reset/);
+  });
+  it("books distinct emergency funding on both sides of the same season-boundary round", () => {
+    let state = finish(flow());
+    const cash = getCashBalance(state.political);
+    state.political = bookFinanceTransaction(state.political, {
+      id: "cash_setup",
+      round: 24,
+      category: "OPERATING_COST",
+      amountMillions: cash + 1,
+      description: "Cash stress scenario",
+    });
+    state = takeRoundFinanceAction(state, "OWNER_FUNDING");
+    state.political = bookFinanceTransaction(state.political, {
+      id: "cash_setup_two",
+      round: 24,
+      category: "OPERATING_COST",
+      amountMillions: 25,
+      description: "Further cash stress",
+    });
+    state = startNextSeason(state);
+    state = takeRoundFinanceAction(state, "OWNER_FUNDING");
+    expect(
+      state.political.finance.transactions.filter(
+        (t) => t.category === "OWNER_FUNDING",
+      ),
+    ).toHaveLength(2);
+    expect(getCashBalance(state.political)).toBe(14);
+    valid(state);
   });
   it("issues board warnings and dismisses after two failures", () => {
     let state = flow(24);

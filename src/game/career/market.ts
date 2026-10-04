@@ -119,8 +119,20 @@ export function leaveTeam(
       s.status = "REJECTED";
   });
   next.career.requests.forEach((r) => {
-    if (r.characterId === characterId && r.status === "OPEN")
+    if (
+      r.characterId === characterId &&
+      ["OPEN", "ESCALATED"].includes(r.status)
+    )
       r.status = "REFUSED";
+  });
+  next.issues.forEach((issue) => {
+    if (
+      issue.initiatorCharacterId === characterId &&
+      issue.status !== "RESOLVED"
+    ) {
+      issue.status = "RESOLVED";
+      issue.lastUpdatedRound = next.currentRound;
+    }
   });
   next.career.offers.forEach((o) => {
     if (o.characterId === characterId && o.status === "OPEN")

@@ -23,7 +23,37 @@ export function createCareerFlow(
   afterRound: number,
 ): RoundFlowState {
   const flow = createRoundFlowState(political, events, afterRound);
-  flow.career = createCareer(political, afterRound);
+  flow.career = createCareer(flow.political, afterRound);
+  // Scenario staff without a modeled deal get an explicit ongoing employment contract.
+  for (const seat of flow.career.seats) {
+    if (
+      !seat.characterId ||
+      flow.political.contracts.some(
+        (contract) => contract.characterId === seat.characterId,
+      )
+    )
+      continue;
+    const actor = flow.political.characters.find(
+      (c) => c.id === seat.characterId,
+    )!;
+    const salary = seat.seat === "ENGINEERING" ? 1.5 : 2;
+    flow.political.contracts.push({
+      id: `contract_${actor.id}_career_r${afterRound}`,
+      characterId: actor.id,
+      employer: "Vanguard Racing",
+      status: "ACTIVE",
+      signedRound: afterRound,
+      startRound: afterRound,
+      endRound: afterRound + 24,
+      salaryMillionsPerSeason: salary,
+      guaranteedSalaryMillions: salary,
+      salaryPaidMillions: 0,
+      options: [],
+      releaseClauses: [],
+      performanceTriggers: [],
+      earnedBonusesMillions: 0,
+    });
+  }
   flow.scheduledRounds = Array.from(
     { length: flow.career.seasonEnd - afterRound },
     (_, i) => afterRound + i + 1,

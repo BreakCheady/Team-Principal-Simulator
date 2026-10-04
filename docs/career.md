@@ -23,7 +23,9 @@ in historical relationships, conflict records and ledger entries.
 ## Transfers and employment
 
 Five seats are modeled: two drivers, technical director, sporting director and race
-engineering lead. The market contains two driver candidates and three staff candidates.
+engineering lead. On entering career mode, the previously contractless engineering
+lead receives an explicit €1.5m seasonal employment agreement and €1.5m guarantee.
+The market contains two driver candidates and three staff candidates.
 They have skill, ambition, willingness to compromise, salary demands, signing fees,
 buyouts and availability windows. Either driver can fill either driver seat.
 

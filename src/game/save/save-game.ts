@@ -136,6 +136,7 @@ export function decodeSave<T>(
     } else if (Number(parsed.version) < 8) {
       // Preserve legacy political/financial history; begin new championship counters at the load boundary.
       const migrated = createCareerFlow(restored, [], Number(currentRound));
+      flow.political = migrated.political;
       flow.career = migrated.career;
       flow.scheduledRounds = migrated.scheduledRounds;
       flow.nextRoundIndex = 0;

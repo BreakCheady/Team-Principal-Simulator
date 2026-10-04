@@ -33,7 +33,7 @@ describe("local save envelope", () => {
     expect(restored.state.political.contracts[0].performanceTriggers[0].triggered).toBe(true);
     expect(restored.state.political.contracts[0].salaryPaidMillions).toBeCloseTo(32 * 22 / 24, 6);
     const next = advanceRoundFlow(restored.state, demoRoundEvents);
-    expect(getCashBalance(next.political)).toBe(16.4375);
+    expect(getCashBalance(next.political)).toBe(16.375);
     expect(next.political.finance.transactions.every((item) => item.round === 23)).toBe(true);
     expect(next.political.finance.transactions.filter((item) => item.category === "PERFORMANCE_BONUS")).toEqual([]);
   });

@@ -214,7 +214,7 @@ export function requestOwnerFunding(sourceState: PoliticalCoreState, round: numb
   const nextState = structuredClone(sourceState);
   nextState.finance.ownerFundingUsed = true;
   appendTransaction(nextState, {
-    id: `owner_emergency_funding_r${round}`, round, category: "OWNER_FUNDING",
+    id: `owner_emergency_funding_${nextState.finance.transactions.filter(t=>t.category==="OWNER_FUNDING").length+1}_r${round}`, round, category: "OWNER_FUNDING",
     amountMillions: OWNER_FUNDING_MILLIONS, description: "Emergency owner funding",
   });
   const owner = nextState.characters.find((item) => ["CEO", "OWNER_REPRESENTATIVE"].includes(item.role))!;
