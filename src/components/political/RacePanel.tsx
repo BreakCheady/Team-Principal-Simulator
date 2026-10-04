@@ -25,6 +25,7 @@ import {
 } from "@/game/racing/actions";
 import { terminateEmployment } from "@/game/career/market";
 import { setRaceStrategy } from "@/game/career/career";
+import { WecStandings } from "./WecStandings";
 import { teamTable } from "@/game/career/sport";
 type Props = {
   flow: RoundFlowState;
@@ -50,7 +51,7 @@ function CarControls({
   return (
     <article className={card}>
       <h4 className="font-semibold">
-        {car.name} · {car.retired ? "Retired" : `P${car.position}`}
+        {car.name} · {car.retired ? "Retired" : `P${car.position}`}{w.seriesId === "WEC" ? ` · ${car.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"} P${liveOrder(w).filter((c) => c.classId === car.classId).findIndex((c) => c.id === car.id) + 1}` : ""}
       </h4>
       <p className="mt-2 text-sm text-zinc-400">
         {car.crew[car.activeDriver].name} · {car.compound} · wear{" "}
@@ -290,14 +291,16 @@ function CrewManager({ flow, onAction }: Props) {
                 {!team.drivers.includes(crew.leadId)
                   ? "Vacant car entry · "
                   : ""}
-                {world.people.find((p) => p.id === crew.leadId)?.name} ·{" "}
+                {world.people.find((p) => p.id === crew.leadId)?.name}
+                {world.playerSeriesId === "WEC" && ` · ${world.people.find((p) => p.id === crew.leadId)?.rating}`} ·{" "}
                 {world.playerSeriesId === "RALLY"
                   ? "Co-driver"
                   : "Support drivers"}
               </p>
               {ids.map((id) => (
                 <p className="mt-2 text-sm" key={id}>
-                  {world.people.find((p) => p.id === id)?.name}{" "}
+                  {world.people.find((p) => p.id === id)?.name}
+                  {world.playerSeriesId === "WEC" && ` · ${world.people.find((p) => p.id === id)?.rating}`} {" "}
                   <button
                     className={button + " ml-3"}
                     onClick={() => onAction((s) => terminateEmployment(s, id))}
@@ -321,7 +324,8 @@ function CrewManager({ flow, onAction }: Props) {
                   >
                     {candidates.map((x) => (
                       <option value={x.id} key={x.id}>
-                        {x.character.name} · skill {x.skill} · €
+                        {x.character.name}
+                        {world.playerSeriesId === "WEC" && ` · ${world.people.find((p) => p.id === x.id)?.rating}`} · skill {x.skill} · €
                         {(x.salary * 1.2).toFixed(2)}m/year + fees
                       </option>
                     ))}
@@ -631,9 +635,7 @@ export function RacePanel({ flow, onAction }: Props) {
                         {car.crew[car.activeDriver].name}
                         <span className="block text-xs text-zinc-500">
                           {car.team} ·{" "}
-                          {car.classId === "TRAFFIC"
-                            ? "GT traffic class"
-                            : "Main class"}
+                          {car.classId === "MAIN" ? "Main class" : car.classId === "HYPERCAR" ? "Hypercar" : car.classId}
                         </span>
                       </td>
                       <td>+{gapToLeader(w!, car).toFixed(1)}s</td>
@@ -723,7 +725,7 @@ export function RacePanel({ flow, onAction }: Props) {
           <CrewManager flow={flow} onAction={onAction} />
         </>
       )}
-      <div className="grid gap-4 lg:grid-cols-2">
+      {cfg.id === "WEC" ? <WecStandings world={c.world!} /> : <div className="grid gap-4 lg:grid-cols-2">
         <article className={card}>
           <h4>
             {cfg.id === "INDYCAR" ? "Team aggregate" : "Team championship"}
@@ -779,7 +781,7 @@ export function RacePanel({ flow, onAction }: Props) {
             </table>
           </div>
         </article>
-      </div>
+      </div>}
       {report?.summary ? (
         <>
           <label className="block text-sm">
@@ -814,7 +816,7 @@ export function RacePanel({ flow, onAction }: Props) {
               <tbody>
                 {report.results.map((r) => (
                   <tr className="border-t border-zinc-800" key={r.characterId}>
-                    <td className="py-2">{r.position}</td>
+                    <td className="py-2">{r.position}{r.classId ? <span className="block text-xs text-sky-300">{r.classId === "HYPERCAR" ? "Hypercar" : r.classId} P{r.classPosition}</span> : null}</td>
                     <td>{r.name}</td>
                     <td>{r.team}</td>
                     <td>{r.points}</td>
@@ -842,3 +844,4 @@ export function RacePanel({ flow, onAction }: Props) {
     </div>
   );
 }
+

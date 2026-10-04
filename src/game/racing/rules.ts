@@ -17,7 +17,8 @@ export type RaceRules = {
     | "FAST6"
     | "OVAL"
     | "SHAKEDOWN"
-    | "CREW";
+    | "CREW"
+    | "HYPERPOLE";
   compounds: Compound[];
   refuel: boolean;
   fuelLaps: number;
@@ -50,7 +51,7 @@ const SOURCES = {
   F4: "https://www.acisport.it/en/F4/regulations/2026",
   GT3: "https://europeregs.sporting.gt-world-challenge.com/assets/2026GTWCSportingRegulations.pdf",
   GT4: "https://www.gt4europeanseries.com/images/2024%20-%20GT4%20European%20Series%20-%20Sporting%20Regulations%20-%20S02.pdf",
-  LMP1: "https://www.fia.com/sites/default/files/fia_world_endurance_championship_sporting_regulations_2019-2020_wmsc041019_-_marked-up.pdf",
+  WEC: "https://www.fia.com/system/files/documents/2026_fia_world_endurance_championship_sporting_regulations_clean_v1.2wmsc.pdf",
   INDYCAR:
     "https://epaddock.indycar.com/docs/default-source/rules-regulations-and-policies/2026-indycar-rulebook.pdf",
   RALLY:
@@ -182,21 +183,21 @@ export function getRaceRules(
       poleBonus: 1,
       minimumDistance: 0.7,
     };
-  if (series === "LMP1") {
-    const hours = index === 3 ? 24 : index === 7 ? 8 : 6;
+  if (series === "WEC") {
+    const hours = index % 8 === 2 ? 24 : 6;
     return {
       ...base,
-      id: "WEC_LMP1_2019_20",
-      name: "WEC LMP1 2019–20 · prototype crews",
-      qualifying: "CREW",
+      id: "WEC_2026",
+      name: "FIA WEC 2026 · Hypercar / LMGT3",
+      qualifying: "HYPERPOLE",
       minutes: hours * 60,
-      compounds: ["SLICK", "INTERMEDIATE", "WET"],
+      compounds: ["SLICK", "WET"],
       refuel: true,
       fuelLaps: 30,
       crewSize: 3,
       changeDriver: true,
-      maxStintMinutes: 240,
-      minDriverMinutes: hours === 24 ? 360 : hours === 8 ? 90 : 40,
+      maxStintMinutes: null,
+      minDriverMinutes: 45,
       sequentialService: true,
       pitSeconds: 30,
       rollingStart: true,
@@ -206,9 +207,7 @@ export function getRaceRules(
       points:
         hours === 24
           ? [50, 36, 30, 24, 20, 16, 12, 8, 4, 2]
-          : hours === 8
-            ? [38, 27, 23, 18, 15, 12, 9, 6, 3, 2]
-            : [...STANDARD],
+          : [...STANDARD],
     };
   }
   if (series === "INDYCAR")
@@ -257,7 +256,7 @@ export function getRaceRules(
   };
 }
 export function crewSizeForSeries(series: SeriesId) {
-  return series === "LMP1" || series === "GT3" ? 3 : series === "GT4" ? 2 : 1;
+  return series === "WEC" || series === "GT3" ? 3 : series === "GT4" ? 2 : 1;
 }
 export function isSprintWeekend(series: SeriesId, index: number) {
   return series === "F1" && [1, 4, 6, 10, 13, 17].includes(index);

@@ -111,7 +111,7 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
         : length *
           (seriesId === "F1"
             ? 17
-            : seriesId === "LMP1"
+            : seriesId === "WEC"
               ? 18
               : seriesId === "GT4"
                 ? 27
@@ -180,21 +180,15 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
             (s.team !== ourTeam || c.seats.some((x) => x.characterId === s.id)),
         )
         .map((s) => s.id);
-  const entries: Array<{ id: string; classId: "MAIN" | "TRAFFIC" }> =
-    leadIds.map((id) => ({ id, classId: "MAIN" }));
-  if (seriesId === "LMP1" && world)
-    for (const id of world.teams
-      .filter((t) => t.seriesId === "GT3")
-      .slice(0, 4)
-      .flatMap((t) => t.drivers))
-      entries.push({ id, classId: "TRAFFIC" });
+  const entries: Array<{ id: string; classId: RaceCar["classId"] }> =
+    leadIds.map((id) => ({ id, classId: seriesId === "WEC" ? world!.teams.find((t) => t.drivers.includes(id))!.classId ?? "HYPERCAR" : "MAIN" }));
   const cars: RaceCar[] = entries.map(({ id, classId }, i) => {
     const p = world?.people.find((p) => p.id === id),
       standing = c.standings.find((s) => s.id === id),
       actor = flow.political.characters.find((p) => p.id === id),
       team = world?.teams.find((t) => t.id === p?.teamId),
       teamName = team?.name ?? standing?.team ?? ourTeam,
-      ours = teamName === ourTeam && classId === "MAIN",
+      ours = teamName === ourTeam && classId !== "TRAFFIC",
       skill = p?.skill ?? standing?.skill ?? 70;
     const assigned = team?.raceCrews?.find((cr) => cr.leadId === id),
       crewIds = [id, ...(assigned?.members ?? [])].slice(0, rules.crewSize);
@@ -204,6 +198,7 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
         id,
         name: d?.name ?? standing?.name ?? id,
         skill: d?.skill ?? skill,
+        rating: d?.rating,
         consistency: d?.consistency ?? 75,
         drivingSeconds: 0,
         fatigue: 0,
@@ -237,6 +232,7 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
       name: p?.name ?? standing?.name ?? id,
       team: teamName,
       classId,
+      ...(seriesId === "WEC" ? { entryId: `${team!.id}_car_${(team!.raceCrews?.findIndex((cr) => cr.leadId === id) ?? team!.drivers.indexOf(id)) + 1}` } : {}),
       ours,
       crew,
       activeDriver: 0,
@@ -379,7 +375,7 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
     committed: false,
   };
   if (reuse) {
-    for (const car of cars.filter((c) => c.classId === "MAIN"))
+    for (const car of cars.filter((c) => c.classId !== "TRAFFIC"))
       if (!w.qualifying.some((q) => q.id === car.id))
         w.qualifying.push({
           id: car.id,
@@ -489,11 +485,11 @@ export function qualify(w: RaceWeekend) {
     throw new Error("Qualifying is closed.");
   if (!w.practiceRuns) practice(w);
   const rules = raceRules(w),
-    main = w.cars.filter((c) => c.classId === "MAIN");
+    main = w.cars.filter((c) => c.classId !== "TRAFFIC");
   for (const car of w.cars) car.setupFit = setupFit(w, car);
   const time = (c: RaceCar, driver = 0) =>
     round(
-      w.baseLap +
+      w.baseLap * (c.classId === "LMGT3" ? 1.28 : 1) +
         (100 - c.pace) * 0.025 +
         (100 - c.crew[driver].skill) * 0.035 +
         (100 - c.setupFit) * 0.025 +
@@ -508,17 +504,29 @@ export function qualify(w: RaceWeekend) {
   let rows = main
     .map((c) => ({
       id: c.id,
-      time: time(c),
+      time: time(c, c.classId === "LMGT3" ? Math.max(0, c.crew.findIndex((d) => d.rating === "BRONZE")) : 0),
       secondTime: time(c),
       position: 1,
       segments: [] as number[],
     }))
     .sort((a, b) => a.time - b.time || a.id.localeCompare(b.id));
-  if (rules.qualifying === "CREW") {
+  if (rules.qualifying === "HYPERPOLE") {
+    const ordered = [] as typeof rows;
+    for (const classId of ["HYPERCAR", "LMGT3"]) {
+      const group = rows.filter((q) => main.find((c) => c.id === q.id)!.classId === classId);
+      const finalists = group.slice(0, 10).map((q) => {
+        const car = main.find((c) => c.id === q.id)!;
+        const driver = classId === "LMGT3" ? Math.max(0, car.crew.findIndex((d) => d.rating === "BRONZE")) : 0;
+        q.segments = [q.time, time(car, driver)]; q.time = q.segments[1]; return q;
+      }).sort((a, b) => a.time - b.time);
+      ordered.push(...finalists, ...group.slice(10));
+    }
+    rows = ordered;
+  } else if (rules.qualifying === "CREW") {
     for (const q of rows) {
       const car = main.find((c) => c.id === q.id)!;
       q.segments = car.crew
-        .slice(0, w.seriesId === "LMP1" ? 2 : 3)
+        .slice(0, w.seriesId === "WEC" ? 2 : 3)
         .map((_, i) => time(car, i));
       q.time = q.segments.reduce((sum, t) => sum + t, 0) / q.segments.length;
     }
@@ -658,7 +666,7 @@ function suitableTyre(
 function lapTime(w: RaceWeekend, car: RaceCar) {
   const driver = car.crew[car.activeDriver],
     rules = raceRules(w),
-    base = w.baseLap * (car.classId === "TRAFFIC" ? 1.28 : 1);
+    base = w.baseLap * (car.classId === "TRAFFIC" || car.classId === "LMGT3" ? 1.28 : 1);
   const mode =
     car.mode === "ATTACK"
       ? -0.7
@@ -767,7 +775,7 @@ export function gapToLeader(w: RaceWeekend, car: RaceCar) {
     : 0;
 }
 function snapshot(w: RaceWeekend) {
-  const rows = liveOrder(w).filter((c) => c.classId === "MAIN");
+  const rows = liveOrder(w).filter((c) => c.classId !== "TRAFFIC");
   rows.forEach((c, i) => (c.position = i + 1));
   w.snapshots.push({
     lap: w.lap,
@@ -818,6 +826,10 @@ function shouldPit(w: RaceWeekend, car: RaceCar, rules: RaceRules) {
   if (w.pitClosed) return false;
   if (car.pitRequested) return true;
   if (!car.plan.automatic && car.ours) return false;
+  if (w.seriesId === "WEC" && car.plan.changeDriver) {
+    const minimum = (d: RaceCar["crew"][number]) => car.classId === "LMGT3" && ["BRONZE", "SILVER"].includes(d.rating ?? "") ? (w.eventIndex % 8 === 2 ? 360 : 105) * 60 : 45 * 60;
+    if (car.crew[car.activeDriver].drivingSeconds >= minimum(car.crew[car.activeDriver]) && car.crew.some((d, i) => i !== car.activeDriver && d.drivingSeconds < minimum(d))) return true;
+  }
   const remaining = w.totalLaps - w.lap;
   if (remaining <= 1) return false;
   const mandatory =
@@ -936,8 +948,11 @@ function doPit(w: RaceWeekend, car: RaceCar, rules: RaceRules) {
       loss,
     );
   }
+  const active = car.crew[car.activeDriver];
+  const amateurTarget = w.eventIndex % 8 === 2 ? 360 : 105;
+  const retainAmateur = w.seriesId === "WEC" && car.classId === "LMGT3" && ["BRONZE", "SILVER"].includes(active.rating ?? "") && active.drivingSeconds < amateurTarget * 60;
   const change =
-    rules.changeDriver &&
+    !retainAmateur && rules.changeDriver &&
     car.plan.changeDriver &&
     car.crew.length > 1 &&
     (!rules.pitWindow || (pitWindow(w, rules) && car.mandatoryStops === 0));
@@ -1080,8 +1095,8 @@ function battle(w: RaceWeekend, car: RaceCar, seconds: number) {
       }
     }
   }
-  if (w.seriesId === "LMP1" && car.classId === "MAIN") {
-    const traffic = w.cars.filter((c) => c.classId === "TRAFFIC" && !c.retired);
+  if (w.seriesId === "WEC" && car.classId === "HYPERCAR") {
+    const traffic = w.cars.filter((c) => c.classId === "LMGT3" && !c.retired);
     if (traffic.length && raceRandom(w) < 0.13) {
       const loss = (100 - w.overtaking) * 0.009 + raceRandom(w) * 0.5;
       seconds += loss;
@@ -1229,7 +1244,7 @@ export function stepRace(w: RaceWeekend) {
   }
   const neutralOrder =
     w.flag !== "GREEN" ? liveOrder(w).filter((c) => !c.retired) : [];
-  const running = w.cars.filter((c) => !c.retired && c.classId === "MAIN");
+  const running = w.cars.filter((c) => !c.retired && c.classId !== "TRAFFIC");
   if (!running.length) {
     finishSession(w);
     return;
@@ -1284,7 +1299,7 @@ export function stepRace(w: RaceWeekend) {
             c.nextLapAt = Math.max(c.lapStartedAt + w.baseLap * 1.4, maximum);
         });
     }
-    const leader = liveOrder(w).find((c) => c.classId === "MAIN" && !c.retired);
+    const leader = liveOrder(w).find((c) => c.classId !== "TRAFFIC" && !c.retired);
     if (leader) leader.lapsLed += 1;
   }
   if (neutralOrder.length && w.flag !== "GREEN") {
@@ -1314,6 +1329,7 @@ export function stepRace(w: RaceWeekend) {
         completeCarLap(w, car);
         car.finished = true;
       }
+    for (const car of w.cars.filter((c) => !c.retired)) car.finished = true;
     finishSession(w);
   } else if (
     !w.decision &&
@@ -1340,10 +1356,11 @@ export function tyreCompliance(car: RaceCar, rules: RaceRules) {
 }
 export function classify(w: RaceWeekend) {
   return [...w.cars]
-    .filter((c) => c.classId === "MAIN")
+    .filter((c) => c.classId !== "TRAFFIC")
     .sort(
       (a, b) =>
-        Number(a.dsq) - Number(b.dsq) ||
+        Number(a.dsq || (w.seriesId === "WEC" && a.retired)) -
+        Number(b.dsq || (w.seriesId === "WEC" && b.retired)) ||
         b.completedLaps - a.completedLaps ||
         a.totalSeconds + a.penaltySeconds - b.totalSeconds - b.penaltySeconds ||
         a.id.localeCompare(b.id),
@@ -1351,7 +1368,7 @@ export function classify(w: RaceWeekend) {
 }
 function finishSession(w: RaceWeekend) {
   const rules = raceRules(w),
-    main = w.cars.filter((c) => c.classId === "MAIN"),
+    main = w.cars.filter((c) => c.classId !== "TRAFFIC"),
     leaderLaps = Math.max(0, ...main.map((c) => c.completedLaps));
   for (const car of main) {
     if (!tyreCompliance(car, rules)) {
@@ -1413,6 +1430,19 @@ function finishSession(w: RaceWeekend) {
       car.retirementReason = "Incomplete driver crew";
     }
   }
+  if (w.seriesId === "WEC") for (const car of main) {
+    const bronze = car.crew.filter((d) => d.rating === "BRONZE");
+    const amateurs = car.crew.filter((d) => d.rating === "BRONZE" || d.rating === "SILVER");
+    const invalidCrew = car.classId === "HYPERCAR" ? bronze.length > 0 : !bronze.length || amateurs.length < 2;
+    const required = w.eventIndex % 8 === 2 ? 360 : 105;
+    const mandatoryDrivers = [...bronze, ...car.crew.filter((d) => d.rating === "SILVER").sort((a, b) => b.drivingSeconds - a.drivingSeconds).slice(0, 1)];
+    const timeFailure = car.classId === "LMGT3" && !car.retired && mandatoryDrivers.some((d) => d.drivingSeconds < required * 60);
+    if (invalidCrew || timeFailure) {
+      car.dsq = true;
+      car.retirementReason = invalidCrew ? "WEC driver rating requirements not met" : "LMGT3 minimum driving time not met";
+      logRace(w, "PENALTY", `${car.name}: ${car.retirementReason}.`, car.id);
+    }
+  }
   const rows = classify(w),
     mostLed = Math.max(0, ...rows.map((c) => c.lapsLed)),
     fastest = [...rows]
@@ -1431,19 +1461,15 @@ function finishSession(w: RaceWeekend) {
       !car.dsq &&
       car.completedLaps >= Math.floor(leaderLaps * rules.minimumDistance) &&
       (rules.format !== "RALLY" || !car.retired);
-    car.finishPoints += classified
-      ? (rules.points[i] ??
-        (w.seriesId === "LMP1"
-          ? w.eventIndex === 3 || w.eventIndex === 7
-            ? 1
-            : 0.5
-          : 0))
-      : 0;
-    if (classified && i === 0 && !car.retired) car.raceWins++;
-    if (classified && i < 3 && !car.retired) car.racePodiums++;
+    const classIndex = w.seriesId === "WEC" ? rows.filter((c) => c.classId === car.classId).indexOf(car) : i;
+    const wecClassified = w.seriesId !== "WEC" || (!car.retired && car.finished);
+    car.finishPoints += classified && wecClassified ? (rules.points[classIndex] ?? 0) : 0;
+    if (classified && classIndex === 0 && !car.retired) car.raceWins++;
+    if (classified && classIndex < 3 && !car.retired) car.racePodiums++;
     if (classified && rules.fastestBonus && fastest?.id === car.id && i < 10)
       car.bonusPoints += rules.fastestBonus;
-    if (car.grid === 1 && rules.poleBonus && w.qualifying[0]?.id === car.id)
+    const pole = w.seriesId === "WEC" ? w.qualifying.find((q) => w.cars.find((c) => c.id === q.id)!.classId === car.classId) : w.qualifying[0];
+    if (rules.poleBonus && pole?.id === car.id && (w.seriesId !== "WEC" || !car.dsq))
       car.bonusPoints += rules.poleBonus;
     if (w.seriesId === "INDYCAR") {
       if (car.lapsLed > 0) car.bonusPoints++;
@@ -1525,6 +1551,7 @@ export function summarize(w: RaceWeekend, budget: number): RaceSummary {
     teamPoints: [...teams].map(([team, points]) => ({ team, points })),
     entries: rows.map((car) => ({
       id: car.id,
+      ...(w.seriesId === "WEC" ? { entryId: car.entryId, classId: car.classId as "HYPERCAR" | "LMGT3", classPosition: rows.filter((c) => c.classId === car.classId).indexOf(car) + 1 } : {}),
       time: round(car.totalSeconds + car.penaltySeconds),
       laps: car.completedLaps,
       grid: car.grid,
@@ -1555,3 +1582,4 @@ export function summarize(w: RaceWeekend, budget: number): RaceSummary {
     })),
   };
 }
+

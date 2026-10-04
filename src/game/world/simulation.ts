@@ -56,9 +56,10 @@ function worldRace(
     for (const driver of summary.entries[i].crew) {
       let d = table.drivers.find((d) => d.personId === driver.id);
       if (!d) {
-        d = { personId: driver.id, points: 0, wins: 0, podiums: 0 };
+        d = { personId: driver.id, ...(seriesId === "WEC" ? { classId: car.classId as "HYPERCAR" | "LMGT3" } : {}), points: 0, wins: 0, podiums: 0 };
         table.drivers.push(d);
       }
+      if (seriesId === "WEC") d.classId = car.classId as "HYPERCAR" | "LMGT3";
       if (driver.eligible) {
         d.points += car.finishPoints + car.bonusPoints;
         d.wins += car.raceWins;
@@ -71,6 +72,12 @@ function worldRace(
     )!;
     table.teams.find((r) => r.teamId === t.id)!.points += result.points;
   }
+  if (seriesId === "WEC") for (const car of cars) {
+    table.entries ??= [];
+    let entry = table.entries.find((e) => e.id === car.entryId);
+    if (!entry) { entry = { id: car.entryId!, teamId: world.teams.find((t) => t.name === car.team)!.id, classId: car.classId as "HYPERCAR" | "LMGT3", points: 0 }; table.entries.push(entry); }
+    entry.points += car.finishPoints + car.bonusPoints;
+  }
   table.completedRounds++;
   table.qualifying = weekend.qualifying;
   table.lastResults = cars.map((c) => ({
@@ -78,6 +85,7 @@ function worldRace(
     teamId: world.teams.find(
       (t) => t.name === c.team && t.seriesId === seriesId,
     )!.id,
+    ...(seriesId === "WEC" ? { classId: c.classId as "HYPERCAR" | "LMGT3", classPosition: summary.entries.find((e) => e.id === c.id)!.classPosition } : {}),
     position: c.position,
     points: c.finishPoints + c.bonusPoints,
     dnf: c.retired || c.dsq,
@@ -96,9 +104,10 @@ export function advanceWorld(flow: RoundFlowState) {
     for (const member of crew) {
       let standing = selected.drivers.find((d) => d.personId === member.id);
       if (!standing) {
-        standing = { personId: member.id, points: 0, wins: 0, podiums: 0 };
+        standing = { personId: member.id, ...(r.classId ? { classId: r.classId } : {}), points: 0, wins: 0, podiums: 0 };
         selected.drivers.push(standing);
       }
+      if (r.classId) standing.classId = r.classId;
       if (member.eligible) {
         standing.points += r.points;
         standing.wins += entry?.wins ?? (!r.dnf && r.position === 1 ? 1 : 0);
@@ -114,6 +123,13 @@ export function advanceWorld(flow: RoundFlowState) {
     if (team)
       selected.teams.find((t) => t.teamId === team.id)!.points += r.points;
   }
+  if (w.playerSeriesId === "WEC") for (const r of race.results) {
+    selected.entries ??= [];
+    const entryId = race.summary!.entries.find((e) => e.id === r.characterId)!.entryId!;
+    let entry = selected.entries.find((e) => e.id === entryId);
+    if (!entry) { entry = { id: entryId, teamId: w.teams.find((t) => t.name === r.team)!.id, classId: r.classId!, points: 0 }; selected.entries.push(entry); }
+    entry.points += r.points;
+  }
   selected.qualifying = race.summary?.qualifying;
   selected.completedRounds = flow.currentRound - c.seasonStart + 1;
   selected.lastResults = race.results.map((r) => ({
@@ -121,6 +137,7 @@ export function advanceWorld(flow: RoundFlowState) {
     teamId: w.teams.find(
       (t) => t.name === r.team && t.seriesId === w.playerSeriesId,
     )!.id,
+    ...(r.classId ? { classId: r.classId, classPosition: r.classPosition } : {}),
     position: r.position,
     points: r.points,
     dnf: r.dnf,
@@ -142,16 +159,20 @@ export function nextWorldSeason(flow: RoundFlowState) {
     w = c.world;
   if (!w) return;
   for (const table of w.series) {
+    for (const classId of table.seriesId === "WEC" ? ["HYPERCAR", "LMGT3"] as const : [undefined]) {
     w.history.push({
       season: w.season,
       seriesId: table.seriesId,
+      ...(classId ? { classId } : {}),
       driverId:
-        [...table.drivers].sort(
+        table.drivers.filter((d) => !classId || d.classId === classId).sort(
           (a, b) => b.points - a.points || b.wins - a.wins,
         )[0]?.personId ?? null,
       teamId:
-        [...table.teams].sort((a, b) => b.points - a.points)[0]?.teamId ?? null,
+        classId === "LMGT3" ? [...(table.entries ?? [])].filter((e) => e.classId === "LMGT3").sort((a, b) => b.points - a.points)[0]?.teamId ?? null :
+        table.teams.filter((t) => !classId || t.classId === classId).sort((a, b) => b.points - a.points)[0]?.teamId ?? null,
     });
+    }
   }
   w.season = c.season;
   for (const p of w.people) {
@@ -189,6 +210,7 @@ export function nextWorldSeason(flow: RoundFlowState) {
       name: p.name,
       team: w.teams.find((t) => t.id === p.teamId)!.name,
       skill: p.skill,
+      ...(w.teams.find((t) => t.id === p.teamId)?.classId ? { classId: w.teams.find((t) => t.id === p.teamId)!.classId } : {}),
       points: 0,
       wins: 0,
       podiums: 0,
@@ -207,3 +229,4 @@ export function nextWorldSeason(flow: RoundFlowState) {
     if (p && actor.active !== false) actor.power.sportingLeverage = p.skill;
   }
 }
+

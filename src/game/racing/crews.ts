@@ -30,10 +30,13 @@ export function ensureWorldCrews(world: MotorsportWorld) {
             (p) =>
               p.role === "DRIVER" &&
               !p.teamId &&
-              p.specialties.includes(team.seriesId),
+              p.specialties.includes(team.seriesId) &&
+              (team.classId === "HYPERCAR" ? p.rating !== "BRONZE" :
+               team.classId === "LMGT3" ? n === 0 ? p.rating === "SILVER" : p.rating === "GOLD" || p.rating === "PLATINUM" : true),
           )
           .sort(
             (a, b) =>
+              (team.classId === "HYPERCAR" ? Number(a.rating === "SILVER") - Number(b.rating === "SILVER") : 0) ||
               Number(a.seriesId !== team.seriesId) -
                 Number(b.seriesId !== team.seriesId) ||
               b.skill - a.skill ||
@@ -54,7 +57,7 @@ export function ensureWorldCrews(world: MotorsportWorld) {
     for (const team of world.teams.filter((t) => t.seriesId === table.seriesId))
       for (const id of team.raceCrews?.flatMap((c) => c.members) ?? [])
         if (!table.drivers.some((d) => d.personId === id))
-          table.drivers.push({ personId: id, points: 0, wins: 0, podiums: 0 });
+          table.drivers.push({ personId: id, ...(team.classId ? { classId: team.classId } : {}), points: 0, wins: 0, podiums: 0 });
     table.drivers = table.drivers.filter(
       (d) =>
         !world.teams.some((t) =>
@@ -141,3 +144,4 @@ export function registerPlayerCrews(flow: RoundFlowState) {
     );
   syncWorldCandidates(flow);
 }
+

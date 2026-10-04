@@ -39,11 +39,11 @@ function valid(flow: RoundFlowState) {
 }
 
 describe("motorsport world", () => {
-  it("creates nine series, 106 staffed teams and a large unique fictional pool", () => {
+  it("creates nine series, 116 staffed teams and a large unique fictional pool", () => {
     const w = createWorld();
-    expect(w.teams).toHaveLength(106);
-    expect(w.people.filter((p) => p.role === "DRIVER")).toHaveLength(666);
-    expect(w.people.filter((p) => p.role !== "DRIVER")).toHaveLength(748);
+    expect(w.teams).toHaveLength(116);
+    expect(w.people.filter((p) => p.role === "DRIVER")).toHaveLength(830);
+    expect(w.people.filter((p) => p.role !== "DRIVER")).toHaveLength(788);
     expect(new Set(w.people.map((p) => p.name)).size).toBe(w.people.length);
     for (const cfg of SERIES) {
       const teams = w.teams.filter((t) => t.seriesId === cfg.id);
@@ -71,7 +71,7 @@ describe("motorsport world", () => {
       expect(c.standings).toHaveLength(
         cfg.teamNames.length *
           cfg.driversPerTeam *
-          (id === "GT3" || id === "LMP1" ? 3 : id === "GT4" ? 2 : 1),
+          (id === "GT3" || id === "WEC" ? 3 : id === "GT4" ? 2 : 1),
       );
       expect(c.standings.every((s) => s.points === 0)).toBe(true);
       expect(c.seats.filter((s) => s.seat.startsWith("DRIVER"))).toHaveLength(
@@ -221,7 +221,7 @@ describe("motorsport world", () => {
     );
   }, 60000);
   it("runs and resets every championship alongside a complete endurance season", () => {
-    let flow = createNewCareer("LMP1");
+    let flow = createNewCareer("WEC");
     const old = structuredClone(flow);
     while (!flow.complete) flow = advanceCareerFlow(flow, []);
     expect(old.currentRound).toBe(0);
@@ -241,7 +241,7 @@ describe("motorsport world", () => {
     valid(flow);
     flow = startNextSeason(flow);
     expect(flow.scheduledRounds).toEqual([9, 10, 11, 12, 13, 14, 15, 16]);
-    expect(flow.career!.world!.history).toHaveLength(9);
+    expect(flow.career!.world!.history).toHaveLength(10);
     expect(
       flow.career!.world!.series.every(
         (s) =>
@@ -328,7 +328,8 @@ describe("motorsport world", () => {
       state,
     });
     const restored = decodeSave<RoundFlowState>(raw, "ROUND_FLOW");
-    expect(restored.version).toBe(10);
+    expect(restored.version).toBe(11);
     expect(restored.state).toEqual(state);
   });
 });
+

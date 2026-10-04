@@ -41,6 +41,7 @@ export const CrewSchema = z
     id: z.string(),
     name: z.string(),
     skill: z.number().min(0).max(100),
+    rating: z.enum(["BRONZE", "SILVER", "GOLD", "PLATINUM"]).optional(),
     consistency: z.number().min(0).max(100),
     drivingSeconds: Positive,
     fatigue: z.number().min(0).max(100),
@@ -51,7 +52,8 @@ export const RaceCarSchema = z
     id: z.string(),
     name: z.string(),
     team: z.string(),
-    classId: z.enum(["MAIN", "TRAFFIC"]),
+    classId: z.enum(["MAIN", "TRAFFIC", "HYPERCAR", "LMGT3"]),
+    entryId: z.string().optional(),
     ours: z.boolean(),
     crew: z.array(CrewSchema).min(1),
     activeDriver: z.number().int().min(0),
@@ -253,6 +255,9 @@ export const RaceSummarySchema = z
       z
         .object({
           id: z.string(),
+          entryId: z.string().optional(),
+          classId: z.enum(["HYPERCAR", "LMGT3"]).optional(),
+          classPosition: z.number().int().min(1).optional(),
           time: Positive,
           laps: z.number().int().min(0),
           grid: z.number().int().min(1),
@@ -283,3 +288,4 @@ export const RaceSummarySchema = z
   })
   .strict();
 export type RaceSummary = z.infer<typeof RaceSummarySchema>;
+
