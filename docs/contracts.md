@@ -3,6 +3,8 @@
 Contracts are persistent objects in `PoliticalCoreState.contracts`, linked to a
 character. They store signing, start and end rounds; status; seasonal salary;
 guaranteed salary; earned bonuses; options; release clauses; and performance triggers.
+Paid salary is tracked separately so an outstanding guaranteed minimum can be paid
+once when the contract expires. Bonuses do not count toward that salary guarantee.
 Round boundaries are inclusive. The round flow expires contracts after their end
 round, and contract evaluation cannot award performance benefits outside the active
 term or revive an expired or terminated agreement.
@@ -16,6 +18,9 @@ to contracts for that character; missing metrics do not satisfy a trigger.
 
 The event processor evaluates each trigger once. Consequences pay a bonus into
 `earnedBonusesMillions`, unlock a named option, or activate a named release clause.
+Triggered salary bonuses also debit the finance ledger immediately. Accepted renewal
+bonuses become an additional once-only four-win trigger, and are included in the
+contract commitment budget check. Already promised guaranteed pay remains protected.
 The round report records newly triggered consequences, and contract cards show the
 resulting state. Repeated results cannot pay an already triggered bonus again.
 
@@ -42,6 +47,7 @@ An option whose exercise window has passed no longer adds extension security.
 ## Persistence
 
 Option exercise and performance evaluation return a new political state; they do
-not mutate the previous game state. Existing round-flow saves persist contracts and
-the new optional report entries. Save version 6 remains compatible: reports from
-older saves can omit `contractTriggers`.
+not mutate the previous game state. Save version 7 persists contracts and finances.
+Version-6 saves migrate at their current round without charging past salary or
+already triggered bonuses to the new account. See [finances](finances.md) for the
+salary-accrual estimate used during migration.

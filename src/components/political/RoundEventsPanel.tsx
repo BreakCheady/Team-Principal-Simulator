@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { FinancePanel } from "@/components/political/FinancePanel";
+import { createNegotiationOffer, type ContractNegotiationOffer } from "@/game/contracts/negotiations";
+import { assessContractBudget, getCashBalance } from "@/game/finance/finances";
 import { canExerciseTeamOption, isReleaseClauseInForce } from "@/game/contracts/contracts";
 import type { IssueDefinition } from "@/game/issues/issues";
 import { calculateConflict } from "@/game/political/conflicts";
@@ -19,6 +22,7 @@ import {
   resolveRoundIssue,
   startRoundContractNegotiation,
   submitRoundContractOffer,
+  takeRoundFinanceAction,
   type RoundFlowState,
 } from "@/game/season/round-flow";
 import type { RoundEventDefinition } from "@/game/season/round-events";
@@ -37,6 +41,7 @@ type HqTab =
   | "POWER"
   | "TECHNICAL"
   | "CONTRACTS"
+  | "FINANCE"
   | "ISSUES";
 
 const SAVE_KEY = "team-principal-simulator-v03-rounds";
@@ -113,15 +118,37 @@ export function RoundEventsPanel({
   }
 
   function exerciseTeamOption(contractId: string, optionId: string) {
-    setRoundFlow((current) => exerciseRoundContractOption(current, contractId, optionId));
-    setSaveMessage(null);
+    applyContractAction((current) => exerciseRoundContractOption(current, contractId, optionId));
+  }
+
+  function applyContractAction(action: (current: RoundFlowState) => RoundFlowState) {
+    try {
+      setRoundFlow(action(roundFlow));
+      setSaveMessage(null);
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "Could not complete the action.");
+    }
+  }
+
+  function financeAction(action: "OWNER_FUNDING" | "CUT_OPERATING_COSTS") {
+    applyContractAction((current) => takeRoundFinanceAction(current, action));
+  }
+
+  function offerBudget(contractId: string, offer: ContractNegotiationOffer) {
+    const contract = roundFlow.political.contracts.find((item) => item.id === contractId)!;
+    return assessContractBudget(roundFlow.political, contractId, {
+      salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+      guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+      endRound: Math.max(contract.endRound, roundFlow.currentRound) + offer.extensionRounds,
+      additionalBonusMillions: offer.performanceBonusMillions,
+    }, roundFlow.currentRound);
   }
 
   function submitContractOffer(
     negotiationId: string,
     posture: "FIRM" | "BALANCED" | "GENEROUS",
   ) {
-    setRoundFlow((current) =>
+    applyContractAction((current) =>
       submitRoundContractOffer(
         current,
         negotiationId,
@@ -129,18 +156,16 @@ export function RoundEventsPanel({
         issueDefinitions,
       ),
     );
-    setSaveMessage(null);
   }
 
   function acceptCounterOffer(negotiationId: string) {
-    setRoundFlow((current) =>
+    applyContractAction((current) =>
       acceptRoundContractCounter(
         current,
         negotiationId,
         issueDefinitions,
       ),
     );
-    setSaveMessage(null);
   }
 
   function walkAwayFromNegotiation(negotiationId: string) {
@@ -194,6 +219,7 @@ export function RoundEventsPanel({
     { id: "POWER", title: "Power" },
     { id: "TECHNICAL", title: "Technical" },
     { id: "CONTRACTS", title: "Contracts" },
+    { id: "FINANCE", title: "Finance" },
     { id: "ISSUES", title: "Issues" },
   ];
 
@@ -208,6 +234,9 @@ export function RoundEventsPanel({
             <h2 className="mt-2 text-3xl font-semibold">
               Round {roundFlow.currentRound}
             </h2>
+            <button type="button" onClick={() => setTab("FINANCE")} className="mt-2 text-sm text-emerald-300">
+              Cash €{getCashBalance(roundFlow.political).toFixed(2)}m · View finances
+            </button>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
               Events create issues. You choose what deserves attention, NPCs
               react, and unresolved pressure can become a full political
@@ -283,6 +312,9 @@ export function RoundEventsPanel({
       </nav>
 
       <div className="mt-5">
+        {tab === "FINANCE" ? (
+          <FinancePanel state={roundFlow.political} round={roundFlow.currentRound} onAction={financeAction} />
+        ) : null}
         {tab === "INBOX" ? (
           <div className="space-y-5">
             {latest ? (
@@ -707,6 +739,10 @@ export function RoundEventsPanel({
                       Guaranteed €{contract.guaranteedSalaryMillions}m · bonuses earned €
                       {contract.earnedBonusesMillions}m
                     </p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Salary paid €{contract.salaryPaidMillions.toFixed(2)}m ·
+                      remaining guaranteed pay €{Math.max(0, contract.guaranteedSalaryMillions - contract.salaryPaidMillions).toFixed(2)}m
+                    </p>
 
                     {contract.options.length > 0 ? (
                       <div className="mt-4">
@@ -714,7 +750,14 @@ export function RoundEventsPanel({
                           Options
                         </p>
                         <div className="mt-2 space-y-2">
-                          {contract.options.map((option) => (
+                          {contract.options.map((option) => {
+                            const eligible = canExerciseTeamOption(contract, option, roundFlow.currentRound);
+                            const budget = eligible ? assessContractBudget(roundFlow.political, contract.id, {
+                              salaryMillionsPerSeason: Number((contract.salaryMillionsPerSeason * option.salaryMultiplier).toFixed(2)),
+                              guaranteedSalaryMillions: contract.guaranteedSalaryMillions,
+                              endRound: contract.endRound + option.extensionRounds,
+                            }, roundFlow.currentRound) : null;
+                            return (
                             <div
                               key={option.id}
                               className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
@@ -728,14 +771,17 @@ export function RoundEventsPanel({
                                   : " locked"}
                               <p className="mt-1">Salary on exercise: €{(contract.salaryMillionsPerSeason * (option.exercised ? 1 : option.salaryMultiplier)).toFixed(2)}m / season</p>
                               {option.holder === "TEAM" && !option.exercised ? (
+                                <div>
                                 <button
                                   type="button"
                                   onClick={() => exerciseTeamOption(contract.id, option.id)}
-                                  disabled={!canExerciseTeamOption(contract, option, roundFlow.currentRound) || openNegotiation}
+                                  disabled={!eligible || openNegotiation || !budget?.affordable}
                                   className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
                                 >
                                   Exercise team option
                                 </button>
+                                {budget?.reason ? <p className="mt-2 text-xs text-amber-300">{budget.reason}</p> : null}
+                                </div>
                               ) : null}
                               {option.holder !== "TEAM" && !option.exercised ? (
                                 <p className="mt-2">{option.holder === "MUTUAL" ? "Requires agreement from both parties." : "The character controls this option."}</p>
@@ -744,7 +790,8 @@ export function RoundEventsPanel({
                                 <p className="mt-2">Finish renewal talks before exercising this option.</p>
                               ) : null}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ) : null}
@@ -877,23 +924,31 @@ export function RoundEventsPanel({
                                 <button
                                   type="button"
                                   onClick={() => acceptCounterOffer(negotiation.id)}
-                                  className="mt-3 rounded-lg bg-amber-200 px-3 py-2 font-medium text-amber-950"
+                                  disabled={!offerBudget(contract.id, negotiation.counterOffer).affordable}
+                                  className="mt-3 rounded-lg bg-amber-200 px-3 py-2 font-medium text-amber-950 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                                 >
                                   Accept counteroffer
                                 </button>
+                                {offerBudget(contract.id, negotiation.counterOffer).reason ? (
+                                  <p className="mt-2 text-xs">{offerBudget(contract.id, negotiation.counterOffer).reason}</p>
+                                ) : null}
                               </div>
                             ) : null}
 
                             <div className="grid gap-2 sm:grid-cols-3">
                               {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
-                                (posture) => (
+                                (posture) => {
+                                  const offer = createNegotiationOffer(negotiation, posture);
+                                  const budget = offerBudget(contract.id, offer);
+                                  return (
+                                  <div key={posture}>
                                   <button
-                                    key={posture}
                                     type="button"
                                     onClick={() =>
                                       submitContractOffer(negotiation.id, posture)
                                     }
-                                    className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700"
+                                    disabled={!budget.affordable}
+                                    className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
                                   >
                                     {posture === "FIRM"
                                       ? "Firm offer"
@@ -901,7 +956,11 @@ export function RoundEventsPanel({
                                         ? "Balanced offer"
                                         : "Generous offer"}
                                   </button>
-                                ),
+                                  <p className="mt-2 text-xs text-zinc-500">€{offer.salaryMillionsPerSeason.toFixed(2)}m / season · payroll after offer €{budget.payroll.toFixed(2)}m</p>
+                                  {budget.reason ? <p className="mt-2 text-xs text-amber-300">{budget.reason}</p> : null}
+                                  </div>
+                                  );
+                                },
                               )}
                             </div>
 

@@ -1,6 +1,8 @@
 import type { PoliticalCoreState } from "@/game/political/types";
+import { createTeamFinance } from "@/game/finance/defaults";
 
 export const demoState: PoliticalCoreState = {
+  finance: createTeamFinance(15),
   characters: [
     {
       id: "char_moretti",
@@ -501,6 +503,7 @@ export const demoState: PoliticalCoreState = {
       startRound: 1,
       endRound: 26,
       salaryMillionsPerSeason: 32,
+      salaryPaidMillions: 20,
       guaranteedSalaryMillions: 64,
       options: [
         {
@@ -564,6 +567,7 @@ export const demoState: PoliticalCoreState = {
       startRound: 1,
       endRound: 26,
       salaryMillionsPerSeason: 8,
+      salaryPaidMillions: 5,
       guaranteedSalaryMillions: 16,
       options: [
         {
@@ -618,6 +622,7 @@ export const demoState: PoliticalCoreState = {
       startRound: 1,
       endRound: 38,
       salaryMillionsPerSeason: 5.5,
+      salaryPaidMillions: 3.4375,
       guaranteedSalaryMillions: 11,
       options: [
         {
@@ -644,6 +649,7 @@ export const demoState: PoliticalCoreState = {
       startRound: 1,
       endRound: 32,
       salaryMillionsPerSeason: 2.8,
+      salaryPaidMillions: 1.75,
       guaranteedSalaryMillions: 5.6,
       options: [
         {
