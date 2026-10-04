@@ -1,3 +1,6 @@
+import { getSeries } from "@/game/world/series";
+import { playerTeam } from "@/game/world/world";
+import { advanceWorld, nextWorldSeason } from "@/game/world/simulation";
 import {
   advanceRoundFlow,
   createRoundFlowState,
@@ -69,8 +72,14 @@ export function reviewSeason(source: RoundFlowState): RoundFlowState {
     throw new Error("Finish every scheduled round before the board review.");
   if (c.reviews.some((r) => r.season === c.season))
     throw new Error("Season was already reviewed.");
-  const teamPosition = teamTable(c).findIndex((t) => t.team === "Vanguard") + 1;
-  const prize = Math.max(6, 42 - teamPosition * 3);
+  const team = c.world ? playerTeam(c.world) : null;
+  const teamPosition =
+    teamTable(c).findIndex((t) => t.team === (team?.name ?? "Vanguard")) + 1;
+  const prize = team
+    ? Number(
+        (team.budget * Math.max(0.04, 0.3 - teamPosition * 0.014)).toFixed(6),
+      )
+    : Math.max(6, 42 - teamPosition * 3);
   next.political = bookFinanceTransaction(next.political, {
     id: `prize_s${c.season}`,
     round: next.currentRound,
@@ -174,6 +183,7 @@ export function advanceCareerFlow(
   next = completeDevelopment(next);
   next = advanceActors(next);
   next = simulateRace(next);
+  advanceWorld(next);
   for (const actor of next.political.characters.filter((a) =>
     next.career!.activeActorIds.includes(a.id),
   ))
@@ -183,12 +193,18 @@ export function advanceCareerFlow(
     );
   if (next.currentRound === next.career!.seasonEnd) next = reviewSeason(next);
   if (
-    getCashBalance(next.political) < -25 &&
+    getCashBalance(next.political) <
+      -(next.career!.world
+        ? playerTeam(next.career!.world).budget * 0.2
+        : 25) &&
     next.career!.status !== "DISMISSED"
   ) {
     next.career!.status = "DISMISSED";
     next.complete = true;
-    logCareer(next, "Owner ends your tenure after cash falls below −€25m.");
+    logCareer(
+      next,
+      `Owner ends your tenure after cash falls below −€${next.career!.world ? (playerTeam(next.career!.world).budget * 0.2).toFixed(2) : 25}m.`,
+    );
   }
   const valid = validatePoliticalCoreState(next.political);
   if (!valid.success)
@@ -213,17 +229,23 @@ export function startNextSeason(
     throw new Error("Handle open inbox issues before the new season.");
   if (!["CONSOLIDATE", "CHALLENGE"].includes(ambition))
     throw new Error("Unknown season objective.");
+  const length = c.world ? getSeries(c.world.playerSeriesId).rounds : 24;
   c.season++;
   c.seasonStart = next.currentRound + 1;
-  c.seasonEnd = next.currentRound + 24;
+  c.seasonEnd = next.currentRound + length;
   c.status = "RUNNING";
   c.targets = {
     teamPosition: ambition === "CHALLENGE" ? 2 : 5,
-    cash: ambition === "CHALLENGE" ? 5 : 0,
+    cash:
+      ambition === "CHALLENGE"
+        ? c.world
+          ? Number((playerTeam(c.world).budget * 0.04).toFixed(3))
+          : 5
+        : 0,
     stability: ambition === "CHALLENGE" ? 65 : 55,
   };
   next.scheduledRounds = Array.from(
-    { length: 24 },
+    { length },
     (_, i) => next.currentRound + i + 1,
   );
   next.nextRoundIndex = 0;
@@ -236,19 +258,26 @@ export function startNextSeason(
     s.wins = 0;
     s.podiums = 0;
   });
-  const market = createCandidates(next.political, next.currentRound);
+  const market = c.world
+    ? []
+    : createCandidates(next.political, next.currentRound);
   for (const candidate of market)
     if (!c.activeActorIds.includes(candidate.character.id)) {
       const old = c.candidates.find((x) => x.id === candidate.id);
       if (old) Object.assign(old, candidate);
       else c.candidates.push(candidate);
     }
+  nextWorldSeason(next);
   next.political.finance.ownerFundingUsed = false;
   const last = c.reviews.at(-1)!;
-  next.political.finance.sponsorIncomeMillionsPerRound = Math.max(
-    1.2,
-    2.6 - last.teamPosition * 0.1,
-  );
+  next.political.finance.sponsorIncomeMillionsPerRound = c.world
+    ? Number(
+        (
+          ((playerTeam(c.world).budget * 0.65) / length) *
+          (1.05 - last.teamPosition * 0.005)
+        ).toFixed(6),
+      )
+    : Math.max(1.2, 2.6 - last.teamPosition * 0.1);
   logCareer(
     next,
     `Season ${c.season} starts. Targets: constructors P${c.targets.teamPosition}, cash €${c.targets.cash}m, stability ${c.targets.stability}. Car loses pace under the new regulations; contracts keep their absolute round dates.`,

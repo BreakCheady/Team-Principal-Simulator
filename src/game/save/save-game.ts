@@ -5,7 +5,7 @@ import { createTeamFinance } from "@/game/finance/defaults";
 import { roundMoney } from "@/game/finance/finances";
 import { validatePoliticalCoreState } from "@/game/political/validation";
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 export type SaveEnvelope<T> = {
   version: typeof SAVE_VERSION;
@@ -36,7 +36,7 @@ export function decodeSave<T>(
 
   if (
     parsed.version !== SAVE_VERSION &&
-    ![6, 7].includes(Number(parsed.version))
+    ![6, 7, 8].includes(Number(parsed.version))
   ) {
     throw new Error("Unsupported save version.");
   }
@@ -50,7 +50,7 @@ export function decodeSave<T>(
   if (parsed.kind === "ROUND_FLOW") {
     const state = parsed.state as Record<string, unknown>;
     const currentRound = state.currentRound;
-    if (!Number.isInteger(currentRound) || Number(currentRound) < 1) {
+    if (!Number.isInteger(currentRound) || Number(currentRound) < 0) {
       throw new Error("Save has an invalid current round.");
     }
     const political = state.political as Record<string, unknown> | undefined;
@@ -94,6 +94,11 @@ export function decodeSave<T>(
     if (restored.finance.settledThroughRound > Number(currentRound)) {
       throw new Error("Save finances are ahead of the current round.");
     }
+    if (
+      Number(currentRound) === 0 &&
+      !(state.career as { world?: unknown } | undefined)?.world
+    )
+      throw new Error("Only a new world career may be in preseason.");
     state.political = restored;
     const flow = state as unknown as RoundFlowState;
     if (
@@ -133,7 +138,7 @@ export function decodeSave<T>(
           flow.scheduledRounds[flow.nextRoundIndex] <= Number(currentRound))
       )
         throw new Error("Career save has an inconsistent calendar.");
-    } else if (Number(parsed.version) < 8) {
+    } else if (Number(parsed.version) < 9) {
       // Preserve legacy political/financial history; begin new championship counters at the load boundary.
       const migrated = createCareerFlow(restored, [], Number(currentRound));
       flow.political = migrated.political;

@@ -51,3 +51,12 @@ transfers, independent actors, contractual consent, simulated races, development
 board objectives and version-8 migration. Authored performance snapshots remain
 available to scenario tests; career mode uses only results from the race simulator.
 Contracts and finance rounds continue across the 24-race season boundary.
+
+
+## v0.7 world careers
+
+New games now begin in preseason with series/team selection and a complete calendar
+from race 1. The large world pool, series economies, actual team rosters and version-9
+saves supersede the default nine-race opening described for v0.6 above. Legacy careers
+retain their original progress. See [motorsport-world.md](motorsport-world.md) for
+current world formats, recruitment, season lengths and the management abstractions.

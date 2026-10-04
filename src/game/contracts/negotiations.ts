@@ -1,6 +1,9 @@
 import type { Contract, PoliticalCoreState } from "@/game/political/types";
 import { validatePoliticalCoreState } from "@/game/political/validation";
-import { requireContractBudget, settleTeamFinancesThroughRound } from "@/game/finance/finances";
+import {
+  requireContractBudget,
+  settleTeamFinancesThroughRound,
+} from "@/game/finance/finances";
 
 export type ContractNegotiationStatus =
   | "OPEN"
@@ -66,7 +69,10 @@ function roundMoney(value: number): number {
   return Number(value.toFixed(2));
 }
 
-function requireContract(state: PoliticalCoreState, contractId: string): Contract {
+function requireContract(
+  state: PoliticalCoreState,
+  contractId: string,
+): Contract {
   const contract = state.contracts.find((item) => item.id === contractId);
   if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
   return contract;
@@ -85,7 +91,8 @@ function relationshipToTeamPrincipal(
   const principal = state.characters.find(
     (character) => character.role === "TEAM_PRINCIPAL",
   );
-  if (!principal) throw new Error("No team principal exists in political state.");
+  if (!principal)
+    throw new Error("No team principal exists in political state.");
 
   return state.relationships.find(
     (relationship) =>
@@ -123,12 +130,12 @@ export function calculateNegotiationPower(
   const principal = state.characters.find(
     (candidate) => candidate.role === "TEAM_PRINCIPAL",
   );
-  if (!principal) throw new Error("No team principal exists in political state.");
+  if (!principal)
+    throw new Error("No team principal exists in political state.");
 
   const owner = state.characters.find(
     (candidate) =>
-      candidate.role === "CEO" ||
-      candidate.role === "OWNER_REPRESENTATIVE",
+      candidate.role === "CEO" || candidate.role === "OWNER_REPRESENTATIVE",
   );
 
   const teamPower = clamp(
@@ -167,18 +174,32 @@ export function buildCharacterDemand(
   const contract = requireContract(state, contractId);
   const character = requireCharacter(state, contract.characterId);
   const power = calculateNegotiationPower(state, contractId);
-  const leveragePremium = clamp(0, 0.35, (character.career.transferInterest + Math.max(0, -power.delta)) / 400);
+  const leveragePremium = clamp(
+    0,
+    0.35,
+    (character.career.transferInterest + Math.max(0, -power.delta)) / 400,
+  );
   const salaryMultiplier =
     1.08 +
     leveragePremium +
     character.personality.ambition / 500 +
     character.dynamic.momentum / 250;
 
-  const desiredExtension =
-    character.career.contractSecurity < 55 ? 36 : 24;
+  const desiredExtension = Math.min(
+    52,
+    Math.round(
+      state.finance.roundsPerSeason *
+        (character.career.contractSecurity < 55 ? 1.5 : 1),
+    ),
+  );
   const releaseClauseMillions =
     character.career.transferInterest >= 40
-      ? roundMoney(Math.max(12, contract.salaryMillionsPerSeason * 1.25))
+      ? roundMoney(
+          Math.max(
+            (12 * state.finance.payrollBudgetMillionsPerSeason) / 70,
+            contract.salaryMillionsPerSeason * 1.25,
+          ),
+        )
       : null;
 
   return {
@@ -191,7 +212,10 @@ export function buildCharacterDemand(
     extensionRounds: desiredExtension,
     releaseClauseMillions,
     performanceBonusMillions: roundMoney(
-      Math.max(0.5, contract.salaryMillionsPerSeason * 0.08),
+      Math.max(
+        (0.5 * state.finance.payrollBudgetMillionsPerSeason) / 70,
+        contract.salaryMillionsPerSeason * 0.08,
+      ),
     ),
   };
 }
@@ -201,7 +225,8 @@ export function createNegotiationOffer(
   posture: Exclude<ContractNegotiationPosture, "CUSTOM">,
 ): ContractNegotiationOffer {
   const demand = session.characterDemand;
-  const factor = posture === "FIRM" ? 0.84 : posture === "BALANCED" ? 0.94 : 1.03;
+  const factor =
+    posture === "FIRM" ? 0.84 : posture === "BALANCED" ? 0.94 : 1.03;
   const guaranteeFactor =
     posture === "FIRM" ? 0.86 : posture === "BALANCED" ? 0.96 : 1.02;
 
@@ -276,11 +301,7 @@ export function calculateOfferAcceptance(
       relationship.resentment * 0.1
     : 50;
 
-  const powerAdjustment = clamp(
-    -18,
-    18,
-    session.power.delta * 0.3,
-  );
+  const powerAdjustment = clamp(-18, 18, session.power.delta * 0.3);
 
   return clamp(
     0,
@@ -342,27 +363,42 @@ function applyAcceptedRenewal(
   offer: ContractNegotiationOffer,
   currentRound: number,
 ): PoliticalCoreState {
-  const nextState = settleTeamFinancesThroughRound(sourceState, currentRound);
+  const nextState =
+    currentRound === 0
+      ? structuredClone(sourceState)
+      : settleTeamFinancesThroughRound(sourceState, currentRound);
   const contract = requireContract(nextState, contractId);
   const character = requireCharacter(nextState, contract.characterId);
 
-  const endRound = Math.max(contract.endRound, currentRound) + offer.extensionRounds;
-  requireContractBudget(nextState, contractId, {
-    salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-    guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
-    endRound,
-    additionalBonusMillions: offer.performanceBonusMillions,
-  }, currentRound);
+  const endRound =
+    Math.max(contract.endRound, currentRound) + offer.extensionRounds;
+  requireContractBudget(
+    nextState,
+    contractId,
+    {
+      salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+      guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+      endRound,
+      additionalBonusMillions: offer.performanceBonusMillions,
+    },
+    currentRound,
+  );
 
   contract.status = "ACTIVE";
   contract.endRound = endRound;
   contract.salaryMillionsPerSeason = offer.salaryMillionsPerSeason;
-  contract.guaranteedSalaryMillions = Math.max(contract.guaranteedSalaryMillions, offer.guaranteedSalaryMillions);
+  contract.guaranteedSalaryMillions = Math.max(
+    contract.guaranteedSalaryMillions,
+    offer.guaranteedSalaryMillions,
+  );
   if (offer.performanceBonusMillions > 0) {
     contract.performanceTriggers.push({
       id: `trigger_${contract.characterId}_renewal_r${currentRound}_e${endRound}`,
-      metric: "WINS", comparator: "AT_LEAST", threshold: 4,
-      consequence: "SALARY_BONUS", amountMillions: offer.performanceBonusMillions,
+      metric: "WINS",
+      comparator: "AT_LEAST",
+      threshold: 4,
+      consequence: "SALARY_BONUS",
+      amountMillions: offer.performanceBonusMillions,
       triggered: false,
     });
   }
@@ -373,14 +409,14 @@ function applyAcceptedRenewal(
     );
     if (existing) {
       existing.amountMillions = offer.releaseClauseMillions;
-      existing.activeFromRound = currentRound;
+      existing.activeFromRound = Math.max(1, currentRound);
       existing.expiresAfterRound = contract.endRound;
       existing.active = true;
     } else {
       contract.releaseClauses.push({
         id: `release_${contract.characterId}_renewal`,
         amountMillions: offer.releaseClauseMillions,
-        activeFromRound: currentRound,
+        activeFromRound: Math.max(1, currentRound),
         expiresAfterRound: contract.endRound,
         beneficiary: "CHARACTER",
         active: true,
@@ -401,7 +437,9 @@ function applyAcceptedRenewal(
 
   const validation = validatePoliticalCoreState(nextState);
   if (!validation.success) {
-    throw new Error("Accepted contract renewal produced an invalid political state.");
+    throw new Error(
+      "Accepted contract renewal produced an invalid political state.",
+    );
   }
 
   return validation.data;
@@ -466,19 +504,34 @@ export function submitNegotiationOffer(
   if (session.status !== "OPEN" && session.status !== "COUNTERED") {
     throw new Error("Negotiation is no longer open.");
   }
-  if (!Number.isInteger(offer.extensionRounds) || offer.extensionRounds < 1 || offer.extensionRounds > 52 ||
-    (offer.releaseClauseMillions !== null && (!Number.isFinite(offer.releaseClauseMillions) || offer.releaseClauseMillions < 0))) {
+  if (
+    !Number.isInteger(offer.extensionRounds) ||
+    offer.extensionRounds < 1 ||
+    offer.extensionRounds > 52 ||
+    (offer.releaseClauseMillions !== null &&
+      (!Number.isFinite(offer.releaseClauseMillions) ||
+        offer.releaseClauseMillions < 0))
+  ) {
     throw new RangeError("Invalid contract negotiation offer.");
   }
 
   const contract = requireContract(sourceState, session.contractId);
-  const budgetState = settleTeamFinancesThroughRound(sourceState, currentRound);
-  requireContractBudget(budgetState, contract.id, {
-    salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-    guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
-    endRound: Math.max(contract.endRound, currentRound) + offer.extensionRounds,
-    additionalBonusMillions: offer.performanceBonusMillions,
-  }, currentRound);
+  const budgetState =
+    currentRound === 0
+      ? structuredClone(sourceState)
+      : settleTeamFinancesThroughRound(sourceState, currentRound);
+  requireContractBudget(
+    budgetState,
+    contract.id,
+    {
+      salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+      guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+      endRound:
+        Math.max(contract.endRound, currentRound) + offer.extensionRounds,
+      additionalBonusMillions: offer.performanceBonusMillions,
+    },
+    currentRound,
+  );
 
   const acceptanceScore = calculateOfferAcceptance(sourceState, session, offer);
   const history: ContractNegotiationHistoryEntry[] = [
@@ -559,8 +612,7 @@ export function submitNegotiationOffer(
         },
       ],
       lastTeamPosture: posture,
-      followUpIssueDefinitionIds:
-        postureFollowUpIssueDefinitionIds(posture),
+      followUpIssueDefinitionIds: postureFollowUpIssueDefinitionIds(posture),
     },
   };
 }

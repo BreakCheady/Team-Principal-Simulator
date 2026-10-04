@@ -119,3 +119,12 @@ migration, then adds the career. A save at the old final round opens the next 24
 calendar without awarding an invented prize. Current v8 career saves validate IDs,
 seats, calendar, references and seed before being accepted. Local storage remains the
 save location; there is no server account or cloud synchronization.
+
+
+## v0.7 world careers
+
+New games now begin in preseason with series/team selection and a complete calendar
+from race 1. The large world pool, series economies, actual team rosters and version-9
+saves supersede the default nine-race opening described for v0.6 above. Legacy careers
+retain their original progress. See [motorsport-world.md](motorsport-world.md) for
+current world formats, recruitment, season lengths and the management abstractions.

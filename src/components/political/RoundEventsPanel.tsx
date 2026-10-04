@@ -1,5 +1,7 @@
 "use client";
 
+import { MotorsportWorldPanel } from "@/components/political/MotorsportWorldPanel";
+
 import { useMemo, useState } from "react";
 import { CareerPanel } from "@/components/political/CareerPanel";
 import { advanceCareerFlow, createCareerFlow } from "@/game/career/career";
@@ -38,9 +40,12 @@ type Props = {
   events: RoundEventDefinition[];
   issueDefinitions: IssueDefinition[];
   afterRound: number;
+  initialFlow?: RoundFlowState;
+  onChooseCareer?: () => void;
 };
 
 type HqTab =
+  | "WORLD"
   | "MARKET"
   | "RACING"
   | "DEVELOPMENT"
@@ -69,9 +74,13 @@ export function RoundEventsPanel({
   events,
   issueDefinitions,
   afterRound,
+  initialFlow,
+  onChooseCareer,
 }: Props) {
   const [roundFlow, setRoundFlow] = useState(() =>
-    createCareerFlow(initialState, events, afterRound),
+    initialFlow
+      ? structuredClone(initialFlow)
+      : createCareerFlow(initialState, events, afterRound),
   );
   const [tab, setTab] = useState<HqTab>("INBOX");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -225,12 +234,19 @@ export function RoundEventsPanel({
   }
 
   function resetRounds() {
-    setRoundFlow(createCareerFlow(initialState, events, afterRound));
+    setRoundFlow(
+      initialFlow
+        ? structuredClone(initialFlow)
+        : createCareerFlow(initialState, events, afterRound),
+    );
     setTab("INBOX");
     setSaveMessage("Round flow reset.");
   }
 
   const tabs: Array<{ id: HqTab; title: string }> = [
+    ...(roundFlow.career?.world
+      ? [{ id: "WORLD" as HqTab, title: "Motorsport World" }]
+      : []),
     {
       id: "CAREER",
       title:
@@ -268,7 +284,9 @@ export function RoundEventsPanel({
             </p>
             <h2 className="mt-2 text-3xl font-semibold">
               Season {2025 + (roundFlow.career?.season ?? 1)} · Round{" "}
-              {roundFlow.currentRound}
+              {roundFlow.currentRound === 0
+                ? "1 · Preseason"
+                : roundFlow.currentRound}
             </h2>
             <button
               type="button"
@@ -286,6 +304,15 @@ export function RoundEventsPanel({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {onChooseCareer ? (
+              <button
+                type="button"
+                className="rounded-lg border border-zinc-700 px-3 py-2 text-sm"
+                onClick={onChooseCareer}
+              >
+                Choose series / team
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={saveGame}
@@ -362,6 +389,9 @@ export function RoundEventsPanel({
         className="mt-5 min-w-0"
         disabled={roundFlow.career?.status === "DISMISSED"}
       >
+        {tab === "WORLD" && roundFlow.career?.world ? (
+          <MotorsportWorldPanel world={roundFlow.career.world} />
+        ) : null}
         {["MARKET", "RACING", "DEVELOPMENT", "CAREER"].includes(tab) ? (
           <CareerPanel
             flow={roundFlow}

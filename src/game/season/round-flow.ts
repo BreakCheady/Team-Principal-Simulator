@@ -320,6 +320,39 @@ function appendNegotiationFollowUps(
   session: ContractNegotiationSession,
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
+  if (state.career?.world && session.followUpIssueDefinitionIds.length) {
+    const next = structuredClone(state);
+    const kind =
+      session.lastTeamPosture === "GENEROUS"
+        ? "OWNER"
+        : session.status === "REJECTED"
+          ? "STAFF"
+          : "SPONSOR";
+    const role =
+      kind === "OWNER"
+        ? "OWNER_REPRESENTATIVE"
+        : kind === "STAFF"
+          ? "RACE_ENGINEER"
+          : "SPONSOR_REPRESENTATIVE";
+    const actor = next.political.characters.find(
+      (c) => c.role === role && c.active !== false,
+    );
+    const id = `reaction_${session.id}_${kind.toLowerCase()}`;
+    if (actor && !next.career!.requests.some((r) => r.id === id))
+      next.career!.requests.push({
+        id,
+        characterId: actor.id,
+        round: Math.max(1, next.currentRound),
+        kind,
+        contractId: null,
+        optionId: null,
+        contractEndRound: null,
+        deadline: next.currentRound + 2,
+        status: "OPEN",
+        summary: `${actor.name} requests a review of ${session.lastTeamPosture?.toLowerCase() ?? "failed"} contract talks. Respond through Career to address their concerns.`,
+      });
+    return next;
+  }
   if (session.followUpIssueDefinitionIds.length === 0) return state;
 
   const additions = session.followUpIssueDefinitionIds.flatMap(
@@ -396,15 +429,15 @@ export function takeRoundFinanceAction(
 ): RoundFlowState {
   if (state.career?.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
-  const political = settleTeamFinancesThroughRound(
-    state.political,
-    state.currentRound,
-  );
+  const political =
+    state.currentRound === 0
+      ? structuredClone(state.political)
+      : settleTeamFinancesThroughRound(state.political, state.currentRound);
   return {
     ...state,
     political:
       action === "OWNER_FUNDING"
-        ? requestOwnerFunding(political, state.currentRound)
+        ? requestOwnerFunding(political, Math.max(1, state.currentRound))
         : cutOperatingCosts(political),
   };
 }

@@ -1,3 +1,6 @@
+import { WorldSchema } from "@/game/world/schemas";
+import { getSeries, SeriesIdSchema } from "@/game/world/series";
+import { validateWorld } from "@/game/world/world";
 import { z } from "zod";
 import {
   EntityIdSchema,
@@ -11,6 +14,7 @@ const Round = z.number().int().min(1);
 export const SeatSchema = z.enum([
   "DRIVER_ONE",
   "DRIVER_TWO",
+  "DRIVER_THREE",
   "TECHNICAL",
   "SPORTING",
   "ENGINEERING",
@@ -26,9 +30,14 @@ export const CandidateSchema = z
     signingFee: Money,
     buyout: Money,
     employer: z.string().min(1),
-    availableFrom: Round,
+    availableFrom: z.number().int().min(0),
     availableUntil: Round,
     status: z.enum(["AVAILABLE", "SIGNED", "UNAVAILABLE"]),
+    seriesId: SeriesIdSchema.optional(),
+    age: z.number().int().min(16).max(80).optional(),
+    nationality: z.string().optional(),
+    potential: Score100Schema.optional(),
+    personId: EntityIdSchema.optional(),
   })
   .strict();
 export type Candidate = z.infer<typeof CandidateSchema>;
@@ -45,6 +54,7 @@ const DriverStanding = z
   .strict();
 export const CareerSchema = z
   .object({
+    world: WorldSchema.optional(),
     season: Round,
     seasonStart: Round,
     seasonEnd: Round,
@@ -101,7 +111,9 @@ export const CareerSchema = z
         })
         .strict(),
     ),
-    log: z.array(z.object({ round: Round, text: z.string() }).strict()),
+    log: z.array(
+      z.object({ round: z.number().int().min(0), text: z.string() }).strict(),
+    ),
     car: z
       .object({ pace: Score100Schema, reliability: Score100Schema })
       .strict(),
@@ -111,7 +123,7 @@ export const CareerSchema = z
         .object({
           id: EntityIdSchema,
           kind: z.enum(["AERO", "RELIABILITY", "OPERATIONS"]),
-          startedRound: Round,
+          startedRound: z.number().int().min(0),
           dueRound: Round,
           cost: Money,
           risk: Score100Schema,
@@ -144,7 +156,7 @@ export const CareerSchema = z
     ),
     targets: z
       .object({
-        teamPosition: z.number().int().min(1).max(10),
+        teamPosition: z.number().int().min(1).max(24),
         cash: z.number(),
         stability: Score100Schema,
       })
@@ -397,12 +409,24 @@ export function validateCareer(
 ): CareerState {
   const c = CareerSchema.parse(career);
   const ids = new Set(political.characters.map((c) => c.id));
+  const length = c.world ? getSeries(c.world.playerSeriesId).rounds : 24;
+  if (c.world) {
+    c.world = validateWorld(c.world);
+    if (c.world.season !== c.season)
+      throw new Error("World season is inconsistent.");
+    if (
+      c.world.series.find((s) => s.seriesId === c.world!.playerSeriesId)!
+        .completedRounds !== Math.max(0, round - c.seasonStart + 1)
+    )
+      throw new Error("World race clock is inconsistent.");
+  }
   for (const id of c.activeActorIds)
     if (!ids.has(id)) throw new Error("Career references an unknown actor.");
   if (
     new Set(c.activeActorIds).size !== c.activeActorIds.length ||
     new Set(c.seats.map((s) => s.seat)).size !== c.seats.length ||
-    c.seats.length !== 5
+    c.seats.length !==
+      (c.world ? getSeries(c.world.playerSeriesId).driversPerTeam + 3 : 5)
   )
     throw new Error("Career has duplicate actors or invalid seats.");
   if (
@@ -467,15 +491,15 @@ export function validateCareer(
     throw new Error("Duplicate race rounds.");
   for (const race of c.races)
     if (
-      race.season !== Math.floor((race.round - 1) / 24) + 1 ||
+      race.season !== Math.floor((race.round - 1) / length) + 1 ||
       new Set(race.results.map((r) => r.characterId)).size !==
         race.results.length ||
       race.results.some((r) => !c.standings.some((s) => s.id === r.characterId))
     )
       throw new Error("Invalid race references.");
   if (
-    c.seasonStart !== (c.season - 1) * 24 + 1 ||
-    c.seasonEnd !== c.season * 24 ||
+    c.seasonStart !== (c.season - 1) * length + 1 ||
+    c.seasonEnd !== c.season * length ||
     round < c.seasonStart - 1 ||
     round > c.seasonEnd ||
     c.races.some((r) => r.round > round)

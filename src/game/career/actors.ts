@@ -1,3 +1,4 @@
+import { transferWorldPerson, syncWorldCandidates } from "@/game/world/world";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import {
   exerciseContractOption,
@@ -30,6 +31,9 @@ export function respondActorRequest(
   const actor = next.political.characters.find(
     (c) => c.id === request.characterId,
   )!;
+  const economicScale = next.career.world
+    ? next.political.finance.payrollBudgetMillionsPerSeason / 70
+    : 1;
   const principal = next.political.characters.find(
     (c) => c.role === "TEAM_PRINCIPAL",
   )!;
@@ -52,13 +56,15 @@ export function respondActorRequest(
       );
   } else if (support) {
     if (request.kind === "STAFF") {
-      if (getCashBalance(next.political) < 0.5)
-        throw new Error("Staff support needs €0.5m cash.");
+      if (getCashBalance(next.political) < 0.5 * economicScale)
+        throw new Error(
+          `Staff support needs €${(0.5 * economicScale).toFixed(3)}m cash.`,
+        );
       next.political = bookFinanceTransaction(next.political, {
         id: `support_${request.id}`,
-        round: next.currentRound,
+        round: Math.max(1, next.currentRound),
         category: "OPERATING_COST",
-        amountMillions: 0.5,
+        amountMillions: Number((0.5 * economicScale).toFixed(6)),
         description: "Staff retention and recovery support",
       });
     }
@@ -83,7 +89,10 @@ export function respondActorRequest(
       );
     }
     if (request.kind === "OWNER")
-      next.career.targets.cash = Math.max(0, next.career.targets.cash + 2);
+      next.career.targets.cash = Math.max(
+        0,
+        next.career.targets.cash + 2 * economicScale,
+      );
   }
   next.career.requests.find((r) => r.id === requestId)!.status = support
     ? "SUPPORTED"
@@ -130,6 +139,9 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
   let next = careerCopy(source);
   const career = next.career,
     round = next.currentRound;
+  const scale = career.world
+    ? next.political.finance.payrollBudgetMillionsPerSeason / 70
+    : 1;
   const principal = next.political.characters.find(
     (c) => c.role === "TEAM_PRINCIPAL",
   )!;
@@ -239,11 +251,11 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
               : kind === "RENEWAL"
                 ? `${actor.name} wants a renewal before the deal expires.`
                 : kind === "OWNER"
-                  ? `${actor.name} demands financial accountability; support raises the cash target by €2m and owner influence.`
+                  ? `${actor.name} demands financial accountability; support raises the cash target by €${(2 * scale).toFixed(3)}m and owner influence.`
                   : kind === "SPONSOR"
                     ? `${actor.name} seeks an aggressive race strategy for visibility; support increases risk and sponsor influence.`
                     : kind === "STAFF"
-                      ? `${actor.name} requests €0.5m recovery support and staff authority.`
+                      ? `${actor.name} requests €${(0.5 * scale).toFixed(3)}m recovery support and staff authority.`
                       : `${actor.name} demands more authority to pursue ${goal?.type.replaceAll("_", " ")}. Supporting costs principal influence.`,
         });
     }
@@ -263,7 +275,15 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
         actor.career.transferInterest >= 45 ||
         actor.personality.ambition >= 80
       ) {
-        const club = actor.role.includes("DRIVER") ? "Orion" : "Apex";
+        const rival = career.world?.teams
+          .filter(
+            (t) =>
+              t.seriesId === career.world!.playerSeriesId &&
+              t.id !== career.world!.playerTeamId,
+          )
+          .sort((a, b) => b.reputation - a.reputation)[0];
+        const club =
+          rival?.name ?? (actor.role.includes("DRIVER") ? "Orion" : "Apex");
         career.offers.push({
           id: `offer_${actor.id}_r${round}`,
           characterId: actor.id,
@@ -378,6 +398,11 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
         true,
       ) as typeof next;
       next.career.offers.find((o) => o.id === offer.id)!.status = "DEPARTED";
+      if (next.career.world) {
+        const team = next.career.world.teams.find((t) => t.name === offer.club);
+        if (team) transferWorldPerson(next.career.world, actor.id, team.id);
+        syncWorldCandidates(next);
+      }
     } else
       next.career.offers.find((o) => o.id === offer.id)!.status = "EXPIRED";
   }
