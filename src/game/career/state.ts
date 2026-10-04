@@ -2,6 +2,7 @@ import { WorldSchema } from "@/game/world/schemas";
 import { getSeries, SeriesIdSchema } from "@/game/world/series";
 import { validateWorld } from "@/game/world/world";
 import { z } from "zod";
+import { WeekendSchema, RaceSummarySchema } from "@/game/racing/schema";
 import {
   EntityIdSchema,
   Score100Schema,
@@ -47,7 +48,7 @@ const DriverStanding = z
     name: z.string(),
     team: z.string(),
     skill: Score100Schema,
-    points: z.number().int().min(0),
+    points: z.number().min(0),
     wins: z.number().int().min(0),
     podiums: z.number().int().min(0),
   })
@@ -55,6 +56,7 @@ const DriverStanding = z
 export const CareerSchema = z
   .object({
     world: WorldSchema.optional(),
+    weekend: WeekendSchema.optional(),
     season: Round,
     seasonStart: Round,
     seasonEnd: Round,
@@ -138,6 +140,7 @@ export const CareerSchema = z
         .object({
           round: Round,
           season: Round,
+          summary: RaceSummarySchema.optional(),
           results: z.array(
             z
               .object({
@@ -145,7 +148,7 @@ export const CareerSchema = z
                 name: z.string(),
                 team: z.string(),
                 position: z.number().int().min(1),
-                points: z.number().int().min(0),
+                points: z.number().min(0),
                 dnf: z.boolean(),
                 score: z.number(),
               })
@@ -410,13 +413,63 @@ export function validateCareer(
   const c = CareerSchema.parse(career);
   const ids = new Set(political.characters.map((c) => c.id));
   const length = c.world ? getSeries(c.world.playerSeriesId).rounds : 24;
+  if (c.weekend) {
+    const weekend = c.weekend;
+    if (
+      weekend.round !== round ||
+      weekend.season !== c.season ||
+      weekend.seriesId !== (c.world?.playerSeriesId ?? "F1") ||
+      weekend.eventIndex !== round - c.seasonStart ||
+      (weekend.committed &&
+        (weekend.phase !== "COMPLETE" ||
+          !c.races.some((r) => r.round === round))) ||
+      (!weekend.committed &&
+        (c.status !== "RUNNING" || c.races.some((r) => r.round === round))) ||
+      new Set(weekend.cars.map((car) => car.id)).size !== weekend.cars.length
+    )
+      throw new Error("Inconsistent active race weekend.");
+    for (const car of weekend.cars) {
+      if (
+        car.activeDriver >= car.crew.length ||
+        car.crew.some((d) =>
+          c.world
+            ? !c.world.people.some((p) => p.id === d.id)
+            : !c.standings.some((s) => s.id === d.id),
+        ) ||
+        (car.ours && !ids.has(car.id)) ||
+        car.nextLapAt < car.totalSeconds ||
+        new Set(car.crew.map((d) => d.id)).size !== car.crew.length
+      )
+        throw new Error("Invalid live race entry.");
+    }
+    if (
+      new Set(weekend.qualifying.map((q) => q.id)).size !==
+        weekend.qualifying.length ||
+      weekend.qualifying.some(
+        (q) => !weekend.cars.some((car) => car.id === q.id),
+      ) ||
+      weekend.events.some(
+        (e) => e.carId && !weekend.cars.some((car) => car.id === e.carId),
+      ) ||
+      weekend.snapshots.some((s) =>
+        s.rows.some(
+          (r) => !weekend.cars.some((car) => car.id === r.id && car.ours),
+        ),
+      )
+    )
+      throw new Error("Invalid race telemetry references.");
+  }
   if (c.world) {
     c.world = validateWorld(c.world);
     if (c.world.season !== c.season)
       throw new Error("World season is inconsistent.");
     if (
       c.world.series.find((s) => s.seriesId === c.world!.playerSeriesId)!
-        .completedRounds !== Math.max(0, round - c.seasonStart + 1)
+        .completedRounds !==
+      Math.max(
+        0,
+        round - c.seasonStart + (c.weekend && !c.weekend.committed ? 0 : 1),
+      )
     )
       throw new Error("World race clock is inconsistent.");
   }

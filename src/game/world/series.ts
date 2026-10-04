@@ -16,6 +16,7 @@ export type EventKind =
   | "FEATURE"
   | "ENDURANCE"
   | "ROAD"
+  | "STREET"
   | "OVAL"
   | "GRAVEL"
   | "TARMAC"
@@ -122,7 +123,9 @@ function calendar(id: SeriesId, rounds: number) {
         ][i],
         kind: (i === 1 || i === 6 || i === 8 || i === 11 || i === 13 || i === 15
           ? "OVAL"
-          : "ROAD") as EventKind,
+          : [0, 2, 3, 7, 12].includes(i)
+            ? "STREET"
+            : "ROAD") as EventKind,
       };
     const perWeekend =
       id === "F4"
@@ -401,7 +404,7 @@ export const SERIES: SeriesDefinition[] = specs.map(
               : id === "F2" || id === "F3"
                 ? "Junior formula championship with sprint and feature races."
                 : category === "GT"
-                  ? "Customer GT championship; each driver represents one car entry."
+                  ? "Customer GT championship with rotating driver crews and shared car entries."
                   : "Top-tier open-wheel championship with two cars per team.",
   }),
 );
@@ -413,6 +416,8 @@ export function getSeries(id: SeriesId): SeriesDefinition {
 export function pointsForEvent(series: SeriesDefinition, index: number) {
   const kind = series.calendar[index % series.rounds]?.kind;
   if ((series.id === "F2" || series.id === "F3") && kind === "SPRINT")
-    return [10, 8, 6, 5, 4, 3, 2, 1];
+    return series.id === "F3"
+      ? [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+      : [10, 8, 6, 5, 4, 3, 2, 1];
   return series.points;
 }

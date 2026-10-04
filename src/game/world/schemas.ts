@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { EntityIdSchema, Score100Schema } from "@/game/political/schemas";
 import { SeriesIdSchema } from "./series";
+import { QualifyingSchema } from "@/game/racing/schema";
 export const WorldRoleSchema = z.enum([
   "DRIVER",
   "TECHNICAL_DIRECTOR",
@@ -43,6 +44,17 @@ export const WorldTeamSchema = z
     drivers: z.array(EntityIdSchema),
     staff: z.array(EntityIdSchema),
     principalId: EntityIdSchema,
+    raceCrews: z
+      .array(
+        z
+          .object({
+            leadId: EntityIdSchema,
+            members: z.array(EntityIdSchema),
+            coDriverId: EntityIdSchema.nullable(),
+          })
+          .strict(),
+      )
+      .optional(),
   })
   .strict();
 export type WorldTeam = z.infer<typeof WorldTeamSchema>;
@@ -51,7 +63,7 @@ const Result = z
     personId: EntityIdSchema,
     teamId: EntityIdSchema,
     position: z.number().int().min(1),
-    points: z.number().int().min(0),
+    points: z.number().min(0),
     dnf: z.boolean(),
   })
   .strict();
@@ -63,18 +75,17 @@ export const WorldSeriesStateSchema = z
       z
         .object({
           personId: EntityIdSchema,
-          points: z.number().int().min(0),
+          points: z.number().min(0),
           wins: z.number().int().min(0),
           podiums: z.number().int().min(0),
         })
         .strict(),
     ),
     teams: z.array(
-      z
-        .object({ teamId: EntityIdSchema, points: z.number().int().min(0) })
-        .strict(),
+      z.object({ teamId: EntityIdSchema, points: z.number().min(0) }).strict(),
     ),
     lastResults: z.array(Result),
+    qualifying: z.array(QualifyingSchema).optional(),
   })
   .strict();
 export const WorldSchema = z

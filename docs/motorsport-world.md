@@ -1,45 +1,44 @@
-# v0.7 Motorsport World and fresh season start
+# Motorsport World and fresh season start
 
 The default home screen is now a championship/team selector. A new career starts in
-**preseason (`currentRound: 0`)**; the first advance simulates race 1. It never passes
+**preseason (`currentRound: 0`)**; the first advance opens the race-1 weekend. It never passes
 through the old R14/R15 tutorial conflicts. Old saves preserve their actual progress.
 
 ## World size and series
 
 There are 106 fictional teams, 666 drivers and 748 staff members (1,414 people total).
 Each team has a principal, technical director, sporting director, engineering lead
-and its series-specific number of driver/car entries. The pool also includes 48 free
+and its series-specific number of driver/car entries. The initial pool includes 48 reserve
 drivers and 12 free candidates for each of the three recruitable staff roles per
-series. People have unique stable IDs and names, age, nationality, ability, potential,
+series. Endurance partners and rally co-drivers are employed from these reserves
+without creating extra people. People have unique stable IDs and names, age, nationality, ability, potential,
 experience, ambition, compromise, consistency, risk tolerance, terrain skill, salary,
 series experience and current employer.
 
-| Series | Teams | Cars per team | Races per season | Game format |
-| --- | ---: | ---: | ---: | --- |
-| F1 | 11 | 2 | 24 | Grands Prix |
-| F2 | 11 | 2 | 28 | 14 sprint/feature meetings |
-| F3 | 10 | 3 | 20 | 10 sprint/feature meetings |
-| F4 | 12 | 2 | 21 | 7 meetings with three races |
-| GT3 | 16 | 2 | 10 | Sprint/endurance events |
-| GT4 | 16 | 2 | 12 | Customer GT meetings |
-| LMP1 | 8 | 2 | 8 | Historical prototype endurance tour |
-| IndyCar | 12 | 3 | 17 | Road, street and oval events |
-| Rally | 10 | 2 | 14 | Snow, gravel and tarmac rallies |
+| Series  | Teams | Cars per team | Races per season | Game format                         |
+| ------- | ----: | ------------: | ---------------: | ----------------------------------- |
+| F1      |    11 |             2 |               24 | Grands Prix                         |
+| F2      |    11 |             2 |               28 | 14 sprint/feature meetings          |
+| F3      |    10 |             3 |               20 | 10 sprint/feature meetings          |
+| F4      |    12 |             2 |               21 | 7 meetings with three races         |
+| GT3     |    16 |             2 |               10 | Sprint/endurance events             |
+| GT4     |    16 |             2 |               12 | Customer GT meetings                |
+| LMP1    |     8 |             2 |                8 | Historical prototype endurance tour |
+| IndyCar |    12 |             3 |               17 | Road, street and oval events        |
+| Rally   |    10 |             2 |               14 | Snow, gravel and tarmac rallies     |
 
 Names include Silvercrest GP, Sky Bull Racing, Scuderia Rosso, Marlow Racing,
 Premio Racing, ARTEM Grand Prix, Mantler Racing, Takumi Gazoo and Granassi Racing.
 All team identities, people, venues and financial values are fictional game content.
 All teams can be selected at the start, with distinct pace, reliability and budgets.
 
-The model uses sport-inspired grid structures, not a live licensed roster or complete
-regulation replica. Regional F4, GT and rally grids are deliberately game-defined.
-Each GT/prototype driver represents a **car entry**, not a rotating endurance crew.
-Rally abstracts stages/co-drivers into the team performance model. F1 sprints,
-qualifying points and IndyCar bonus points are not modeled. F2/F3 sprints use a shorter
-points scale; IndyCar uses a deeper position-based points scale. LMP1 is explicitly
-historical; it is not presented as the current top FIA WEC class.
+Series use explicit sporting profiles described in [racing.md](racing.md), including
+actual rotating endurance crews, rally co-drivers/stages, qualifying, sprint and
+bonus points. Regional grids and all calendars remain fictional. LMP1 is historical,
+not presented as the current top FIA WEC class.
 
 Format references used while designing the fictional setup:
+
 - [FIA: 2026 F2 calendar, 11 teams / 22 drivers / 28 races](https://api.fia.com/news/fia-formula-2-championship-2026-season-calendar-revealed)
 - [FIA: 11th Formula One team for 2026](https://api.fia.com/news/cadillac-f1-how-fia-paved-way-11th-team-formula-1)
 - [INDYCAR: announced 17-race 2026 schedule](https://www.indycar.com/news/2025/09/09-16-2026-sked)
@@ -88,9 +87,9 @@ or recruitment before they regain sporting capacity.
 
 ## Saves and validation
 
-Save version 9 persists the world, selected team/series, calendars, people, transfers,
-championship counters and independent PRNG state. Preseason and midseason saves replay
-deterministically. Version 8 careers retain their existing round and source history;
+Save version 10 persists the world, selected team/series, calendars, people, transfers,
+championship counters, live race weekends, bounded replay and independent PRNG state. Preseason and midseason saves replay
+deterministically. Versions 8/9 careers retain their existing round and source history;
 v6/v7 retain the earlier migration rules. Existing careers are not silently restarted.
 
 Validation checks employer references, team rosters and roles, unique identities,

@@ -5,7 +5,7 @@ import { createTeamFinance } from "@/game/finance/defaults";
 import { roundMoney } from "@/game/finance/finances";
 import { validatePoliticalCoreState } from "@/game/political/validation";
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 export type SaveEnvelope<T> = {
   version: typeof SAVE_VERSION;
@@ -36,7 +36,7 @@ export function decodeSave<T>(
 
   if (
     parsed.version !== SAVE_VERSION &&
-    ![6, 7, 8].includes(Number(parsed.version))
+    ![6, 7, 8, 9].includes(Number(parsed.version))
   ) {
     throw new Error("Unsupported save version.");
   }

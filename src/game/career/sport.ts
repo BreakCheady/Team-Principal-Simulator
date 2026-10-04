@@ -1,4 +1,9 @@
-import { getSeries, pointsForEvent } from "@/game/world/series";
+import {
+  createWeekend,
+  runWeekend,
+  classify,
+  summarize,
+} from "@/game/racing/engine";
 import { playerTeam } from "@/game/world/world";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import { processRound } from "@/game/season/round-events";
@@ -141,7 +146,7 @@ export function teamTable(career: CareerState) {
   const teams = new Map<string, number>();
   // Driver moves preserve historical constructor points through race records.
   for (const race of career.races.filter((r) => r.season === career.season))
-    for (const r of race.results)
+    for (const r of race.summary?.teamPoints ?? race.results)
       if (r.team !== "Departed")
         teams.set(r.team, (teams.get(r.team) ?? 0) + r.points);
   const ourTeam = career.world ? playerTeam(career.world).name : "Vanguard";
@@ -156,156 +161,200 @@ export function teamTable(career: CareerState) {
     .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team));
 }
 export function simulateRace(source: RoundFlowState): RoundFlowState {
-  const next = careerCopy(source),
-    career = next.career;
+  const next = structuredClone(source),
+    career = next.career!;
   if (career.races.some((r) => r.round === next.currentRound))
     throw new Error("Race was already simulated.");
+  if (
+    career.weekend &&
+    !career.weekend.committed &&
+    career.weekend.round !== next.currentRound
+  )
+    throw new Error("Finish the active race before advancing its calendar.");
+  const weekend =
+    career.weekend && !career.weekend.committed
+      ? career.weekend
+      : createWeekend(next);
+  if (weekend.phase !== "COMPLETE") runWeekend(weekend);
+  career.weekend = weekend;
   const ourTeam = career.world ? playerTeam(career.world).name : "Vanguard";
-  const cfg = career.world ? getSeries(career.world.playerSeriesId) : null;
-  const event = cfg?.calendar[next.currentRound - career.seasonStart];
-  const drivers = career.seats
-    .filter((s) => s.seat.startsWith("DRIVER") && s.characterId)
-    .flatMap((s) => s.characterId!);
-  const staff = (seat: string) =>
-    next.political.characters.find(
-      (c) => c.id === career.seats.find((s) => s.seat === seat)?.characterId,
-    );
-  const sporting = staff("SPORTING"),
-    technical = staff("TECHNICAL"),
-    engineering = staff("ENGINEERING");
-  const operation =
-    (sporting?.power.sportingLeverage ?? 25) * 0.07 +
-    (engineering?.power.sportingLeverage ?? 25) * 0.04;
-  const stability =
-    career.activeActorIds.reduce(
-      (sum, id) =>
-        sum +
-        (100 -
-          next.political.characters.find((c) => c.id === id)!.dynamic
-            .instability),
-      0,
-    ) / Math.max(1, career.activeActorIds.length);
-  const strategy =
-    career.strategy === "ATTACK" ? 5 : career.strategy === "CONSERVE" ? -3 : 0;
-  const starters = career.standings.filter(
-    (s) =>
-      s.team !== "Departed" && (s.team !== ourTeam || drivers.includes(s.id)),
-  );
-  const results = starters
-    .map((s) => {
-      const ours = s.team === ourTeam,
-        actor = next.political.characters.find((c) => c.id === s.id);
-      const worldPerson = career.world?.people.find((p) => p.id === s.id);
-      const rivalTeam = career.world?.teams.find(
-        (t) => t.name === s.team && t.seriesId === career.world!.playerSeriesId,
-      );
-      const pace = ours
-        ? career.car.pace
-        : (rivalTeam?.pace ?? Math.min(96, 58 + s.skill * 0.4));
-      const reliability = ours
-        ? career.car.reliability
-        : (rivalTeam?.reliability ?? 88);
-      const dnfRisk = ours
-        ? Math.max(
-            1,
-            (100 - reliability) * 0.35 +
-              (career.strategy === "ATTACK"
-                ? 5
-                : career.strategy === "CONSERVE"
-                  ? -3
-                  : 0) +
-              (technical ? 0 : 7),
-          )
-        : (100 - reliability) * 0.35;
-      const eventRisk =
-        event?.kind === "ENDURANCE" ? 4 : cfg?.category === "RALLY" ? 3 : 0;
-      const dnf = random(career) * 100 < dnfRisk + eventRisk;
-      const score =
-        pace * 0.55 +
-        s.skill * 0.35 +
-        (ours
-          ? operation +
-            (technical?.power.sportingLeverage ?? 25) * 0.03 +
-            strategy +
-            stability * 0.03 +
-            (actor?.dynamic.momentum ?? 0) * 0.18
-          : 8) +
-        (worldPerson && (cfg?.category === "RALLY" || event?.kind === "OVAL")
-          ? worldPerson.terrainSkill * 0.15
-          : 0) +
-        (worldPerson?.consistency ?? 0) * 0.03 +
-        random(career) * 24 -
-        (ours ? (actor?.dynamic.politicalFatigue ?? 0) * 0.03 : 0);
-      return {
-        characterId: s.id,
-        name: s.name,
-        team: s.team,
-        position: 0,
-        points: 0,
-        dnf,
-        score,
-      };
-    })
-    .sort(
-      (a, b) =>
-        Number(a.dnf) - Number(b.dnf) ||
-        b.score - a.score ||
-        a.characterId.localeCompare(b.characterId),
-    );
-  const points = cfg
-    ? pointsForEvent(cfg, next.currentRound - career.seasonStart)
-    : [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-  results.forEach((r, index) => {
-    r.position = index + 1;
-    r.points = r.dnf ? 0 : (points[index] ?? 0);
-    const standing = career.standings.find((s) => s.id === r.characterId)!;
-    standing.points += r.points;
-    if (!r.dnf && index === 0) standing.wins++;
-    if (!r.dnf && index < 3) standing.podiums++;
-    if (r.team === ourTeam) {
-      const actor = next.political.characters.find(
-        (c) => c.id === r.characterId,
-      )!;
-      actor.dynamic.momentum = Math.max(
-        -25,
-        Math.min(
-          25,
-          actor.dynamic.momentum +
-            (r.dnf ? -3 : r.position <= 3 ? 3 : r.position <= 10 ? 1 : -1),
-        ),
-      );
-      actor.dynamic.instability = Math.max(
-        0,
-        Math.min(100, actor.dynamic.instability + (r.dnf ? 4 : -1)),
-      );
+  const budget = career.world ? playerTeam(career.world).budget : 120;
+  const summary = summarize(weekend, budget),
+    cars = classify(weekend);
+  const results = cars.map((car, index) => ({
+    characterId: car.id,
+    name: car.name,
+    team: car.team,
+    position: index + 1,
+    points: car.finishPoints + car.bonusPoints,
+    dnf: car.retired || car.dsq,
+    score: -(car.totalSeconds + car.penaltySeconds),
+  }));
+  for (const [index, car] of cars.entries()) {
+    const entry = summary.entries[index];
+    for (const driver of entry.crew) {
+      let standing = career.standings.find((s) => s.id === driver.id);
+      if (!standing) {
+        const person = career.world?.people.find((p) => p.id === driver.id);
+        standing = {
+          id: driver.id,
+          name: driver.name,
+          team: car.team,
+          skill: person?.skill ?? car.skill,
+          points: 0,
+          wins: 0,
+          podiums: 0,
+        };
+        career.standings.push(standing);
+      }
+      if (driver.eligible) {
+        standing.points += results[index].points;
+        standing.wins += car.raceWins;
+        standing.podiums += car.racePodiums;
+      }
+      const actor = next.political.characters.find((c) => c.id === driver.id);
+      if (actor && car.ours) {
+        actor.dynamic.momentum = Math.max(
+          -25,
+          Math.min(
+            25,
+            actor.dynamic.momentum +
+              (car.retired || car.dsq ? -3 : index < 3 ? 3 : 1),
+          ),
+        );
+        actor.dynamic.instability = Math.max(
+          0,
+          Math.min(
+            100,
+            actor.dynamic.instability + (car.retired || car.dsq ? 4 : -1),
+          ),
+        );
+      }
     }
-  });
+    if (entry.repairCost > 0)
+      next.political = bookFinanceTransaction(next.political, {
+        id: `race_repair_${car.id}_r${next.currentRound}`,
+        round: next.currentRound,
+        category: "OPERATING_COST",
+        amountMillions: entry.repairCost,
+        description: `Race damage and spares: ${car.name}`,
+      });
+  }
   career.races.push({
     round: next.currentRound,
     season: career.season,
     results,
+    summary,
   });
+  for (const order of weekend.teamOrders) {
+    const giver = next.political.characters.find((c) => c.id === order.giver);
+    const principal = next.political.characters.find(
+      (c) => c.role === "TEAM_PRINCIPAL",
+    )!;
+    const relation = next.political.relationships.find(
+      (r) =>
+        r.fromCharacterId === order.giver && r.toCharacterId === principal.id,
+    );
+    if (giver) {
+      giver.dynamic.instability = Math.min(
+        100,
+        giver.dynamic.instability + (order.obeyed ? 3 : 7),
+      );
+      giver.career.transferInterest = Math.min(
+        100,
+        giver.career.transferInterest + (order.obeyed ? 2 : 5),
+      );
+    }
+    if (relation) {
+      relation.resentment = Math.min(
+        100,
+        relation.resentment + (order.obeyed ? 6 : 10),
+      );
+      relation.trust = Math.max(0, relation.trust - 4);
+    }
+    const id = `race_order_${order.giver}_r${next.currentRound}`;
+    if (giver && !career.requests.some((r) => r.id === id))
+      career.requests.push({
+        id,
+        characterId: giver.id,
+        round: next.currentRound,
+        kind: "AUTHORITY",
+        contractId: null,
+        optionId: null,
+        contractEndRound: null,
+        summary: `${giver.name} wants an explanation for the team order and future sporting equality.`,
+        deadline: next.currentRound + 2,
+        status: "OPEN",
+      });
+  }
+  const slowService = weekend.events.some(
+    (e) =>
+      e.kind === "PIT" &&
+      e.text.includes("slow service") &&
+      cars.some((c) => c.id === e.carId && c.ours),
+  );
+  if (slowService) {
+    const staffId = career.seats.find(
+      (s) => s.seat === "ENGINEERING",
+    )?.characterId;
+    const actor = next.political.characters.find((c) => c.id === staffId);
+    if (actor) {
+      actor.dynamic.politicalFatigue = Math.min(
+        100,
+        actor.dynamic.politicalFatigue + 4,
+      );
+      const id = `race_staff_r${next.currentRound}`;
+      career.requests.push({
+        id,
+        characterId: actor.id,
+        round: next.currentRound,
+        kind: "STAFF",
+        contractId: null,
+        optionId: null,
+        contractEndRound: null,
+        summary: "Pit crew asks for support after a costly service mistake.",
+        deadline: next.currentRound + 2,
+        status: "OPEN",
+      });
+    }
+  }
+  const sponsor = next.political.characters.find(
+    (c) => c.role === "SPONSOR_REPRESENTATIVE",
+  );
+  if (
+    sponsor &&
+    results.some((r) => r.team === ourTeam && r.position <= 3 && !r.dnf)
+  )
+    sponsor.power.commercialBacking = Math.min(
+      100,
+      sponsor.power.commercialBacking + 1,
+    );
   const ordered = [...career.standings].sort(
     (a, b) =>
       b.points - a.points || b.wins - a.wins || a.id.localeCompare(b.id),
   );
   const teamPosition =
     teamTable(career).findIndex((t) => t.team === ourTeam) + 1;
+  const drivers = career.activeActorIds.filter(
+    (id) =>
+      next.political.characters
+        .find((c) => c.id === id)
+        ?.role.includes("DRIVER") && ordered.some((s) => s.id === id),
+  );
   const applied = processRound(next.political, next.currentRound, [
     {
       id: `race_r${next.currentRound}`,
       round: next.currentRound,
       type: "RACE_RESULT",
-      title: `${event?.name ?? `Grand Prix ${next.currentRound - career.seasonStart + 1}`}: ${results.find((r) => !r.dnf)?.name ?? "no classified finisher"}`,
+      title: `${weekend.venue}: ${results.find((r) => !r.dnf)?.name ?? "no finisher"}`,
       summary:
         results
           .filter((r) => r.team === ourTeam)
           .map(
             (r) =>
-              `${r.name}: ${r.dnf ? "DNF" : `P${r.position}, ${r.points} points`}`,
+              `${r.name}: ${r.dnf ? "DNF / DSQ" : `P${r.position}`}, ${r.points} points`,
           )
-          .join(" · ") ||
-        `All ${ourTeam} driver seats are vacant; no team starter.`,
+          .join(" · ") || `All ${ourTeam} driver seats are vacant.`,
       effects: [],
       contractPerformance: drivers.map((id) => {
         const s = ordered.find((s) => s.id === id)!;
@@ -325,5 +374,6 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
   next.political = applied.nextState;
   const history = next.history.at(-1);
   if (history) history.events.push(...applied.events);
+  weekend.committed = true;
   return next;
 }

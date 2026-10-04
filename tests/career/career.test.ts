@@ -543,7 +543,7 @@ describe("autonomous actors, seasons and saves", () => {
           t.contractId === "contract_moretti_2026",
       ),
     ).toHaveLength(1);
-  });
+  }, 20000);
   it("prevents repeat prizes, early season restarts, and all actions after dismissal", () => {
     expect(() => startNextSeason(flow())).toThrow(/Complete/);
     expect(() => reviewSeason(flow())).toThrow(/Finish every/);

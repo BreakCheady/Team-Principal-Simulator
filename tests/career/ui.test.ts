@@ -19,7 +19,7 @@ describe("career HQ rendering", () => {
       );
       expect(html).toContain("<button");
       if (view === "MARKET") expect(html).toContain("Agree transfer");
-      if (view === "RACING") expect(html).toContain("Constructors");
+      if (view === "RACING") expect(html).toContain("Team championship");
       if (view === "CAREER") expect(html).toContain("Deadline R20");
     }
   });

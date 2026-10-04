@@ -407,7 +407,17 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
       next.career.offers.find((o) => o.id === offer.id)!.status = "EXPIRED";
   }
   // Contract expiry removes the actor from the lineup until a new deal is agreed.
-  for (const seat of [...next.career.seats])
+  const support =
+    next.career.world?.teams
+      .find((t) => t.id === next.career!.world!.playerTeamId)
+      ?.raceCrews?.flatMap((c) => [
+        ...c.members,
+        ...(c.coDriverId ? [c.coDriverId] : []),
+      ]) ?? [];
+  for (const seat of [
+    ...next.career.seats,
+    ...support.map((characterId) => ({ characterId })),
+  ])
     if (seat.characterId) {
       const contracts = next.political.contracts.filter(
         (c) => c.characterId === seat.characterId,

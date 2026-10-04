@@ -120,7 +120,6 @@ calendar without awarding an invented prize. Current v8 career saves validate ID
 seats, calendar, references and seed before being accepted. Local storage remains the
 save location; there is no server account or cloud synchronization.
 
-
 ## v0.7 world careers
 
 New games now begin in preseason with series/team selection and a complete calendar
@@ -128,3 +127,11 @@ from race 1. The large world pool, series economies, actual team rosters and ver
 saves supersede the default nine-race opening described for v0.6 above. Legacy careers
 retain their original progress. See [motorsport-world.md](motorsport-world.md) for
 current world formats, recruitment, season lengths and the management abstractions.
+
+## v0.8 race weekends
+
+The current race model replaces the earlier one-score result formula with saved
+practice/qualifying/grid/race phases, per-car strategy, measured time and series
+sporting profiles. Crew employment, finance and political consequences remain
+connected. See [racing.md](racing.md) for controls, official sources, save version 10
+and the explicitly modeled rule scope.

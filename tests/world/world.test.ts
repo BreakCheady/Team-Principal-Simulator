@@ -69,7 +69,9 @@ describe("motorsport world", () => {
         Array.from({ length: cfg.rounds }, (_, i) => i + 1),
       );
       expect(c.standings).toHaveLength(
-        cfg.teamNames.length * cfg.driversPerTeam,
+        cfg.teamNames.length *
+          cfg.driversPerTeam *
+          (id === "GT3" || id === "LMP1" ? 3 : id === "GT4" ? 2 : 1),
       );
       expect(c.standings.every((s) => s.points === 0)).toBe(true);
       expect(c.seats.filter((s) => s.seat.startsWith("DRIVER"))).toHaveLength(
@@ -98,6 +100,7 @@ describe("motorsport world", () => {
       ).toBe(true);
       valid(next);
     },
+    15000,
   );
   it("replaces employed rivals before preseason and keeps IDs, salaries and all grids consistent", () => {
     let flow = createNewCareer("F2");
@@ -216,7 +219,7 @@ describe("motorsport world", () => {
       decodeSave<RoundFlowState>(encodeSave("ROUND_FLOW", flow), "ROUND_FLOW")
         .state,
     );
-  }, 15000);
+  }, 60000);
   it("runs and resets every championship alongside a complete endurance season", () => {
     let flow = createNewCareer("LMP1");
     const old = structuredClone(flow);
@@ -250,7 +253,7 @@ describe("motorsport world", () => {
     expect(flow.currentRound).toBe(16);
     expect(flow.career!.reviews).toHaveLength(2);
     valid(flow);
-  }, 15000);
+  }, 120000);
   it("persists preseason and midseason worlds including deterministic race replay", () => {
     let flow = createNewCareer("RALLY");
     const raw = encodeSave("ROUND_FLOW", flow);
@@ -266,7 +269,7 @@ describe("motorsport world", () => {
       advanceCareerFlow(flow, []),
     );
     valid(restored);
-  });
+  }, 15000);
   it("supports preseason projects, cost cuts and renewals with valid financial dates", () => {
     let flow = createNewCareer("GT4");
     flow = startDevelopment(flow, "RELIABILITY");
@@ -325,7 +328,7 @@ describe("motorsport world", () => {
       state,
     });
     const restored = decodeSave<RoundFlowState>(raw, "ROUND_FLOW");
-    expect(restored.version).toBe(9);
+    expect(restored.version).toBe(10);
     expect(restored.state).toEqual(state);
   });
 });

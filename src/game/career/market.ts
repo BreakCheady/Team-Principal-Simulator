@@ -26,6 +26,10 @@ export function careerCopy(
   if (!source.career) throw new Error("Career mode is not enabled.");
   if (source.career.status === "DISMISSED")
     throw new Error("Your tenure has ended.");
+  if (source.career.weekend && !source.career.weekend.committed)
+    throw new Error(
+      "Finish the current race weekend before changing team management.",
+    );
   return structuredClone(source) as RoundFlowState & {
     career: NonNullable<RoundFlowState["career"]>;
   };
