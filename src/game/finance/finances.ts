@@ -171,6 +171,9 @@ export function assessContractBudget(
   const projected = structuredClone(state);
   const contract = projected.contracts.find((item) => item.id === contractId);
   if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
+  // A proposed renewal is an active obligation even if an old negotiation
+  // survives beyond expiry; its proposed salary must still count in the budget.
+  contract.status = "ACTIVE";
   contract.salaryMillionsPerSeason = terms.salaryMillionsPerSeason;
   contract.guaranteedSalaryMillions = Math.max(contract.guaranteedSalaryMillions, terms.guaranteedSalaryMillions);
   contract.endRound = terms.endRound;

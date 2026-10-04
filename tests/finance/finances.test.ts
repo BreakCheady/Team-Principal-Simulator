@@ -110,6 +110,16 @@ describe("team finances", () => {
       .toMatch(/insufficient cash/);
   });
 
+  it("includes a revived contract in payroll when assessing an old counteroffer", () => {
+    const state = structuredClone(demoState);
+    state.contracts[0].status = "EXPIRED";
+    const assessment = assessContractBudget(state, state.contracts[0].id, {
+      salaryMillionsPerSeason: 100, guaranteedSalaryMillions: 64, endRound: 50,
+    }, 27);
+    expect(assessment.payroll).toBeGreaterThan(100);
+    expect(assessment.reason).toMatch(/Annual payroll/);
+  });
+
   it("blocks an unaffordable team option without exercising it", () => {
     const state = structuredClone(demoState);
     state.finance = createTeamFinance(22);
