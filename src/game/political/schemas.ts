@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createTeamFinance } from "@/game/finance/defaults";
 
 export const EntityIdSchema = z.string().min(3).max(80).regex(/^[a-z][a-z0-9_]*$/);
 export const Score100Schema = z.number().int().min(0).max(100);
@@ -354,6 +355,7 @@ export const ContractSchema = z.object({
   releaseClauses: z.array(ReleaseClauseSchema).default([]),
   performanceTriggers: z.array(PerformanceTriggerSchema).default([]),
   earnedBonusesMillions: z.number().min(0).default(0),
+  salaryPaidMillions: z.number().min(0).default(0),
 }).strict().superRefine((value, ctx) => {
   if (value.endRound < value.startRound) {
     ctx.addIssue({
@@ -399,6 +401,51 @@ export const ContractSchema = z.object({
   });
 });
 
+export const FinanceTransactionSchema = z.object({
+  id: z.string().min(1).max(240),
+  round: RoundNumberSchema,
+  category: z.enum([
+    "SPONSOR_INCOME", "OWNER_INCOME", "OWNER_FUNDING",
+    "OPERATING_COST", "SALARY", "PERFORMANCE_BONUS", "GUARANTEE_SETTLEMENT",
+  ]),
+  amountMillions: z.number().positive(),
+  description: z.string().min(1).max(300),
+  contractId: EntityIdSchema.optional(),
+}).strict().superRefine((value, ctx) => {
+  if (["SALARY", "PERFORMANCE_BONUS", "GUARANTEE_SETTLEMENT"].includes(value.category) && !value.contractId) {
+    ctx.addIssue({ code: "custom", path: ["contractId"], message: "Contract expenses require a contractId." });
+  }
+});
+
+export const TeamFinanceSchema = z.object({
+  openedAfterRound: z.number().int().min(0),
+  settledThroughRound: z.number().int().min(0),
+  openingBalanceMillions: z.number().min(0),
+  sponsorIncomeMillionsPerRound: z.number().min(0),
+  ownerIncomeMillionsPerRound: z.number().min(0),
+  operatingCostMillionsPerRound: z.number().min(0),
+  roundsPerSeason: z.number().int().min(1).max(52),
+  payrollBudgetMillionsPerSeason: z.number().min(0),
+  commitmentBudgetMillions: z.number().min(0),
+  ownerFundingUsed: z.boolean(),
+  costCutsApplied: z.boolean(),
+  transactions: z.array(FinanceTransactionSchema),
+}).strict().superRefine((value, ctx) => {
+  if (value.settledThroughRound < value.openedAfterRound) {
+    ctx.addIssue({ code: "custom", path: ["settledThroughRound"], message: "Settlement cannot precede the opening round." });
+  }
+  const ids = new Set<string>();
+  value.transactions.forEach((transaction, index) => {
+    if (ids.has(transaction.id)) {
+      ctx.addIssue({ code: "custom", path: ["transactions", index, "id"], message: "Finance transaction IDs must be unique." });
+    }
+    ids.add(transaction.id);
+    if (transaction.round < value.openedAfterRound) {
+      ctx.addIssue({ code: "custom", path: ["transactions", index, "round"], message: "Transaction precedes the account opening." });
+    }
+  });
+});
+
 export const PoliticalCoreStateSchema = z.object({
   characters: z.array(CharacterSchema),
   relationships: z.array(RelationshipSchema),
@@ -407,4 +454,5 @@ export const PoliticalCoreStateSchema = z.object({
   precedents: z.array(PrecedentSchema),
   conflicts: z.array(ConflictSchema),
   contracts: z.array(ContractSchema).default([]),
+  finance: TeamFinanceSchema.default(() => createTeamFinance()),
 }).strict();

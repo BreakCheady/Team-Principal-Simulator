@@ -1,5 +1,6 @@
 import type { Contract, PoliticalCoreState } from "@/game/political/types";
 import { validatePoliticalCoreState } from "@/game/political/validation";
+import { requireContractBudget, settleTeamFinancesThroughRound } from "@/game/finance/finances";
 
 export type ContractNegotiationStatus =
   | "OPEN"
@@ -341,14 +342,30 @@ function applyAcceptedRenewal(
   offer: ContractNegotiationOffer,
   currentRound: number,
 ): PoliticalCoreState {
-  const nextState = structuredClone(sourceState);
+  const nextState = settleTeamFinancesThroughRound(sourceState, currentRound);
   const contract = requireContract(nextState, contractId);
   const character = requireCharacter(nextState, contract.characterId);
 
+  const endRound = Math.max(contract.endRound, currentRound) + offer.extensionRounds;
+  requireContractBudget(nextState, contractId, {
+    salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+    guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+    endRound,
+    additionalBonusMillions: offer.performanceBonusMillions,
+  }, currentRound);
+
   contract.status = "ACTIVE";
-  contract.endRound = Math.max(contract.endRound, currentRound) + offer.extensionRounds;
+  contract.endRound = endRound;
   contract.salaryMillionsPerSeason = offer.salaryMillionsPerSeason;
-  contract.guaranteedSalaryMillions = offer.guaranteedSalaryMillions;
+  contract.guaranteedSalaryMillions = Math.max(contract.guaranteedSalaryMillions, offer.guaranteedSalaryMillions);
+  if (offer.performanceBonusMillions > 0) {
+    contract.performanceTriggers.push({
+      id: `trigger_${contract.characterId}_renewal_r${currentRound}_e${endRound}`,
+      metric: "WINS", comparator: "AT_LEAST", threshold: 4,
+      consequence: "SALARY_BONUS", amountMillions: offer.performanceBonusMillions,
+      triggered: false,
+    });
+  }
 
   if (offer.releaseClauseMillions !== null) {
     const existing = contract.releaseClauses.find(
@@ -449,6 +466,19 @@ export function submitNegotiationOffer(
   if (session.status !== "OPEN" && session.status !== "COUNTERED") {
     throw new Error("Negotiation is no longer open.");
   }
+  if (!Number.isInteger(offer.extensionRounds) || offer.extensionRounds < 1 || offer.extensionRounds > 52 ||
+    (offer.releaseClauseMillions !== null && (!Number.isFinite(offer.releaseClauseMillions) || offer.releaseClauseMillions < 0))) {
+    throw new RangeError("Invalid contract negotiation offer.");
+  }
+
+  const contract = requireContract(sourceState, session.contractId);
+  const budgetState = settleTeamFinancesThroughRound(sourceState, currentRound);
+  requireContractBudget(budgetState, contract.id, {
+    salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+    guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+    endRound: Math.max(contract.endRound, currentRound) + offer.extensionRounds,
+    additionalBonusMillions: offer.performanceBonusMillions,
+  }, currentRound);
 
   const acceptanceScore = calculateOfferAcceptance(sourceState, session, offer);
   const history: ContractNegotiationHistoryEntry[] = [
@@ -490,7 +520,7 @@ export function submitNegotiationOffer(
 
   if (session.turn >= 3 && acceptanceScore < 78) {
     return {
-      political: structuredClone(sourceState),
+      political: budgetState,
       session: {
         ...session,
         turn: session.turn + 1,
@@ -512,7 +542,7 @@ export function submitNegotiationOffer(
   const counterOffer = createCounterOffer(session, offer);
 
   return {
-    political: structuredClone(sourceState),
+    political: budgetState,
     session: {
       ...session,
       turn: session.turn + 1,

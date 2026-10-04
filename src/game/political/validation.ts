@@ -29,6 +29,28 @@ export function validatePoliticalCoreReferences(
   state.precedents.forEach((item, index) => register(item.id, `precedents[${index}].id`));
   state.conflicts.forEach((item, index) => register(item.id, `conflicts[${index}].id`));
   state.contracts.forEach((item, index) => register(item.id, `contracts[${index}].id`));
+  const contractIds = new Set(state.contracts.map((item) => item.id));
+  state.finance.transactions.forEach((transaction, index) => {
+    if (transaction.contractId && !contractIds.has(transaction.contractId)) {
+      errors.push({
+        path: `finance.transactions[${index}].contractId`,
+        code: "UNKNOWN_CONTRACT",
+        message: `Unknown contract "${transaction.contractId}".`,
+      });
+    }
+  });
+  state.contracts.forEach((contract, index) => {
+    const recordedSalary = state.finance.transactions
+      .filter((transaction) => transaction.contractId === contract.id &&
+        ["SALARY", "GUARANTEE_SETTLEMENT"].includes(transaction.category))
+      .reduce((sum, transaction) => sum + transaction.amountMillions, 0);
+    if (recordedSalary > contract.salaryPaidMillions + 0.000001) {
+      errors.push({
+        path: `contracts[${index}].salaryPaidMillions`, code: "FINANCE_PAYMENT_MISMATCH",
+        message: "Recorded salary payments exceed the contract's paid-salary balance.",
+      });
+    }
+  });
 
   const requireCharacter = (id: string, path: string) => {
     if (!characterIds.has(id)) {

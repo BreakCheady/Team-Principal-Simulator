@@ -1,5 +1,10 @@
 import type { Contract, PoliticalCoreState } from "@/game/political/types";
 import { validatePoliticalCoreState } from "@/game/political/validation";
+import {
+  bookPerformanceBonus,
+  requireContractBudget,
+  settleTeamFinancesThroughRound,
+} from "@/game/finance/finances";
 
 export type ContractPerformanceSnapshot = {
   driverChampionshipPosition?: number;
@@ -200,6 +205,14 @@ export function evaluateContractPerformance(
     }
   }
 
+  for (const trigger of contract.performanceTriggers) {
+    if (trigger.consequence === "SALARY_BONUS" && triggeredPerformanceTriggerIds.includes(trigger.id)) {
+      nextState = bookPerformanceBonus(
+        nextState, contractId, trigger.id, trigger.amountMillions ?? 0, currentRound,
+      );
+    }
+  }
+
   nextState = syncContractCareerState(nextState, contractId, currentRound);
 
   const validation = validatePoliticalCoreState(nextState);
@@ -220,7 +233,7 @@ export function exerciseContractOption(
   currentRound: number,
 ): PoliticalCoreState {
   requireRound(currentRound);
-  let nextState = structuredClone(sourceState);
+  let nextState = settleTeamFinancesThroughRound(sourceState, currentRound);
   const contract = requireContract(nextState, contractId);
 
   if (!isContractInForce(contract, currentRound)) {
@@ -236,6 +249,14 @@ export function exerciseContractOption(
     currentRound > option.exerciseUntilRound
   ) {
     throw new Error("Contract option is outside its exercise window.");
+  }
+
+  if (option.holder === "TEAM") {
+    requireContractBudget(nextState, contractId, {
+      salaryMillionsPerSeason: Number((contract.salaryMillionsPerSeason * option.salaryMultiplier).toFixed(2)),
+      guaranteedSalaryMillions: contract.guaranteedSalaryMillions,
+      endRound: contract.endRound + option.extensionRounds,
+    }, currentRound);
   }
 
   option.exercised = true;
@@ -259,7 +280,7 @@ export function advanceContractsForRound(
   round: number,
 ): PoliticalCoreState {
   requireRound(round);
-  let nextState = structuredClone(sourceState);
+  let nextState = settleTeamFinancesThroughRound(sourceState, round);
 
   for (const contract of nextState.contracts) {
     if (contract.status === "ACTIVE" && round > contract.endRound) {

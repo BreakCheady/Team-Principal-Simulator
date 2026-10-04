@@ -10,6 +10,7 @@ import {
   advanceContractsForRound,
   exerciseContractOption,
 } from "@/game/contracts/contracts";
+import { cutOperatingCosts, requestOwnerFunding, settleTeamFinancesThroughRound } from "@/game/finance/finances";
 import {
   advanceWatchingIssue,
   createChainedIssue,
@@ -367,6 +368,19 @@ export function exerciseRoundContractOption(
     political: exerciseContractOption(
       state.political, contractId, optionId, state.currentRound,
     ),
+  };
+}
+
+export function takeRoundFinanceAction(
+  state: RoundFlowState,
+  action: "OWNER_FUNDING" | "CUT_OPERATING_COSTS",
+): RoundFlowState {
+  const political = settleTeamFinancesThroughRound(state.political, state.currentRound);
+  return {
+    ...state,
+    political: action === "OWNER_FUNDING"
+      ? requestOwnerFunding(political, state.currentRound)
+      : cutOperatingCosts(political),
   };
 }
 

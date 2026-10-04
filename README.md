@@ -4,7 +4,7 @@ A browser-based motorsport management game about **people, power and paddock pol
 
 ## Current milestone
 
-**v0.4 – Multi-Actor Political Sandbox with playable contracts**
+**v0.5 – Team Finances and Political Contract Decisions**
 
 Lead Vanguard Racing through sequential conflicts, round events and inbox decisions.
 Sporting Director, Owner/CEO, Sponsor and Staff actors have their own goals, leverage
@@ -17,6 +17,12 @@ renewals through offers and counteroffers with political consequences.
 
 Save and load the current game locally. See [contract gameplay](docs/contracts.md)
 for lifecycle rules and the result-to-contract flow.
+
+The Finance tab tracks cash, recurring sponsor/owner income, operating costs,
+salary payments, bonuses and outstanding guarantees in a persistent ledger.
+Renewals and team options must fit payroll, commitment and liquidity budgets.
+Request emergency owner funding or cut costs, with persistent political consequences.
+See [team finances](docs/finances.md) for rules, demo settings and save migration.
 
 ## Stack
 
