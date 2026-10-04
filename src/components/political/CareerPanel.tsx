@@ -1,5 +1,8 @@
 "use client";
 
+import { SERIES, getSeries } from "@/game/world/series";
+import { playerTeam } from "@/game/world/world";
+
 import { useState } from "react";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import type { Candidate, Seat } from "@/game/career/state";
@@ -35,7 +38,11 @@ function CandidateCard({
   onAction: Props["onAction"];
 }) {
   const [premium, setPremium] = useState(false),
-    [duration, setDuration] = useState(24);
+    [duration, setDuration] = useState(
+      flow.career?.world
+        ? getSeries(flow.career.world.playerSeriesId).rounds
+        : 24,
+    );
   const slots = flow.career!.seats.filter(
     (s) =>
       !s.characterId &&
@@ -58,6 +65,9 @@ function CandidateCard({
         {money(candidate.signingFee)} · Buyout {money(candidate.buyout)}
       </p>
       <p className="mt-2 text-xs text-zinc-500">
+        {candidate.seriesId
+          ? `${candidate.seriesId} · ${candidate.age} years · ${candidate.nationality} · Potential ${candidate.potential} · `
+          : ""}
         Ambition {candidate.character.personality.ambition} · Compromise{" "}
         {candidate.character.personality.compromiseWillingness} · Available R
         {candidate.availableFrom}–R{candidate.availableUntil}
@@ -90,7 +100,13 @@ function CandidateCard({
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
           >
-            {[12, 24, 36, 48].map((n) => (
+            {(flow.career?.world
+              ? [
+                  getSeries(flow.career.world.playerSeriesId).rounds,
+                  getSeries(flow.career.world.playerSeriesId).rounds * 2,
+                ].filter((n) => n <= 52)
+              : [12, 24, 36, 48]
+            ).map((n) => (
               <option key={n} value={n}>
                 {n} rounds
               </option>
@@ -126,8 +142,35 @@ function CandidateCard({
   );
 }
 export function CareerPanel({ flow, view, onAction }: Props) {
+  const [query, setQuery] = useState("");
+  const [sourceSeries, setSourceSeries] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [sort, setSort] = useState("SKILL");
+  const [page, setPage] = useState(0);
   const c = flow.career;
   if (!c) return <p>Load an older save or reset rounds to open career mode.</p>;
+  const available = c.candidates
+    .filter(
+      (p) =>
+        p.status === "AVAILABLE" &&
+        `${p.character.name} ${p.employer} ${p.nationality ?? ""}`
+          .toLowerCase()
+          .includes(query.toLowerCase()) &&
+        (sourceSeries === "ALL" || p.seriesId === sourceSeries) &&
+        (roleFilter === "ALL" || p.seat === roleFilter) &&
+        (!freeOnly || p.employer === "Free agent"),
+    )
+    .sort((a, b) =>
+      sort === "SALARY"
+        ? a.salary - b.salary
+        : sort === "AGE"
+          ? (a.age ?? 99) - (b.age ?? 99)
+          : b.skill - a.skill ||
+            a.character.name.localeCompare(b.character.name),
+    );
+  const pages = Math.max(1, Math.ceil(available.length / 24));
+  const currentPage = Math.min(page, pages - 1);
   const name = (id: string | null) =>
     flow.political.characters.find((a) => a.id === id)?.name ?? "Vacant";
   if (view === "MARKET")
@@ -243,10 +286,91 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             windows drive approaches.
           </p>
         ) : null}
-        <h4 className="text-lg font-semibold">Available candidates</h4>
+        <h4 className="text-lg font-semibold">
+          Available candidates · {available.length}
+        </h4>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <input
+            aria-label="Search driver and staff pool"
+            placeholder="Name, nationality or team"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(0);
+            }}
+            className="rounded-lg bg-zinc-900 p-3"
+          />
+          <select
+            aria-label="Source series"
+            value={sourceSeries}
+            onChange={(e) => {
+              setSourceSeries(e.target.value);
+              setPage(0);
+            }}
+            className="bg-zinc-900 p-3"
+          >
+            <option value="ALL">All source series</option>
+            {SERIES.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.id}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Candidate role"
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(0);
+            }}
+            className="bg-zinc-900 p-3"
+          >
+            <option value="ALL">Drivers & staff</option>
+            {["DRIVER_ONE", "TECHNICAL", "SPORTING", "ENGINEERING"].map(
+              (role) => (
+                <option key={role} value={role}>
+                  {label(role)}
+                </option>
+              ),
+            )}
+          </select>
+          <select
+            aria-label="Sort candidates"
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(0);
+            }}
+            className="bg-zinc-900 p-3"
+          >
+            <option value="SKILL">Best skill</option>
+            <option value="SALARY">Lowest salary</option>
+            <option value="AGE">Youngest</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={freeOnly}
+              onChange={(e) => {
+                setFreeOnly(e.target.checked);
+                setPage(0);
+              }}
+            />
+            Free agents only
+          </label>
+        </div>
+        {c.world ? (
+          <p className="text-sm text-zinc-400">
+            Global pool:{" "}
+            {c.world.people.filter((p) => p.role === "DRIVER").length} drivers
+            and {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
+            across nine series. Recruitment here shows people eligible for{" "}
+            {c.world.playerSeriesId}; scout the full world in Motorsport World.
+          </p>
+        ) : null}
         <div className="grid gap-4 lg:grid-cols-2">
-          {c.candidates
-            .filter((x) => x.status === "AVAILABLE")
+          {available
+            .slice(currentPage * 24, (currentPage + 1) * 24)
             .map((candidate) => (
               <CandidateCard
                 key={candidate.id}
@@ -255,6 +379,25 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 onAction={onAction}
               />
             ))}
+        </div>
+        <div className="flex gap-3">
+          <button
+            className={button}
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            Previous
+          </button>
+          <span className="py-2 text-sm">
+            Page {currentPage + 1} / {pages}
+          </span>
+          <button
+            className={button}
+            disabled={currentPage === pages - 1}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            Next
+          </button>
         </div>
       </div>
     );
@@ -273,8 +416,12 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               <article key={kind} className={card}>
                 <h4>{kind}</h4>
                 <p className="mt-2 text-sm text-zinc-400">
-                  {money(PROJECTS[kind].cost)} · {PROJECTS[kind].duration}{" "}
-                  rounds · base risk {PROJECTS[kind].risk}%
+                  {money(
+                    PROJECTS[kind].cost *
+                      (c.world ? playerTeam(c.world).budget / 120 : 1),
+                  )}{" "}
+                  · {PROJECTS[kind].duration} rounds · base risk{" "}
+                  {PROJECTS[kind].risk}%
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
                   +{PROJECTS[kind].gain}{" "}
@@ -325,11 +472,14 @@ export function CareerPanel({ flow, view, onAction }: Props) {
       <div className="space-y-5">
         <h3 className="text-xl font-semibold">Championship & race strategy</h3>
         <p className="text-sm text-zinc-400">
-          Season {2025 + c.season} · race {((flow.currentRound - 1) % 24) + 1}
-          /24 · Car {c.car.pace} pace / {c.car.reliability} reliability. Results
-          depend on driver skill, staff, momentum, stability and seeded race
-          variance. The first career season starts with the remaining demo races
-          and zero recorded points.
+          Season {2025 + c.season} · {c.world?.playerSeriesId ?? "F1"} · race{" "}
+          {Math.max(0, flow.currentRound - c.seasonStart + 1)}/
+          {c.seasonEnd - c.seasonStart + 1} · Car {c.car.pace} pace /{" "}
+          {c.car.reliability} reliability. Results depend on driver skill,
+          staff, momentum, stability and seeded race variance.{" "}
+          {c.world
+            ? "Each new career starts before race 1 with a full calendar and zero championship points."
+            : "This legacy career retains its original starting round."}
         </p>
         <div className="flex flex-wrap gap-3">
           {(["BALANCED", "ATTACK", "CONSERVE"] as const).map((strategy) => (
@@ -443,7 +593,8 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         </p>
         <p className="mt-2 text-xs text-zinc-500">
           Board score: sport 35, finances 30, stability 35. Below 60: warning;
-          below 30 or two consecutive warnings: dismissal. Cash below −€25m also
+          below 30 or two consecutive warnings: dismissal. Cash below −€
+          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m also
           ends your tenure. Season prizes scale with constructor rank.
         </p>
         {c.status === "REVIEW" ? (
@@ -458,7 +609,9 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               className={button}
               onClick={() => onAction((s) => startNextSeason(s, "CHALLENGE"))}
             >
-              Next season · P2 / €5m / stability 65
+              Next season · P2 / €
+              {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5}m /
+              stability 65
             </button>
           </div>
         ) : null}

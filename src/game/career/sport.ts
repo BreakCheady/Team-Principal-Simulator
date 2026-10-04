@@ -1,3 +1,5 @@
+import { getSeries, pointsForEvent } from "@/game/world/series";
+import { playerTeam } from "@/game/world/world";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import { processRound } from "@/game/season/round-events";
 import {
@@ -37,7 +39,9 @@ export function startDevelopment(
     throw new Error(
       "Two development slots are available; only one active project of each type.",
     );
-  const spec = PROJECTS[kind];
+  const base = PROJECTS[kind];
+  const scale = career.world ? playerTeam(career.world).budget / 120 : 1;
+  const spec = { ...base, cost: Number((base.cost * scale).toFixed(6)) };
   const sponsor = career.seats.find(
     (s) => s.seat === (kind === "OPERATIONS" ? "SPORTING" : "TECHNICAL"),
   )?.characterId;
@@ -61,7 +65,7 @@ export function startDevelopment(
   );
   next.political = bookFinanceTransaction(next.political, {
     id,
-    round: next.currentRound,
+    round: Math.max(1, next.currentRound),
     category: "DEVELOPMENT_COST",
     amountMillions: spec.cost,
     description: `Development: ${kind}`,
@@ -140,7 +144,13 @@ export function teamTable(career: CareerState) {
     for (const r of race.results)
       if (r.team !== "Departed")
         teams.set(r.team, (teams.get(r.team) ?? 0) + r.points);
-  if (!teams.has("Vanguard")) teams.set("Vanguard", 0);
+  const ourTeam = career.world ? playerTeam(career.world).name : "Vanguard";
+  if (career.world)
+    for (const team of career.world.teams.filter(
+      (t) => t.seriesId === career.world!.playerSeriesId,
+    ))
+      if (!teams.has(team.name)) teams.set(team.name, 0);
+  if (!teams.has(ourTeam)) teams.set(ourTeam, 0);
   return [...teams]
     .map(([team, points]) => ({ team, points }))
     .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team));
@@ -150,6 +160,9 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
     career = next.career;
   if (career.races.some((r) => r.round === next.currentRound))
     throw new Error("Race was already simulated.");
+  const ourTeam = career.world ? playerTeam(career.world).name : "Vanguard";
+  const cfg = career.world ? getSeries(career.world.playerSeriesId) : null;
+  const event = cfg?.calendar[next.currentRound - career.seasonStart];
   const drivers = career.seats
     .filter((s) => s.seat.startsWith("DRIVER") && s.characterId)
     .flatMap((s) => s.characterId!);
@@ -176,15 +189,22 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
     career.strategy === "ATTACK" ? 5 : career.strategy === "CONSERVE" ? -3 : 0;
   const starters = career.standings.filter(
     (s) =>
-      s.team !== "Departed" &&
-      (s.team !== "Vanguard" || drivers.includes(s.id)),
+      s.team !== "Departed" && (s.team !== ourTeam || drivers.includes(s.id)),
   );
   const results = starters
     .map((s) => {
-      const ours = s.team === "Vanguard",
+      const ours = s.team === ourTeam,
         actor = next.political.characters.find((c) => c.id === s.id);
-      const pace = ours ? career.car.pace : Math.min(96, 58 + s.skill * 0.4);
-      const reliability = ours ? career.car.reliability : 88;
+      const worldPerson = career.world?.people.find((p) => p.id === s.id);
+      const rivalTeam = career.world?.teams.find(
+        (t) => t.name === s.team && t.seriesId === career.world!.playerSeriesId,
+      );
+      const pace = ours
+        ? career.car.pace
+        : (rivalTeam?.pace ?? Math.min(96, 58 + s.skill * 0.4));
+      const reliability = ours
+        ? career.car.reliability
+        : (rivalTeam?.reliability ?? 88);
       const dnfRisk = ours
         ? Math.max(
             1,
@@ -196,8 +216,10 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
                   : 0) +
               (technical ? 0 : 7),
           )
-        : 4;
-      const dnf = random(career) * 100 < dnfRisk;
+        : (100 - reliability) * 0.35;
+      const eventRisk =
+        event?.kind === "ENDURANCE" ? 4 : cfg?.category === "RALLY" ? 3 : 0;
+      const dnf = random(career) * 100 < dnfRisk + eventRisk;
       const score =
         pace * 0.55 +
         s.skill * 0.35 +
@@ -208,6 +230,10 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
             stability * 0.03 +
             (actor?.dynamic.momentum ?? 0) * 0.18
           : 8) +
+        (worldPerson && (cfg?.category === "RALLY" || event?.kind === "OVAL")
+          ? worldPerson.terrainSkill * 0.15
+          : 0) +
+        (worldPerson?.consistency ?? 0) * 0.03 +
         random(career) * 24 -
         (ours ? (actor?.dynamic.politicalFatigue ?? 0) * 0.03 : 0);
       return {
@@ -226,7 +252,9 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
         b.score - a.score ||
         a.characterId.localeCompare(b.characterId),
     );
-  const points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+  const points = cfg
+    ? pointsForEvent(cfg, next.currentRound - career.seasonStart)
+    : [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
   results.forEach((r, index) => {
     r.position = index + 1;
     r.points = r.dnf ? 0 : (points[index] ?? 0);
@@ -234,7 +262,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
     standing.points += r.points;
     if (!r.dnf && index === 0) standing.wins++;
     if (!r.dnf && index < 3) standing.podiums++;
-    if (r.team === "Vanguard") {
+    if (r.team === ourTeam) {
       const actor = next.political.characters.find(
         (c) => c.id === r.characterId,
       )!;
@@ -262,21 +290,22 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
       b.points - a.points || b.wins - a.wins || a.id.localeCompare(b.id),
   );
   const teamPosition =
-    teamTable(career).findIndex((t) => t.team === "Vanguard") + 1;
+    teamTable(career).findIndex((t) => t.team === ourTeam) + 1;
   const applied = processRound(next.political, next.currentRound, [
     {
       id: `race_r${next.currentRound}`,
       round: next.currentRound,
       type: "RACE_RESULT",
-      title: `Grand Prix ${((next.currentRound - 1) % 24) + 1}: ${results.find((r) => !r.dnf)?.name ?? "no classified finisher"}`,
+      title: `${event?.name ?? `Grand Prix ${next.currentRound - career.seasonStart + 1}`}: ${results.find((r) => !r.dnf)?.name ?? "no classified finisher"}`,
       summary:
         results
-          .filter((r) => r.team === "Vanguard")
+          .filter((r) => r.team === ourTeam)
           .map(
             (r) =>
               `${r.name}: ${r.dnf ? "DNF" : `P${r.position}, ${r.points} points`}`,
           )
-          .join(" · ") || "Both Vanguard seats are vacant; no team starter.",
+          .join(" · ") ||
+        `All ${ourTeam} driver seats are vacant; no team starter.`,
       effects: [],
       contractPerformance: drivers.map((id) => {
         const s = ordered.find((s) => s.id === id)!;

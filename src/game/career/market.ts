@@ -1,3 +1,9 @@
+import {
+  playerTeam,
+  transferWorldPerson,
+  syncWorldCandidates,
+} from "@/game/world/world";
+import { getSeries } from "@/game/world/series";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import {
   isReleaseClauseInForce,
@@ -36,8 +42,8 @@ export function activeContract(
     (c) =>
       c.characterId === characterId &&
       c.status === "ACTIVE" &&
-      c.startRound <= round &&
-      c.endRound >= round,
+      c.startRound <= Math.max(1, round) &&
+      c.endRound >= Math.max(1, round),
   );
 }
 export function leaveTeam(
@@ -49,10 +55,11 @@ export function leaveTeam(
   mandatory = false,
 ): RoundFlowState {
   const next = careerCopy(flow);
-  next.political = settleTeamFinancesThroughRound(
-    next.political,
-    next.currentRound,
-  );
+  if (next.currentRound > 0)
+    next.political = settleTeamFinancesThroughRound(
+      next.political,
+      next.currentRound,
+    );
   const contract = activeContract(
     next.political,
     characterId,
@@ -79,7 +86,7 @@ export function leaveTeam(
       );
       next.political = bookFinanceTransaction(next.political, {
         id: `exit_guarantee_${contract.id}`,
-        round: next.currentRound,
+        round: Math.max(1, next.currentRound),
         category: "GUARANTEE_SETTLEMENT",
         amountMillions: guarantee,
         contractId: contract.id,
@@ -89,7 +96,7 @@ export function leaveTeam(
     next.political = syncContractCareerState(
       next.political,
       contract.id,
-      next.currentRound,
+      Math.max(1, next.currentRound),
     );
   }
   for (const [category, amount] of [
@@ -99,7 +106,7 @@ export function leaveTeam(
     if (amount > 0)
       next.political = bookFinanceTransaction(next.political, {
         id: `${category.toLowerCase()}_${characterId}_r${next.currentRound}`,
-        round: next.currentRound,
+        round: Math.max(1, next.currentRound),
         category,
         amountMillions: amount,
         description: reason,
@@ -175,6 +182,10 @@ export function leaveTeam(
     next,
     `${name} leaves. ${reason} Seat vacant; historical relationships and contract obligations remain recorded.`,
   );
+  if (next.career.world) {
+    transferWorldPerson(next.career.world, characterId, null);
+    syncWorldCandidates(next);
+  }
   return next;
 }
 
@@ -237,6 +248,14 @@ export function respondTransferOffer(
       `Transfer to ${offer.club}`,
     ) as typeof next;
     next.career.offers.find((o) => o.id === offerId)!.status = "ACCEPTED";
+    if (next.career.world) {
+      const destination = next.career.world.teams.find(
+        (t) => t.name === offer.club,
+      );
+      if (destination)
+        transferWorldPerson(next.career.world, actor.id, destination.id);
+      syncWorldCandidates(next);
+    }
   } else {
     offer.status = "REJECTED";
     actor.dynamic.instability = Math.min(100, actor.dynamic.instability + 8);
@@ -277,10 +296,20 @@ export function signCandidate(
     !Number.isFinite(salary) ||
     salary < candidate.salary ||
     !Number.isInteger(duration) ||
-    duration < 12 ||
-    duration > 48
+    duration <
+      (next.career.world
+        ? getSeries(next.career.world.playerSeriesId).rounds
+        : 12) ||
+    duration >
+      (next.career.world
+        ? Math.min(52, getSeries(next.career.world.playerSeriesId).rounds * 2)
+        : 48)
   )
-    throw new Error("Offer must meet salary demand and run for 12–48 rounds.");
+    throw new Error(
+      next.career.world
+        ? "Offer must meet the salary demand and span one or two valid series seasons (maximum 52 races)."
+        : "Offer must meet salary demand and run for 12–48 rounds.",
+    );
   const owner = next.political.characters.find(
     (c) => c.role === "TEAM_PRINCIPAL",
   )!;
@@ -290,26 +319,35 @@ export function signCandidate(
     candidate.character.personality.ambition;
   if (acceptance < 10 && salary < candidate.salary * 1.2)
     throw new Error("Candidate wants a 20% premium to join this leadership.");
-  next.political = settleTeamFinancesThroughRound(
-    next.political,
-    next.currentRound,
-  );
+  if (next.currentRound > 0)
+    next.political = settleTeamFinancesThroughRound(
+      next.political,
+      next.currentRound,
+    );
   const fee = candidate.signingFee + candidate.buyout;
   if (getCashBalance(next.political) < fee)
     throw new Error("Insufficient cash for signing fee and buyout.");
   const id = candidate.character.id;
   if (!next.political.characters.some((c) => c.id === id))
     next.political.characters.push(structuredClone(candidate.character));
+  const baseId = `contract_${id}_r${next.currentRound}`;
+  const count = next.political.contracts.filter(
+    (c) => c.id === baseId || c.id.startsWith(baseId + "_n"),
+  ).length;
   const contract: Contract = {
-    id: `contract_${id}_r${next.currentRound}`,
+    id: count ? `${baseId}_n${count + 1}` : baseId,
     characterId: id,
-    employer: "Vanguard Racing",
+    employer: next.career.world
+      ? playerTeam(next.career.world).name
+      : "Vanguard Racing",
     status: "ACTIVE",
-    signedRound: next.currentRound,
+    signedRound: Math.max(1, next.currentRound),
     startRound: next.currentRound + 1,
     endRound: next.currentRound + duration,
     salaryMillionsPerSeason: roundMoney(salary),
-    guaranteedSalaryMillions: roundMoney((salary * duration) / 24),
+    guaranteedSalaryMillions: roundMoney(
+      (salary * duration) / next.political.finance.roundsPerSeason,
+    ),
     salaryPaidMillions: 0,
     options: [
       {
@@ -317,7 +355,7 @@ export function signCandidate(
         holder: "CHARACTER",
         exerciseFromRound: next.currentRound + duration - 4,
         exerciseUntilRound: next.currentRound + duration,
-        extensionRounds: 24,
+        extensionRounds: next.political.finance.roundsPerSeason,
         salaryMultiplier: 1.1,
         available: true,
         exercised: false,
@@ -339,7 +377,7 @@ export function signCandidate(
   next.political.contracts.push(contract);
   next.political = bookFinanceTransaction(next.political, {
     id: `signing_${contract.id}`,
-    round: next.currentRound,
+    round: Math.max(1, next.currentRound),
     category: "SIGNING_FEE",
     amountMillions: fee,
     description: `Signing and buyout: ${candidate.character.name}`,
@@ -395,17 +433,32 @@ export function signCandidate(
   next.political.goals.find((g) => g.id === goalId)!.active = true;
   if (driverMatch) {
     const standing = next.career.standings.find((s) => s.id === id);
-    if (standing) standing.team = "Vanguard";
+    if (standing)
+      standing.team = next.career.world
+        ? playerTeam(next.career.world).name
+        : "Vanguard";
     else
       next.career.standings.push({
         id,
         name: actor.name,
-        team: "Vanguard",
+        team: next.career.world
+          ? playerTeam(next.career.world).name
+          : "Vanguard",
         skill: candidate.skill,
         points: 0,
         wins: 0,
         podiums: 0,
       });
+  }
+  if (next.career.world) {
+    transferWorldPerson(next.career.world, id, next.career.world.playerTeamId);
+    const p = next.career.world.people.find((p) => p.id === id)!;
+    p.salary = salary;
+    p.contractEndSeason =
+      next.career.season +
+      Math.ceil(duration / next.political.finance.roundsPerSeason) -
+      1;
+    syncWorldCandidates(next);
   }
   logCareer(
     next,
@@ -453,10 +506,11 @@ export function agreeMutualOption(
     60
   )
     throw new Error("The actor refuses consent to this mutual extension.");
-  next.political = settleTeamFinancesThroughRound(
-    next.political,
-    next.currentRound,
-  );
+  if (next.currentRound > 0)
+    next.political = settleTeamFinancesThroughRound(
+      next.political,
+      next.currentRound,
+    );
   requireContractBudget(
     next.political,
     contractId,
