@@ -846,7 +846,9 @@ function shouldPit(w: RaceWeekend, car: RaceCar, rules: RaceRules) {
     return true;
   if (rules.twoCompounds && !car.wetUsed) {
     const valid = car.tyreSets.filter(
-      (s) => s.laps >= rules.tyreMinimumLaps && s.greenLaps > 0,
+      (s) =>
+        s.laps >= rules.tyreMinimumLaps &&
+        (!rules.alternateSets || s.greenLaps > 0),
     );
     const alt = valid.filter((s) => s.compound === "ALTERNATE").length;
     if (
@@ -1101,7 +1103,8 @@ function completeCarLap(w: RaceWeekend, car: RaceCar) {
     seconds = car.nextLapAt - car.lapStartedAt;
   car.totalSeconds = car.nextLapAt;
   car.lastLap = round(seconds);
-  car.bestLap = car.bestLap ? Math.min(car.bestLap, seconds) : seconds;
+  if (w.flag === "GREEN")
+    car.bestLap = car.bestLap ? Math.min(car.bestLap, seconds) : seconds;
   car.completedLaps += 1;
   car.tyreAge += 1;
   car.tyreSets.at(-1)!.laps += 1;
@@ -1278,7 +1281,7 @@ export function stepRace(w: RaceWeekend) {
             i * 0.6 +
             (lead.completedLaps - c.completedLaps) * w.baseLap;
           if (c.nextLapAt > maximum)
-            c.nextLapAt = Math.max(c.lapStartedAt + 1, maximum);
+            c.nextLapAt = Math.max(c.lapStartedAt + w.baseLap * 1.4, maximum);
         });
     }
     const leader = liveOrder(w).find((c) => c.classId === "MAIN" && !c.retired);
@@ -1324,7 +1327,9 @@ export function stepRace(w: RaceWeekend) {
 export function tyreCompliance(car: RaceCar, rules: RaceRules) {
   if (!rules.twoCompounds || car.wetUsed) return true;
   const valid = car.tyreSets.filter(
-    (s) => s.laps >= rules.tyreMinimumLaps && s.greenLaps > 0,
+    (s) =>
+      s.laps >= rules.tyreMinimumLaps &&
+      (!rules.alternateSets || s.greenLaps > 0),
   );
   if (rules.alternateSets)
     return (

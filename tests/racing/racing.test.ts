@@ -95,6 +95,20 @@ describe("series sporting profiles", () => {
     });
     expect(getRaceRules("LMP1", 7, "ENDURANCE").minutes).toBe(480);
   });
+  it("counts dry specifications used under a Safety Car in F1 but retains IndyCar green-lap requirements", () => {
+    const car = prepared().career!.weekend!.cars[0];
+    car.wetUsed = false;
+    car.tyreSets = [
+      { compound: "MEDIUM", laps: 4, greenLaps: 0 },
+      { compound: "HARD", laps: 2, greenLaps: 0 },
+    ];
+    expect(tyreCompliance(car, getRaceRules("F1", 0, "FEATURE"))).toBe(true);
+    car.tyreSets = [
+      { compound: "PRIMARY", laps: 4, greenLaps: 0 },
+      { compound: "ALTERNATE", laps: 2, greenLaps: 0 },
+    ];
+    expect(tyreCompliance(car, getRaceRules("INDYCAR", 2, "ROAD"))).toBe(false);
+  });
   it("requires two alternate sets on IndyCar street tracks and no compound switch on ovals", () => {
     const street = getRaceRules("INDYCAR", 0, "STREET"),
       oval = getRaceRules("INDYCAR", 1, "OVAL");
