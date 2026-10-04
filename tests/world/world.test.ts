@@ -254,7 +254,8 @@ describe("motorsport world", () => {
   it("persists preseason and midseason worlds including deterministic race replay", () => {
     let flow = createNewCareer("RALLY");
     const raw = encodeSave("ROUND_FLOW", flow);
-    expect(raw.length).toBeLessThan(4_500_000);
+    // Keep UTF-16 storage comfortably below the usual 5 MiB browser quota.
+    expect(raw.length).toBeLessThan(2_000_000);
     expect(decodeSave<RoundFlowState>(raw, "ROUND_FLOW").state).toEqual(flow);
     flow = advanceCareerFlow(flow, []);
     const restored = decodeSave<RoundFlowState>(
