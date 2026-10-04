@@ -51,3 +51,12 @@ not mutate the previous game state. Save version 7 persists contracts and financ
 Version-6 saves migrate at their current round without charging past salary or
 already triggered bonuses to the new account. See [finances](finances.md) for the
 salary-accrual estimate used during migration.
+
+
+## v0.6 career integration
+
+The playable Team HQ now runs a continuing career. See [career.md](career.md) for
+transfers, independent actors, contractual consent, simulated races, development,
+board objectives and version-8 migration. Authored performance snapshots remain
+available to scenario tests; career mode uses only results from the race simulator.
+Contracts and finance rounds continue across the 24-race season boundary.

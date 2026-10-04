@@ -63,6 +63,7 @@ export const CharacterSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1).max(100),
   role: CharacterRoleSchema,
+  active: z.boolean().optional(),
   power: PowerProfileSchema,
   dynamic: z.object({
     momentum: MomentumScoreSchema,
@@ -407,6 +408,7 @@ export const FinanceTransactionSchema = z.object({
   category: z.enum([
     "SPONSOR_INCOME", "OWNER_INCOME", "OWNER_FUNDING",
     "OPERATING_COST", "SALARY", "PERFORMANCE_BONUS", "GUARANTEE_SETTLEMENT",
+    "TRANSFER_INCOME", "RELEASE_PAYMENT", "SIGNING_FEE", "DEVELOPMENT_COST", "PRIZE_INCOME",
   ]),
   amountMillions: z.number().positive(),
   description: z.string().min(1).max(300),

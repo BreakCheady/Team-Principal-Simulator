@@ -20,7 +20,7 @@ function validated(state: PoliticalCoreState): PoliticalCoreState {
 }
 
 export function isFinanceIncome(transaction: FinanceTransaction): boolean {
-  return ["SPONSOR_INCOME", "OWNER_INCOME", "OWNER_FUNDING"].includes(transaction.category);
+  return ["SPONSOR_INCOME", "OWNER_INCOME", "OWNER_FUNDING", "TRANSFER_INCOME", "PRIZE_INCOME"].includes(transaction.category);
 }
 
 export function getCashBalance(state: PoliticalCoreState): number {
@@ -42,6 +42,12 @@ function appendTransaction(state: PoliticalCoreState, transaction: FinanceTransa
   }
   state.finance.transactions.push(transaction);
   return true;
+}
+
+export function bookFinanceTransaction(sourceState: PoliticalCoreState, transaction: FinanceTransaction): PoliticalCoreState {
+  const nextState = structuredClone(sourceState);
+  appendTransaction(nextState, transaction);
+  return validated(nextState);
 }
 
 export function bookPerformanceBonus(
@@ -208,7 +214,7 @@ export function requestOwnerFunding(sourceState: PoliticalCoreState, round: numb
   const nextState = structuredClone(sourceState);
   nextState.finance.ownerFundingUsed = true;
   appendTransaction(nextState, {
-    id: "owner_emergency_funding", round, category: "OWNER_FUNDING",
+    id: `owner_emergency_funding_${nextState.finance.transactions.filter(t=>t.category==="OWNER_FUNDING").length+1}_r${round}`, round, category: "OWNER_FUNDING",
     amountMillions: OWNER_FUNDING_MILLIONS, description: "Emergency owner funding",
   });
   const owner = nextState.characters.find((item) => ["CEO", "OWNER_REPRESENTATIVE"].includes(item.role))!;

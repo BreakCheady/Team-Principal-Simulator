@@ -4,25 +4,30 @@ A browser-based motorsport management game about **people, power and paddock pol
 
 ## Current milestone
 
-**v0.5 – Team Finances and Political Contract Decisions**
+**v0.6 – Persistent Team Principal Career**
 
-Lead Vanguard Racing through sequential conflicts, round events and inbox decisions.
-Sporting Director, Owner/CEO, Sponsor and Staff actors have their own goals, leverage
-and political follow-up issues. Decisions persist and change later power struggles.
+Lead Vanguard Racing through the introductory conflicts, then manage a continuing
+career with simulated races, transfers, development and board objectives.
 
-Contracts contain terms, salary, guaranteed value, options, release clauses and
-performance triggers. Authored cumulative results automatically award bonuses and
-activate clauses. Exercise eligible team options in the Contract Room, or negotiate
-renewals through offers and counteroffers with political consequences.
+- Driver and staff market with real signings, fees, salary demands and changing lineups.
+- Rival approaches, departures, release rights and consensual mutual options.
+- Autonomous actors build alliances, demand authority and exercise character-held rights.
+- Seeded races derive results from drivers, staff, car, reliability and strategy.
+- Development projects spend cash, take time, carry risk and shift political influence.
+- Complete 24-race seasons, receive prize money and face board reviews or dismissal.
 
-Save and load the current game locally. See [contract gameplay](docs/contracts.md)
-for lifecycle rules and the result-to-contract flow.
+Contracts and finances remain connected: salary, guarantees, options, bonuses, fees,
+project spending and prize income share a persistent ledger. Renewals and signings
+must fit cash, payroll and commitment budgets. Player choices affect future races,
+politics and the next season.
 
-The Finance tab tracks cash, recurring sponsor/owner income, operating costs,
-salary payments, bonuses and outstanding guarantees in a persistent ledger.
-Renewals and team options must fit payroll, commitment and liquidity budgets.
-Request emergency owner funding or cut costs, with persistent political consequences.
-See [team finances](docs/finances.md) for rules, demo settings and save migration.
+The opening career starts at R15, with championship counters initialized for the
+remaining nine races. Later seasons simulate every race. The candidate market and
+rival field are deliberately small fictional models. Save/load is local; v6/v7 saves
+migrate to v8 without rebilling recorded history.
+
+See [career gameplay](docs/career.md), [contracts](docs/contracts.md) and
+[team finances](docs/finances.md) for the rules and current scope.
 
 ## Stack
 

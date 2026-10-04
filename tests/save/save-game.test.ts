@@ -26,14 +26,14 @@ describe("local save envelope", () => {
     delete legacy.state.political.finance;
     for (const contract of legacy.state.political.contracts) delete contract.salaryPaidMillions;
     const restored = decodeSave<typeof state>(JSON.stringify(legacy), "ROUND_FLOW");
-    expect(restored.version).toBe(7);
+    expect(restored.version).toBe(8);
     expect(restored.state.currentRound).toBe(22);
     expect(restored.state.political.finance.openedAfterRound).toBe(22);
     expect(restored.state.political.finance.transactions).toEqual([]);
     expect(restored.state.political.contracts[0].performanceTriggers[0].triggered).toBe(true);
     expect(restored.state.political.contracts[0].salaryPaidMillions).toBeCloseTo(32 * 22 / 24, 6);
     const next = advanceRoundFlow(restored.state, demoRoundEvents);
-    expect(getCashBalance(next.political)).toBe(16.4375);
+    expect(getCashBalance(next.political)).toBe(16.375);
     expect(next.political.finance.transactions.every((item) => item.round === 23)).toBe(true);
     expect(next.political.finance.transactions.filter((item) => item.category === "PERFORMANCE_BONUS")).toEqual([]);
   });
@@ -53,7 +53,7 @@ describe("local save envelope", () => {
     const raw = encodeSave("ROUND_FLOW", state);
     const decoded = decodeSave<typeof state>(raw, "ROUND_FLOW");
 
-    expect(decoded.version).toBe(7);
+    expect(decoded.version).toBe(8);
     expect(decoded.kind).toBe("ROUND_FLOW");
     expect(decoded.state).toEqual(state);
   });

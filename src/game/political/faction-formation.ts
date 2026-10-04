@@ -1,16 +1,7 @@
 import { calculateAllianceStrength, clampScore } from "./derived-politics";
-import type {
-  Character,
-  Conflict,
-  Goal,
-  PoliticalCoreState,
-} from "./types";
+import type { Character, Conflict, Goal, PoliticalCoreState } from "./types";
 
-export type FactionAlignment =
-  | "FACTION_A"
-  | "FACTION_B"
-  | "SWING"
-  | "NEUTRAL";
+export type FactionAlignment = "FACTION_A" | "FACTION_B" | "SWING" | "NEUTRAL";
 
 export type CharacterAlignment = {
   characterId: string;
@@ -36,15 +27,13 @@ function relationshipAffinity(
 ): number {
   const relationship = state.relationships.find(
     (item) =>
-      item.fromCharacterId === characterId &&
-      item.toCharacterId === leaderId,
+      item.fromCharacterId === characterId && item.toCharacterId === leaderId,
   );
 
   if (!relationship) return 0;
 
   return clampScore(
-    calculateAllianceStrength(relationship) -
-      relationship.resentment * 0.55,
+    calculateAllianceStrength(relationship) - relationship.resentment * 0.55,
   );
 }
 
@@ -135,9 +124,7 @@ function goalAffinityForLeader(
           : -16 * weight;
       }
       if (goal.type === "KEEP_EQUAL_STATUS") {
-        return leader.role === "TECHNICAL_DIRECTOR"
-          ? 8 * weight
-          : -8 * weight;
+        return leader.role === "TECHNICAL_DIRECTOR" ? 8 * weight : -8 * weight;
       }
       break;
     case "DRIVER_PRIORITY":
@@ -151,9 +138,7 @@ function goalAffinityForLeader(
       }
       if (goal.type === "GAIN_NUMBER_ONE_STATUS") {
         if (leader.id === owner.id) return 32 * weight;
-        return leader.role === "STAR_DRIVER"
-          ? 16 * weight
-          : -10 * weight;
+        return leader.role === "STAR_DRIVER" ? 16 * weight : -10 * weight;
       }
       if (goal.type === "WIN_CHAMPIONSHIP") {
         return leader.id === owner.id ? 18 * weight : 0;
@@ -162,14 +147,10 @@ function goalAffinityForLeader(
     case "LEADERSHIP_CHALLENGE":
     case "PERSONNEL_DECISION":
       if (goal.type === "PROTECT_TEAM_AUTHORITY") {
-        return leader.role === "TEAM_PRINCIPAL"
-          ? 26 * weight
-          : -12 * weight;
+        return leader.role === "TEAM_PRINCIPAL" ? 26 * weight : -12 * weight;
       }
       if (goal.type === "MAINTAIN_TEAM_STABILITY") {
-        return leader.role === "TEAM_PRINCIPAL"
-          ? 12 * weight
-          : -6 * weight;
+        return leader.role === "TEAM_PRINCIPAL" ? 12 * weight : -6 * weight;
       }
       break;
     default:
@@ -311,9 +292,11 @@ export function formDynamicFactions(
   conflict: Conflict,
 ): DynamicFactionFormation {
   const [sourceA, sourceB] = conflict.factions;
-  const alignments = state.characters.map((character) =>
-    calculateCharacterAlignment(state, conflict, character.id),
-  );
+  const alignments = state.characters
+    .filter((character) => character.active !== false)
+    .map((character) =>
+      calculateCharacterAlignment(state, conflict, character.id),
+    );
 
   const factionAMembers = alignments
     .filter((item) => item.alignment === "FACTION_A")

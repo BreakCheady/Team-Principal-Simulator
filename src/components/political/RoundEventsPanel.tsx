@@ -1,18 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CareerPanel } from "@/components/political/CareerPanel";
+import { advanceCareerFlow, createCareerFlow } from "@/game/career/career";
 import { FinancePanel } from "@/components/political/FinancePanel";
-import { createNegotiationOffer, type ContractNegotiationOffer } from "@/game/contracts/negotiations";
+import {
+  createNegotiationOffer,
+  type ContractNegotiationOffer,
+} from "@/game/contracts/negotiations";
 import { assessContractBudget, getCashBalance } from "@/game/finance/finances";
-import { canExerciseTeamOption, isReleaseClauseInForce } from "@/game/contracts/contracts";
+import {
+  canExerciseTeamOption,
+  isReleaseClauseInForce,
+} from "@/game/contracts/contracts";
 import type { IssueDefinition } from "@/game/issues/issues";
 import { calculateConflict } from "@/game/political/conflicts";
 import { getConflictDecisions } from "@/game/political/decisions";
 import type { PoliticalCoreState } from "@/game/political/types";
 import { decodeSave, encodeSave } from "@/game/save/save-game";
 import {
-  advanceRoundFlow,
-  createRoundFlowState,
   exerciseRoundContractOption,
   getNextRound,
   getOpenIssues,
@@ -35,6 +41,10 @@ type Props = {
 };
 
 type HqTab =
+  | "MARKET"
+  | "RACING"
+  | "DEVELOPMENT"
+  | "CAREER"
   | "INBOX"
   | "PEOPLE"
   | "CENTERS"
@@ -61,7 +71,7 @@ export function RoundEventsPanel({
   afterRound,
 }: Props) {
   const [roundFlow, setRoundFlow] = useState(() =>
-    createRoundFlowState(initialState, events, afterRound),
+    createCareerFlow(initialState, events, afterRound),
   );
   const [tab, setTab] = useState<HqTab>("INBOX");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -89,8 +99,8 @@ export function RoundEventsPanel({
   );
 
   function startNextRound() {
-    setRoundFlow((current) =>
-      advanceRoundFlow(current, events, issueDefinitions),
+    applyContractAction((current) =>
+      advanceCareerFlow(current, events, issueDefinitions),
     );
     setTab("INBOX");
     setSaveMessage(null);
@@ -111,22 +121,29 @@ export function RoundEventsPanel({
   }
 
   function startNegotiation(contractId: string) {
-    setRoundFlow((current) =>
+    applyContractAction((current) =>
       startRoundContractNegotiation(current, contractId),
     );
-    setSaveMessage(null);
   }
 
   function exerciseTeamOption(contractId: string, optionId: string) {
-    applyContractAction((current) => exerciseRoundContractOption(current, contractId, optionId));
+    applyContractAction((current) =>
+      exerciseRoundContractOption(current, contractId, optionId),
+    );
   }
 
-  function applyContractAction(action: (current: RoundFlowState) => RoundFlowState) {
+  function applyContractAction(
+    action: (current: RoundFlowState) => RoundFlowState,
+  ) {
     try {
       setRoundFlow(action(roundFlow));
       setSaveMessage(null);
     } catch (error) {
-      setSaveMessage(error instanceof Error ? error.message : "Could not complete the action.");
+      setSaveMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not complete the action.",
+      );
     }
   }
 
@@ -135,13 +152,22 @@ export function RoundEventsPanel({
   }
 
   function offerBudget(contractId: string, offer: ContractNegotiationOffer) {
-    const contract = roundFlow.political.contracts.find((item) => item.id === contractId)!;
-    return assessContractBudget(roundFlow.political, contractId, {
-      salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-      guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
-      endRound: Math.max(contract.endRound, roundFlow.currentRound) + offer.extensionRounds,
-      additionalBonusMillions: offer.performanceBonusMillions,
-    }, roundFlow.currentRound);
+    const contract = roundFlow.political.contracts.find(
+      (item) => item.id === contractId,
+    )!;
+    return assessContractBudget(
+      roundFlow.political,
+      contractId,
+      {
+        salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
+        guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+        endRound:
+          Math.max(contract.endRound, roundFlow.currentRound) +
+          offer.extensionRounds,
+        additionalBonusMillions: offer.performanceBonusMillions,
+      },
+      roundFlow.currentRound,
+    );
   }
 
   function submitContractOffer(
@@ -160,21 +186,13 @@ export function RoundEventsPanel({
 
   function acceptCounterOffer(negotiationId: string) {
     applyContractAction((current) =>
-      acceptRoundContractCounter(
-        current,
-        negotiationId,
-        issueDefinitions,
-      ),
+      acceptRoundContractCounter(current, negotiationId, issueDefinitions),
     );
   }
 
   function walkAwayFromNegotiation(negotiationId: string) {
     setRoundFlow((current) =>
-      rejectRoundContractNegotiation(
-        current,
-        negotiationId,
-        issueDefinitions,
-      ),
+      rejectRoundContractNegotiation(current, negotiationId, issueDefinitions),
     );
     setSaveMessage(null);
   }
@@ -207,13 +225,30 @@ export function RoundEventsPanel({
   }
 
   function resetRounds() {
-    setRoundFlow(createRoundFlowState(initialState, events, afterRound));
+    setRoundFlow(createCareerFlow(initialState, events, afterRound));
     setTab("INBOX");
     setSaveMessage("Round flow reset.");
   }
 
   const tabs: Array<{ id: HqTab; title: string }> = [
-    { id: "INBOX", title: "Inbox" + (openIssues.length ? " (" + openIssues.length + ")" : "") },
+    {
+      id: "CAREER",
+      title:
+        "Career" +
+        (roundFlow.career?.requests.filter((r) =>
+          ["OPEN", "ESCALATED"].includes(r.status),
+        ).length
+          ? " (!)"
+          : ""),
+    },
+    { id: "RACING", title: "Championship" },
+    { id: "MARKET", title: "Transfer Market" },
+    { id: "DEVELOPMENT", title: "Development" },
+    {
+      id: "INBOX",
+      title:
+        "Inbox" + (openIssues.length ? " (" + openIssues.length + ")" : ""),
+    },
     { id: "PEOPLE", title: "People" },
     { id: "CENTERS", title: "Power Centers" },
     { id: "POWER", title: "Power" },
@@ -232,10 +267,16 @@ export function RoundEventsPanel({
               Team HQ · live season
             </p>
             <h2 className="mt-2 text-3xl font-semibold">
-              Round {roundFlow.currentRound}
+              Season {2025 + (roundFlow.career?.season ?? 1)} · Round{" "}
+              {roundFlow.currentRound}
             </h2>
-            <button type="button" onClick={() => setTab("FINANCE")} className="mt-2 text-sm text-emerald-300">
-              Cash €{getCashBalance(roundFlow.political).toFixed(2)}m · View finances
+            <button
+              type="button"
+              onClick={() => setTab("FINANCE")}
+              className="mt-2 text-sm text-emerald-300"
+            >
+              Cash €{getCashBalance(roundFlow.political).toFixed(2)}m · View
+              finances
             </button>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
               Events create issues. You choose what deserves attention, NPCs
@@ -276,9 +317,15 @@ export function RoundEventsPanel({
                 Start round {nextRound}
               </button>
             ) : (
-              <span className="rounded-full border border-emerald-800 bg-emerald-950/30 px-4 py-2 text-sm text-emerald-300">
-                Event sequence complete
-              </span>
+              <button
+                type="button"
+                onClick={() => setTab("CAREER")}
+                className="rounded-full border border-emerald-800 bg-emerald-950/30 px-4 py-2 text-sm text-emerald-300"
+              >
+                {roundFlow.career?.status === "DISMISSED"
+                  ? "Tenure ended · View board report"
+                  : "Season complete · Review & next season"}
+              </button>
             )}
           </div>
         </div>
@@ -311,12 +358,37 @@ export function RoundEventsPanel({
         ))}
       </nav>
 
-      <div className="mt-5">
+      <fieldset
+        className="mt-5 min-w-0"
+        disabled={roundFlow.career?.status === "DISMISSED"}
+      >
+        {["MARKET", "RACING", "DEVELOPMENT", "CAREER"].includes(tab) ? (
+          <CareerPanel
+            flow={roundFlow}
+            view={tab as "MARKET" | "RACING" | "DEVELOPMENT" | "CAREER"}
+            onAction={applyContractAction}
+          />
+        ) : null}
         {tab === "FINANCE" ? (
-          <FinancePanel state={roundFlow.political} round={roundFlow.currentRound} onAction={financeAction} />
+          <FinancePanel
+            state={roundFlow.political}
+            round={roundFlow.currentRound}
+            onAction={financeAction}
+          />
         ) : null}
         {tab === "INBOX" ? (
           <div className="space-y-5">
+            {roundFlow.career?.requests.some((r) =>
+              ["OPEN", "ESCALATED"].includes(r.status),
+            ) ? (
+              <button
+                type="button"
+                className="rounded-xl border border-amber-800 p-4 text-left text-sm text-amber-300"
+                onClick={() => setTab("CAREER")}
+              >
+                Actor initiatives require attention · Open Career
+              </button>
+            ) : null}
             {latest ? (
               <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
                 <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
@@ -336,10 +408,20 @@ export function RoundEventsPanel({
                         {event.summary}
                       </p>
                       {(event.contractTriggers ?? []).map((trigger) => (
-                        <p key={trigger.contractId + trigger.triggerId} className="mt-2 text-xs text-emerald-300">
-                          {roundFlow.political.characters.find((item) => item.id === trigger.characterId)?.name}
-                          {" · "}{label(trigger.consequence)}
-                          {trigger.consequence === "SALARY_BONUS" ? ` · €${trigger.amountMillions}m earned` : ""}
+                        <p
+                          key={trigger.contractId + trigger.triggerId}
+                          className="mt-2 text-xs text-emerald-300"
+                        >
+                          {
+                            roundFlow.political.characters.find(
+                              (item) => item.id === trigger.characterId,
+                            )?.name
+                          }
+                          {" · "}
+                          {label(trigger.consequence)}
+                          {trigger.consequence === "SALARY_BONUS"
+                            ? ` · €${trigger.amountMillions}m earned`
+                            : ""}
                         </p>
                       ))}
                     </div>
@@ -471,6 +553,7 @@ export function RoundEventsPanel({
               >
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
                   {label(character.role)}
+                  {character.active === false ? " · LEFT TEAM" : ""}
                 </p>
                 <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -480,7 +563,9 @@ export function RoundEventsPanel({
                   </div>
                   <div>
                     <dt className="text-zinc-500">Fatigue</dt>
-                    <dd className="mt-1">{character.dynamic.politicalFatigue}</dd>
+                    <dd className="mt-1">
+                      {character.dynamic.politicalFatigue}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-zinc-500">Instability</dt>
@@ -496,18 +581,19 @@ export function RoundEventsPanel({
           </div>
         ) : null}
 
-
         {tab === "CENTERS" ? (
           <div className="grid gap-4 md:grid-cols-2">
             {roundFlow.political.characters
-              .filter((character) =>
-                [
-                  "SPORTING_DIRECTOR",
-                  "CEO",
-                  "OWNER_REPRESENTATIVE",
-                  "SPONSOR_REPRESENTATIVE",
-                  "RACE_ENGINEER",
-                ].includes(character.role),
+              .filter(
+                (character) =>
+                  character.active !== false &&
+                  [
+                    "SPORTING_DIRECTOR",
+                    "CEO",
+                    "OWNER_REPRESENTATIVE",
+                    "SPONSOR_REPRESENTATIVE",
+                    "RACE_ENGINEER",
+                  ].includes(character.role),
               )
               .map((character) => {
                 const activeLeverage = roundFlow.political.leverages.filter(
@@ -528,6 +614,7 @@ export function RoundEventsPanel({
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
                       {label(character.role)}
+                      {character.active === false ? " · LEFT TEAM" : ""}
                     </p>
                     <h3 className="mt-2 text-xl font-semibold">
                       {character.name}
@@ -621,6 +708,15 @@ export function RoundEventsPanel({
                     <p className="mt-4 text-xs text-red-300">
                       Escalation {format(calculation.escalation)}
                     </p>
+                    {conflict.id.startsWith("conflict_request_") ? (
+                      <button
+                        type="button"
+                        onClick={() => setTab("CAREER")}
+                        className="mt-3 text-sm text-sky-300"
+                      >
+                        Resolve actor demand in Career
+                      </button>
+                    ) : null}
                     {getConflictDecisions(conflict.id).length > 0 ? (
                       <div className="mt-5 grid gap-2">
                         {getConflictDecisions(conflict.id).map((decision) => (
@@ -632,7 +728,9 @@ export function RoundEventsPanel({
                             }
                             className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
-                            <span className="font-medium">{decision.label}</span>
+                            <span className="font-medium">
+                              {decision.label}
+                            </span>
                             <span className="mt-1 block text-xs leading-5 text-zinc-500">
                               {decision.description}
                             </span>
@@ -706,11 +804,17 @@ export function RoundEventsPanel({
                 const negotiation = [...roundFlow.negotiations]
                   .reverse()
                   .find((item) => item.contractId === contract.id);
-                const activeClauses = contract.releaseClauses.filter(
-                  (clause) => isReleaseClauseInForce(contract, clause, roundFlow.currentRound),
+                const activeClauses = contract.releaseClauses.filter((clause) =>
+                  isReleaseClauseInForce(
+                    contract,
+                    clause,
+                    roundFlow.currentRound,
+                  ),
                 );
-                const openNegotiation = roundFlow.negotiations.some((session) =>
-                  session.contractId === contract.id && ["OPEN", "COUNTERED"].includes(session.status),
+                const openNegotiation = roundFlow.negotiations.some(
+                  (session) =>
+                    session.contractId === contract.id &&
+                    ["OPEN", "COUNTERED"].includes(session.status),
                 );
                 const pendingTriggers = contract.performanceTriggers.filter(
                   (trigger) => !trigger.triggered,
@@ -727,7 +831,8 @@ export function RoundEventsPanel({
                           {character?.name ?? contract.characterId}
                         </p>
                         <h4 className="mt-2 text-lg font-semibold">
-                          {contract.status} · R{contract.startRound}–R{contract.endRound}
+                          {contract.status} · R{contract.startRound}–R
+                          {contract.endRound}
                         </h4>
                       </div>
                       <span className="text-sm text-emerald-300">
@@ -736,12 +841,18 @@ export function RoundEventsPanel({
                     </div>
 
                     <p className="mt-3 text-sm text-zinc-400">
-                      Guaranteed €{contract.guaranteedSalaryMillions}m · bonuses earned €
-                      {contract.earnedBonusesMillions}m
+                      Guaranteed €{contract.guaranteedSalaryMillions}m · bonuses
+                      earned €{contract.earnedBonusesMillions}m
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
                       Salary paid €{contract.salaryPaidMillions.toFixed(2)}m ·
-                      remaining guaranteed pay €{Math.max(0, contract.guaranteedSalaryMillions - contract.salaryPaidMillions).toFixed(2)}m
+                      remaining guaranteed pay €
+                      {Math.max(
+                        0,
+                        contract.guaranteedSalaryMillions -
+                          contract.salaryPaidMillions,
+                      ).toFixed(2)}
+                      m
                     </p>
 
                     {contract.options.length > 0 ? (
@@ -751,45 +862,98 @@ export function RoundEventsPanel({
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.options.map((option) => {
-                            const eligible = canExerciseTeamOption(contract, option, roundFlow.currentRound);
-                            const budget = eligible ? assessContractBudget(roundFlow.political, contract.id, {
-                              salaryMillionsPerSeason: Number((contract.salaryMillionsPerSeason * option.salaryMultiplier).toFixed(2)),
-                              guaranteedSalaryMillions: contract.guaranteedSalaryMillions,
-                              endRound: contract.endRound + option.extensionRounds,
-                            }, roundFlow.currentRound) : null;
+                            const eligible = canExerciseTeamOption(
+                              contract,
+                              option,
+                              roundFlow.currentRound,
+                            );
+                            const budget = eligible
+                              ? assessContractBudget(
+                                  roundFlow.political,
+                                  contract.id,
+                                  {
+                                    salaryMillionsPerSeason: Number(
+                                      (
+                                        contract.salaryMillionsPerSeason *
+                                        option.salaryMultiplier
+                                      ).toFixed(2),
+                                    ),
+                                    guaranteedSalaryMillions:
+                                      contract.guaranteedSalaryMillions,
+                                    endRound:
+                                      contract.endRound +
+                                      option.extensionRounds,
+                                  },
+                                  roundFlow.currentRound,
+                                )
+                              : null;
                             return (
-                            <div
-                              key={option.id}
-                              className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
-                            >
-                              {option.holder} · +{option.extensionRounds} rounds ·
-                              window R{option.exerciseFromRound}–R{option.exerciseUntilRound} ·
-                              {option.exercised
-                                ? " exercised"
-                                : option.available
-                                  ? " available"
-                                  : " locked"}
-                              <p className="mt-1">Salary on exercise: €{(contract.salaryMillionsPerSeason * (option.exercised ? 1 : option.salaryMultiplier)).toFixed(2)}m / season</p>
-                              {option.holder === "TEAM" && !option.exercised ? (
-                                <div>
-                                <button
-                                  type="button"
-                                  onClick={() => exerciseTeamOption(contract.id, option.id)}
-                                  disabled={!eligible || openNegotiation || !budget?.affordable}
-                                  className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
-                                >
-                                  Exercise team option
-                                </button>
-                                {budget?.reason ? <p className="mt-2 text-xs text-amber-300">{budget.reason}</p> : null}
-                                </div>
-                              ) : null}
-                              {option.holder !== "TEAM" && !option.exercised ? (
-                                <p className="mt-2">{option.holder === "MUTUAL" ? "Requires agreement from both parties." : "The character controls this option."}</p>
-                              ) : null}
-                              {openNegotiation && option.holder === "TEAM" && !option.exercised ? (
-                                <p className="mt-2">Finish renewal talks before exercising this option.</p>
-                              ) : null}
-                            </div>
+                              <div
+                                key={option.id}
+                                className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
+                              >
+                                {option.holder} · +{option.extensionRounds}{" "}
+                                rounds · window R{option.exerciseFromRound}–R
+                                {option.exerciseUntilRound} ·
+                                {option.exercised
+                                  ? " exercised"
+                                  : option.available
+                                    ? " available"
+                                    : " locked"}
+                                <p className="mt-1">
+                                  Salary on exercise: €
+                                  {(
+                                    contract.salaryMillionsPerSeason *
+                                    (option.exercised
+                                      ? 1
+                                      : option.salaryMultiplier)
+                                  ).toFixed(2)}
+                                  m / season
+                                </p>
+                                {option.holder === "TEAM" &&
+                                !option.exercised ? (
+                                  <div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        exerciseTeamOption(
+                                          contract.id,
+                                          option.id,
+                                        )
+                                      }
+                                      disabled={
+                                        !eligible ||
+                                        openNegotiation ||
+                                        !budget?.affordable
+                                      }
+                                      className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
+                                    >
+                                      Exercise team option
+                                    </button>
+                                    {budget?.reason ? (
+                                      <p className="mt-2 text-xs text-amber-300">
+                                        {budget.reason}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                                {option.holder !== "TEAM" &&
+                                !option.exercised ? (
+                                  <p className="mt-2">
+                                    {option.holder === "MUTUAL"
+                                      ? "Requires agreement from both parties."
+                                      : "The character controls this option."}
+                                  </p>
+                                ) : null}
+                                {openNegotiation &&
+                                option.holder === "TEAM" &&
+                                !option.exercised ? (
+                                  <p className="mt-2">
+                                    Finish renewal talks before exercising this
+                                    option.
+                                  </p>
+                                ) : null}
+                              </div>
                             );
                           })}
                         </div>
@@ -808,10 +972,17 @@ export function RoundEventsPanel({
                               className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
                             >
                               €{clause.amountMillions}m · {clause.beneficiary} ·
-                              R{clause.activeFromRound}–R{clause.expiresAfterRound} ·
-                              {isReleaseClauseInForce(contract, clause, roundFlow.currentRound)
+                              R{clause.activeFromRound}–R
+                              {clause.expiresAfterRound} ·
+                              {isReleaseClauseInForce(
+                                contract,
+                                clause,
+                                roundFlow.currentRound,
+                              )
                                 ? " in force"
-                                : clause.active ? " outside active term or window" : " locked"}
+                                : clause.active
+                                  ? " outside active term or window"
+                                  : " locked"}
                             </div>
                           ))}
                         </div>
@@ -829,9 +1000,10 @@ export function RoundEventsPanel({
                               key={trigger.id}
                               className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
                             >
-                              {label(trigger.metric)} {trigger.comparator === "AT_LEAST" ? "≥" : "≤"}{" "}
-                              {trigger.threshold} → {label(trigger.consequence)} ·{" "}
-                              {trigger.triggered ? "triggered" : "pending"}
+                              {label(trigger.metric)}{" "}
+                              {trigger.comparator === "AT_LEAST" ? "≥" : "≤"}{" "}
+                              {trigger.threshold} → {label(trigger.consequence)}{" "}
+                              · {trigger.triggered ? "triggered" : "pending"}
                             </div>
                           ))}
                         </div>
@@ -850,7 +1022,11 @@ export function RoundEventsPanel({
                       </p>
                     ) : null}
 
-                    {contract.status === "ACTIVE" ? (
+                    {contract.status === "ACTIVE" &&
+                    (!roundFlow.career ||
+                      roundFlow.career.activeActorIds.includes(
+                        contract.characterId,
+                      )) ? (
                       <div className="mt-5 border-t border-zinc-800 pt-4">
                         {!negotiation ||
                         ["ACCEPTED", "REJECTED", "STALLED"].includes(
@@ -872,9 +1048,9 @@ export function RoundEventsPanel({
                                 </p>
                                 <p className="mt-1 text-xs text-zinc-500">
                                   Team power {negotiation.power.teamPower} ·{" "}
-                                  {character?.name ?? contract.characterId} power{" "}
-                                  {negotiation.power.characterPower} · delta{" "}
-                                  {negotiation.power.delta}
+                                  {character?.name ?? contract.characterId}{" "}
+                                  power {negotiation.power.characterPower} ·
+                                  delta {negotiation.power.delta}
                                 </p>
                               </div>
                               <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400">
@@ -887,19 +1063,35 @@ export function RoundEventsPanel({
                                 Character demand
                               </p>
                               <p className="mt-2">
-                                €{negotiation.characterDemand.salaryMillionsPerSeason}m / season ·
-                                guaranteed €{negotiation.characterDemand.guaranteedSalaryMillions}m ·
-                                +{negotiation.characterDemand.extensionRounds} rounds
+                                €
+                                {
+                                  negotiation.characterDemand
+                                    .salaryMillionsPerSeason
+                                }
+                                m / season · guaranteed €
+                                {
+                                  negotiation.characterDemand
+                                    .guaranteedSalaryMillions
+                                }
+                                m · +
+                                {negotiation.characterDemand.extensionRounds}{" "}
+                                rounds
                               </p>
                               <p className="mt-1">
                                 Release clause{" "}
-                                {negotiation.characterDemand.releaseClauseMillions === null
+                                {negotiation.characterDemand
+                                  .releaseClauseMillions === null
                                   ? "none"
                                   : "€" +
-                                    negotiation.characterDemand.releaseClauseMillions +
+                                    negotiation.characterDemand
+                                      .releaseClauseMillions +
                                     "m"}{" "}
                                 · performance bonus €
-                                {negotiation.characterDemand.performanceBonusMillions}m
+                                {
+                                  negotiation.characterDemand
+                                    .performanceBonusMillions
+                                }
+                                m
                               </p>
                             </div>
 
@@ -907,30 +1099,63 @@ export function RoundEventsPanel({
                               <div className="rounded-xl border border-amber-900 bg-amber-950/10 p-4 text-xs text-amber-200">
                                 <p className="font-medium">Counteroffer</p>
                                 <p className="mt-2">
-                                  €{negotiation.counterOffer.salaryMillionsPerSeason}m / season ·
-                                  guaranteed €{negotiation.counterOffer.guaranteedSalaryMillions}m ·
-                                  +{negotiation.counterOffer.extensionRounds} rounds
+                                  €
+                                  {
+                                    negotiation.counterOffer
+                                      .salaryMillionsPerSeason
+                                  }
+                                  m / season · guaranteed €
+                                  {
+                                    negotiation.counterOffer
+                                      .guaranteedSalaryMillions
+                                  }
+                                  m · +
+                                  {negotiation.counterOffer.extensionRounds}{" "}
+                                  rounds
                                 </p>
                                 <p className="mt-1">
                                   Release clause{" "}
-                                  {negotiation.counterOffer.releaseClauseMillions === null
+                                  {negotiation.counterOffer
+                                    .releaseClauseMillions === null
                                     ? "none"
                                     : "€" +
-                                      negotiation.counterOffer.releaseClauseMillions +
+                                      negotiation.counterOffer
+                                        .releaseClauseMillions +
                                       "m"}{" "}
                                   · bonus €
-                                  {negotiation.counterOffer.performanceBonusMillions}m
+                                  {
+                                    negotiation.counterOffer
+                                      .performanceBonusMillions
+                                  }
+                                  m
                                 </p>
                                 <button
                                   type="button"
-                                  onClick={() => acceptCounterOffer(negotiation.id)}
-                                  disabled={!offerBudget(contract.id, negotiation.counterOffer).affordable}
+                                  onClick={() =>
+                                    acceptCounterOffer(negotiation.id)
+                                  }
+                                  disabled={
+                                    !offerBudget(
+                                      contract.id,
+                                      negotiation.counterOffer,
+                                    ).affordable
+                                  }
                                   className="mt-3 rounded-lg bg-amber-200 px-3 py-2 font-medium text-amber-950 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                                 >
                                   Accept counteroffer
                                 </button>
-                                {offerBudget(contract.id, negotiation.counterOffer).reason ? (
-                                  <p className="mt-2 text-xs">{offerBudget(contract.id, negotiation.counterOffer).reason}</p>
+                                {offerBudget(
+                                  contract.id,
+                                  negotiation.counterOffer,
+                                ).reason ? (
+                                  <p className="mt-2 text-xs">
+                                    {
+                                      offerBudget(
+                                        contract.id,
+                                        negotiation.counterOffer,
+                                      ).reason
+                                    }
+                                  </p>
                                 ) : null}
                               </div>
                             ) : null}
@@ -938,27 +1163,47 @@ export function RoundEventsPanel({
                             <div className="grid gap-2 sm:grid-cols-3">
                               {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
                                 (posture) => {
-                                  const offer = createNegotiationOffer(negotiation, posture);
-                                  const budget = offerBudget(contract.id, offer);
+                                  const offer = createNegotiationOffer(
+                                    negotiation,
+                                    posture,
+                                  );
+                                  const budget = offerBudget(
+                                    contract.id,
+                                    offer,
+                                  );
                                   return (
-                                  <div key={posture}>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      submitContractOffer(negotiation.id, posture)
-                                    }
-                                    disabled={!budget.affordable}
-                                    className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
-                                  >
-                                    {posture === "FIRM"
-                                      ? "Firm offer"
-                                      : posture === "BALANCED"
-                                        ? "Balanced offer"
-                                        : "Generous offer"}
-                                  </button>
-                                  <p className="mt-2 text-xs text-zinc-500">€{offer.salaryMillionsPerSeason.toFixed(2)}m / season · payroll after offer €{budget.payroll.toFixed(2)}m</p>
-                                  {budget.reason ? <p className="mt-2 text-xs text-amber-300">{budget.reason}</p> : null}
-                                  </div>
+                                    <div key={posture}>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          submitContractOffer(
+                                            negotiation.id,
+                                            posture,
+                                          )
+                                        }
+                                        disabled={!budget.affordable}
+                                        className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
+                                      >
+                                        {posture === "FIRM"
+                                          ? "Firm offer"
+                                          : posture === "BALANCED"
+                                            ? "Balanced offer"
+                                            : "Generous offer"}
+                                      </button>
+                                      <p className="mt-2 text-xs text-zinc-500">
+                                        €
+                                        {offer.salaryMillionsPerSeason.toFixed(
+                                          2,
+                                        )}
+                                        m / season · payroll after offer €
+                                        {budget.payroll.toFixed(2)}m
+                                      </p>
+                                      {budget.reason ? (
+                                        <p className="mt-2 text-xs text-amber-300">
+                                          {budget.reason}
+                                        </p>
+                                      ) : null}
+                                    </div>
                                   );
                                 },
                               )}
@@ -1019,7 +1264,7 @@ export function RoundEventsPanel({
             )}
           </div>
         ) : null}
-      </div>
+      </fieldset>
 
       {roundFlow.history.length > 0 ? (
         <footer className="mt-6 border-t border-zinc-800 pt-5">

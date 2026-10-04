@@ -92,3 +92,13 @@ Advancing from `REVIEW` activates the next dormant conflict without resetting
 the political state. Relationships, momentum, goals, precedents, leverage, and
 previous conflict outcomes therefore carry forward and affect later conflict
 calculations.
+
+
+
+## v0.6 career integration
+
+The playable Team HQ now runs a continuing career. See [career.md](career.md) for
+transfers, independent actors, contractual consent, simulated races, development,
+board objectives and version-8 migration. Authored performance snapshots remain
+available to scenario tests; career mode uses only results from the race simulator.
+Contracts and finance rounds continue across the 24-race season boundary.
