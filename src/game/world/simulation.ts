@@ -275,6 +275,7 @@ function runAiOffseason(world: MotorsportWorld) {
           if (vacantCrew) vacantCrew.leadId = chosen.id;
         } else team.staff.push(chosen.id);
       }
+    }
 
     // A world simulation must never enter a season with an AI structural
     // vacancy. If the preferred specialty market is exhausted, use the best
@@ -300,7 +301,6 @@ function runAiOffseason(world: MotorsportWorld) {
         fallback.contractEndSeason = completedSeason + 1;
         team.staff.push(fallback.id);
       }
-    }
     }
   }
 }
