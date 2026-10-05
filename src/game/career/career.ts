@@ -71,9 +71,9 @@ export function reviewSeason(source: RoundFlowState): RoundFlowState {
   const next = careerCopy(source),
     c = next.career;
   if (next.currentRound !== c.seasonEnd || !next.complete)
-    throw new Error("Finish every scheduled round before the board review.");
+    throw new Error("Beende alle geplanten Runden vor der Vorstandsprüfung.");
   if (c.reviews.some((r) => r.season === c.season))
-    throw new Error("Season was already reviewed.");
+    throw new Error("Die Saison wurde bereits ausgewertet.");
   const team = c.world ? playerTeam(c.world) : null;
   const teamPosition =
     teamTable(c).findIndex((t) => t.team === (team?.name ?? "Vanguard")) + 1;
@@ -153,9 +153,9 @@ export function beginCareerWeekend(
 ): RoundFlowState {
   if (!source.career) return advanceRoundFlow(source, events, definitions);
   if (source.career.status !== "RUNNING")
-    throw new Error("Start a new season or reset after dismissal.");
+    throw new Error("Starte eine neue Saison oder setze nach der Entlassung zurück.");
   if (source.career.weekend && !source.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   source = structuredClone(source);
   delete source.career!.weekend;
   registerPlayerCrews(source);
@@ -199,7 +199,7 @@ export function finishCareerWeekend(source: RoundFlowState): RoundFlowState {
     source.career.weekend.phase !== "COMPLETE" ||
     source.career.weekend.committed
   )
-    throw new Error("The race has not finished or was already committed.");
+    throw new Error("Das Rennen ist noch nicht beendet oder wurde bereits verbucht.");
   let next = simulateRace(source);
   next.complete = next.nextRoundIndex >= next.scheduledRounds.length;
   advanceWorld(next);
@@ -227,7 +227,7 @@ export function finishCareerWeekend(source: RoundFlowState): RoundFlowState {
   }
   const valid = validatePoliticalCoreState(next.political);
   if (!valid.success)
-    throw new Error("Career progression produced invalid political data.");
+    throw new Error("Die Karriereentwicklung hat ungültige politische Daten erzeugt.");
   next.political = valid.data;
   next.career = validateCareer(next.career, next.political, next.currentRound);
   return next;
@@ -256,11 +256,11 @@ export function startNextSeason(
     next.currentRound !== c.seasonEnd ||
     !c.reviews.some((r) => r.season === c.season)
   )
-    throw new Error("Complete the current season and board review first.");
+    throw new Error("Schließe zuerst die aktuelle Saison und die Vorstandsprüfung ab.");
   if (getOpenIssues(next).length)
-    throw new Error("Handle open inbox issues before the new season.");
+    throw new Error("Bearbeite offene Themen im Posteingang vor der neuen Saison.");
   if (!["CONSOLIDATE", "CHALLENGE"].includes(ambition))
-    throw new Error("Unknown season objective.");
+    throw new Error("Unbekanntes Saisonziel.");
   const length = c.world ? getSeries(c.world.playerSeriesId).rounds : 24;
   c.season++;
   c.seasonStart = next.currentRound + 1;
@@ -323,7 +323,7 @@ export function setRaceStrategy(
 ): RoundFlowState {
   const next = careerCopy(source);
   if (!["BALANCED", "ATTACK", "CONSERVE"].includes(strategy))
-    throw new Error("Unknown strategy.");
+    throw new Error("Unbekannte Strategie.");
   next.career.strategy = strategy;
   return next;
 }
