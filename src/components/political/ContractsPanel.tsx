@@ -62,7 +62,7 @@ export function VerträgePanel({
               .map((issue) => (
                 <article
                   key={issue.id}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                  className="rounded-md border border-slate-700 bg-slate-950/30 p-4"
                 >
                   <p className="font-medium">{issue.title}</p>
                   <p className="mt-2 text-sm text-zinc-500">
@@ -98,7 +98,7 @@ export function VerträgePanel({
                 return (
                   <article
                     key={contract.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-md border border-slate-700 bg-slate-950/30 p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -168,7 +168,7 @@ export function VerträgePanel({
                                 className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
                               >
                                 {option.holder} · +{option.extensionRounds}{" "}
-                                Runden · window R{option.exerciseFromRound}–R
+                                rounds · window R{option.exerciseFromRound}–R
                                 {option.exerciseUntilRound} ·
                                 {option.ausgeübt
                                   ? " ausgeübt"
@@ -350,7 +350,7 @@ export function VerträgePanel({
                                 }
                                 m · +
                                 {negotiation.characterDemand.extensionRounds}{" "}
-                                Runden
+                                rounds
                               </p>
                               <p className="mt-1">
                                 Release clause{" "}
@@ -386,7 +386,7 @@ export function VerträgePanel({
                                   }
                                   m · +
                                   {negotiation.counterOffer.extensionRounds}{" "}
-                                  Runden
+                                  rounds
                                 </p>
                                 <p className="mt-1">
                                   Release clause{" "}
