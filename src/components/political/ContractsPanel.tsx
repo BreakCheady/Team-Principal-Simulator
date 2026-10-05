@@ -105,7 +105,7 @@ export function ContractsPanel({
                     ["OPEN", "COUNTERED"].includes(session.status),
                 );
                 const offenTriggers = contract.performanceTriggers.filter(
-                  (trigger) => !trigger.ausgelöst,
+                  (trigger) => !trigger.triggered,
                 );
 
                 return (
@@ -289,7 +289,7 @@ export function ContractsPanel({
                               {label(trigger.metric)}{" "}
                               {trigger.comparator === "AT_LEAST" ? "≥" : "≤"}{" "}
                               {trigger.threshold} → {label(trigger.consequence)}{" "}
-                              · {trigger.ausgelöst ? "ausgelöst" : "offen"}
+                              · {trigger.triggered ? "ausgelöst" : "offen"}
                             </div>
                           ))}
                         </div>
