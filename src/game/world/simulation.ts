@@ -148,7 +148,7 @@ export function advanceWorld(flow: RoundFlowState) {
   ]);
   if (rumorMilestones.has(selected.completedRounds)) {
     w.activity ??= [];
-    const rumorId = `activity_s${w.season}_r${selected.completedRounds}_rumor_${w.playerSeriesId}`;
+    const rumorId = `activity_s${w.season}_r${selected.completedRounds}_rumor_${w.playerSeriesId.toLowerCase()}`;
     if (!w.activity.some((item) => item.id === rumorId)) {
       const candidate = w.people
         .filter(
