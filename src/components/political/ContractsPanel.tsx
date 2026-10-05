@@ -171,10 +171,10 @@ export function ContractsPanel({
                                 Runden · Frist R{option.exerciseFromRound}–R
                                 {option.exerciseUntilRound} ·
                                 {option.exercised
-                                  ? " exercised"
+                                  ? " ausgeübt"
                                   : option.available
-                                    ? " available"
-                                    : " locked"}
+                                    ? " verfügbar"
+                                    : " gesperrt"}
                                 <p className="mt-1">
                                   Gehalt nach Ausübung: €
                                   {(
@@ -254,10 +254,10 @@ export function ContractsPanel({
                                 clause,
                                 flow.currentRound,
                               )
-                                ? " in force"
+                                ? " gültig"
                                 : clause.active
-                                  ? " outside active term or window"
-                                  : " locked"}
+                                  ? " außerhalb der gültigen Laufzeit oder Frist"
+                                  : " gesperrt"}
                             </div>
                           ))}
                         </div>
