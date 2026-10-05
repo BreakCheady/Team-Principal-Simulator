@@ -29,7 +29,7 @@ export function WecStandings({ world }: { world: MotorsportWorld }) {
               {hypercar ? "Hypercar-Herstellerwertung" : "LMGT3-Teamwertung · Fahrzeuge"}
             </h4>
             <table className="mt-3 w-full text-left text-sm">
-              <thead><tr><th>Pos.</th><th>{hypercar ? "Manufacturer" : "Entry"}</th><th>Punkte</th></tr></thead>
+              <thead><tr><th>Pos.</th><th>{hypercar ? "Hersteller" : "Fahrzeug"}</th><th>Punkte</th></tr></thead>
               <tbody>
                 {teams.map((t, i) => (
                   <tr key={t.id} className="border-t border-zinc-800">
@@ -43,7 +43,7 @@ export function WecStandings({ world }: { world: MotorsportWorld }) {
             </h4>
             <div className="mt-3 max-h-80 overflow-auto">
               <table className="w-full text-left text-sm">
-                <thead><tr><th>Pos.</th><th>Driver</th><th>Punkte</th><th>Wins</th></tr></thead>
+                <thead><tr><th>Pos.</th><th>Fahrer</th><th>Punkte</th><th>Siege</th></tr></thead>
                 <tbody>
                   {drivers.map((d, i) => (
                     <tr key={d.personId} className="border-t border-zinc-800">
