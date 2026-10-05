@@ -27,7 +27,7 @@ export function PersonalPowerCentersPanel({ flow, view }: Props) {
                 <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-zinc-500">Momentum</dt>
+                    <dt className="text-zinc-500">Dynamik</dt>
                     <dd className="mt-1">{character.dynamic.momentum}</dd>
                   </div>
                   <div>
@@ -94,7 +94,7 @@ export function PersonalPowerCentersPanel({ flow, view }: Props) {
                       <div>
                         <p className="text-zinc-500">Internal influence</p>
                         <p className="mt-1">
-                          {character.power.internalInfluence}
+                          {character.power.internalEinfluss}
                         </p>
                       </div>
                       <div>
