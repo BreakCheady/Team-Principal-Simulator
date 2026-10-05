@@ -4,9 +4,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_keller_breakthrough",
     type: "RACE_RESULT",
-    title: "Keller delivers a breakthrough result",
+    title: "Keller gelingt der Durchbruch",
     summary:
-      "Keller beats Moretti on merit. His confidence rises and the equality question becomes harder to ignore.",
+      "Keller schlägt Moretti aus eigener Stärke. Sein Selbstvertrauen wächst und die Frage nach Gleichbehandlung lässt sich immer schwerer ignorieren.",
     round: 16,
     contractPerformance: [
       { characterId: "char_keller", snapshot: { points: 145, podiums: 3 } },
@@ -57,9 +57,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_moretti_form_slump",
     type: "PERFORMANCE_SWING",
-    title: "Moretti's form drops",
+    title: "Morettis Form lässt nach",
     summary:
-      "A run of weaker weekends reduces Moretti's sporting momentum and increases pressure around his privileged status.",
+      "Mehrere schwächere Wochenenden bremsen Morettis sportliche Dynamik und erhöhen den Druck rund um seinen privilegierten Status.",
     round: 17,
     effects: [
       {
@@ -82,9 +82,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_upgrade_failure",
     type: "TECHNICAL_PROBLEM",
-    title: "Major upgrade fails",
+    title: "Großes Upgrade schlägt fehl",
     summary:
-      "A high-profile technical package underperforms. Chen absorbs institutional pressure while Moretti becomes more critical of the technical direction.",
+      "Ein viel beachtetes Technikpaket bleibt hinter den Erwartungen. Chen gerät unter internen Druck, während Moretti die technische Richtung zunehmend kritisiert.",
     round: 18,
     effects: [
       {
@@ -119,9 +119,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_moretti_media_campaign",
     type: "MEDIA_EVENT",
-    title: "Moretti turns up the media pressure",
+    title: "Moretti erhöht den Druck über die Medien",
     summary:
-      "Moretti publicly questions whether the team is fully backing him. Sponsor pressure increases and Hartmann's room to manoeuvre narrows.",
+      "Moretti stellt öffentlich infrage, ob das Team vollständig hinter ihm steht. Der Sponsorendruck steigt und Hartmanns Handlungsspielraum wird kleiner.",
     round: 19,
     effects: [
       {
@@ -147,9 +147,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_moretti_contract_talks",
     type: "CONTRACT_TALK",
-    title: "Moretti escalates contract talks",
+    title: "Moretti verschärft die Vertragsgespräche",
     summary:
-      "Moretti's camp signals that sporting guarantees will matter as much as salary. The transfer threat becomes credible enough to create a formal contract dispute.",
+      "Morettis Umfeld signalisiert, dass sportliche Garantien genauso wichtig sind wie das Gehalt. Die Wechselandrohung wird glaubwürdig genug für einen formellen Vertragskonflikt.",
     round: 20,
     effects: [
       {
@@ -175,9 +175,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_varga_strategy_review",
     type: "SPORTING_EVENT",
-    title: "Varga challenges race-control interference",
+    title: "Varga kritisiert Eingriffe in die Rennleitung",
     summary:
-      "Elena Varga warns that repeated ad-hoc intervention from above is undermining the sporting chain of command.",
+      "Elena Varga warnt, dass wiederholte spontane Eingriffe von oben die sportliche Befehlskette untergraben.",
     round: 21,
     effects: [
       { type: "GOAL_URGENCY_DELTA", goalId: "goal_varga_sporting", delta: 8 },
@@ -188,9 +188,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_laurent_owner_review",
     type: "OWNER_EVENT",
-    title: "Laurent demands a governance review",
+    title: "Laurent fordert eine Überprüfung der Führungsstruktur",
     summary:
-      "Sophie Laurent wants clearer accountability after several public and sporting disputes begin to reach ownership.",
+      "Sophie Laurent verlangt klarere Verantwortlichkeiten, nachdem mehrere öffentliche und sportliche Konflikte die Eigentümerseite erreichen.",
     round: 22,
     effects: [
       { type: "GOAL_URGENCY_DELTA", goalId: "goal_laurent_authority", delta: 8 },
@@ -201,9 +201,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_salazar_activation_push",
     type: "SPONSOR_EVENT",
-    title: "Salazar pushes for a Moretti-led sponsor campaign",
+    title: "Salazar drängt auf eine Sponsor-Kampagne mit Moretti",
     summary:
-      "Victor Salazar wants the team to commit Moretti to a major commercial activation while the driver's political status remains unsettled.",
+      "Victor Salazar will Moretti für eine große kommerzielle Kampagne binden, obwohl dessen politischer Status im Team ungeklärt ist.",
     round: 23,
     effects: [
       { type: "GOAL_URGENCY_DELTA", goalId: "goal_salazar_moretti", delta: 9 },
@@ -214,9 +214,9 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_bellini_staff_fracture",
     type: "STAFF_EVENT",
-    title: "Bellini questions who protects the race team",
+    title: "Bellini fragt, wer das Rennteam schützt",
     summary:
-      "Marco Bellini says engineers and race staff are being pulled into driver and management politics without clear protection from leadership.",
+      "Marco Bellini warnt, dass Ingenieure und Rennpersonal in Fahrer- und Managementpolitik hineingezogen werden, ohne klare Rückendeckung der Führung.",
     round: 24,
     effects: [
       { type: "GOAL_URGENCY_DELTA", goalId: "goal_bellini_engineering", delta: 10 },
@@ -227,8 +227,8 @@ export const demoRoundEvents: RoundEventDefinition[] = [
   {
     id: "event_round_22_contract_results",
     type: "RACE_RESULT",
-    title: "Moretti reaches four wins as Vanguard slips to fourth",
-    summary: "Moretti reaches four wins and second in the drivers' standings, while Vanguard slips to fourth in the team championship. The Contract Room reflects the bonuses and clauses unlocked by these results.",
+    title: "Moretti erreicht vier Siege, Vanguard fällt auf Rang vier",
+    summary: "Moretti erreicht vier Siege und Rang zwei in der Fahrerwertung, während Vanguard in der Teamwertung auf Platz vier zurückfällt. Die Vertragszentrale berücksichtigt die durch diese Ergebnisse ausgelösten Boni und Klauseln.",
     round: 22,
     effects: [],
     contractPerformance: [
