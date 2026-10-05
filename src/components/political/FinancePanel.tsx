@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  getFinanzenSummary,
+  getFinanceSummary,
   getOwnerFundingBlockReason,
-  isFinanzenIncome,
+  isFinanceIncome,
   getOwnerFundingAmount,
 } from "@/game/finance/finances";
 import type { PoliticalCoreState } from "@/game/political/types";
@@ -18,18 +18,18 @@ function money(value: number) {
   return `€${value.toFixed(2)}m`;
 }
 
-export function FinanzenPanel({ state, round, onAction }: Props) {
+export function FinancePanel({ state, round, onAction }: Props) {
   const finance = state.finance;
-  const summary = getFinanzenSummary(state, round);
+  const summary = getFinanceSummary(state, round);
   const ownerFundingReason = getOwnerFundingBlockReason(state);
   const transactions = [...finance.transactions]
     .reverse()
     .sort((a, b) => b.round - a.round);
   const income = finance.transactions
-    .filter(isFinanzenIncome)
+    .filter(isFinanceIncome)
     .reduce((sum, item) => sum + item.amountMillions, 0);
   const expenses = finance.transactions
-    .filter((item) => !isFinanzenIncome(item))
+    .filter((item) => !isFinanceIncome(item))
     .reduce((sum, item) => sum + item.amountMillions, 0);
 
   return (
@@ -61,7 +61,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
       summary.projectedNextRoundCash < 0 ? (
         <p className="rounded-md border border-amber-900 bg-amber-950/20 p-4 text-sm text-amber-200">
           {summary.cashBalance < 0
-            ? "Das Team hat ein Kassendefizit. Bestehende vertragliche Zahlungen laufen weiter; neue Verträge müssen die Budgetprüfung bestehen."
+            ? "Das Team hat ein Kassendefizit. Bestehende Zahlungen laufen weiter; neue Verträge müssen die Budgetprüfung bestehen."
             : "Die Rücklagen werden knapp. Prüfe anstehende Zahlungen, bevor du neue Verpflichtungen eingehst."}
         </p>
       ) : null}
@@ -106,7 +106,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
             disabled={ownerFundingReason !== null}
             className="mt-4 rounded-lg border border-amber-800 px-4 py-2 text-sm text-amber-200 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
           >
-            Request owner funding
+            Eigentümerfinanzierung anfragen
           </button>
           {ownerFundingReason ? (
             <p className="mt-2 text-xs text-zinc-500">{ownerFundingReason}</p>
@@ -169,9 +169,9 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
                       {transaction.description}
                     </td>
                     <td
-                      className={`whitespace-nowrap p-2 text-right ${isFinanzenIncome(transaction) ? "text-emerald-300" : "text-amber-300"}`}
+                      className={`whitespace-nowrap p-2 text-right ${isFinanceIncome(transaction) ? "text-emerald-300" : "text-amber-300"}`}
                     >
-                      {isFinanzenIncome(transaction) ? "+" : "−"}
+                      {isFinanceIncome(transaction) ? "+" : "−"}
                       {money(transaction.amountMillions)}
                     </td>
                   </tr>
