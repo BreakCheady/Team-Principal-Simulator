@@ -15,7 +15,15 @@ function format(value: number) {
 }
 
 function label(value: string) {
-  return value.replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    TECHNICAL_AUTHORITY: "TECHNISCHE AUTORITÄT",
+    DRIVER_STATUS: "FAHRERSTATUS",
+    MEDIA_CONTROL: "MEDIENKONTROLLE",
+    CONTRACT_AUTHORITY: "VERTRAGSAUTORITÄT",
+    ACTIVE: "AKTIV",
+    ESCALATED: "ESKALIERT",
+  };
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
 export function PoliticalConflictsPanel({
@@ -32,7 +40,7 @@ export function PoliticalConflictsPanel({
           <div className="grid gap-4 lg:grid-cols-2">
             {activeConflicts.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                No active political conflicts.
+                Keine aktiven politischen Konflikte.
               </p>
             ) : (
               activeConflicts.map((conflict) => {
@@ -64,13 +72,13 @@ export function PoliticalConflictsPanel({
                       <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderA?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionA.strength)}
+                          Stärke {format(calculation.factionA.strength)}
                         </p>
                       </div>
                       <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderB?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionB.strength)}
+                          Stärke {format(calculation.factionB.strength)}
                         </p>
                       </div>
                     </div>
@@ -83,7 +91,7 @@ export function PoliticalConflictsPanel({
                         onClick={() => onOpenCareer()}
                         className="mt-3 text-sm text-sky-300"
                       >
-                        Resolve actor demand in Career
+                        Anfrage in der Karriereansicht lösen
                       </button>
                     ) : null}
                     {getConflictDecisions(conflict.id).length > 0 ? (
