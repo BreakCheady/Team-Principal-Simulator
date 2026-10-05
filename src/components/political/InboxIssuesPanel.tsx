@@ -12,7 +12,29 @@ type Props = {
 };
 
 function label(value: string) {
-  return value.replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    OPEN: "OFFEN",
+    WATCHING: "BEOBACHTUNG",
+    ESCALATED: "ESKALIERT",
+    RESOLVED: "ERLEDIGT",
+    TECHNICAL: "TECHNIK",
+    CONTRACT: "VERTRAG",
+    SPORTING: "SPORT",
+    OWNER: "EIGENTÜMER",
+    SPONSOR: "SPONSOR",
+    STAFF: "PERSONAL",
+    RACE_RESULT: "RENNERGEBNIS",
+    PERFORMANCE_SWING: "FORMKURVE",
+    TECHNICAL_PROBLEM: "TECHNISCHES PROBLEM",
+    MEDIA_EVENT: "MEDIENEREIGNIS",
+    CONTRACT_TALK: "VERTRAGSGESPRÄCH",
+    SPORTING_EVENT: "SPORTLICHES EREIGNIS",
+    OWNER_EVENT: "EIGENTÜMEREREIGNIS",
+    SPONSOR_EVENT: "SPONSOREREIGNIS",
+    STAFF_EVENT: "PERSONALEREIGNIS",
+    SALARY_BONUS: "GEHALTSBONUS",
+  };
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
 export function InboxIssuesPanel({
@@ -43,11 +65,11 @@ export function InboxIssuesPanel({
                     <div>
                       <p className="font-medium">{issue.title}</p>
                       <p className="mt-1 text-xs text-zinc-500">
-                        Runde {issue.round} · {issue.category}
+                        Runde {issue.round} · {label(issue.category)}
                       </p>
                     </div>
                     <span className="text-xs text-zinc-400">
-                      {issue.status} · {issue.escalation}
+                      {label(issue.status)} · {issue.escalation}
                     </span>
                   </div>
                 </article>
@@ -137,10 +159,10 @@ export function InboxIssuesPanel({
                       <div>
                         <div className="flex flex-wrap gap-2 text-xs">
                           <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-zinc-400">
-                            {issue.category}
+                            {label(issue.category)}
                           </span>
                           <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-zinc-400">
-                            {issue.status}
+                            {label(issue.status)}
                           </span>
                         </div>
                         <h3 className="mt-3 text-xl font-semibold">
