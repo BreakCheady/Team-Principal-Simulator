@@ -11,7 +11,7 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function PeoplePowerCentersPanel({ flow, view }: Props) {
+export function TeammitgliederPowerCentersPanel({ flow, view }: Props) {
   if (view === "PEOPLE") {
     return (
           <div className="grid gap-4 md:grid-cols-2">
@@ -22,12 +22,12 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
               >
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
                   {label(character.role)}
-                  {character.active === false ? " · LEFT TEAM" : ""}
+                  {character.active === false ? " · TEAM VERLASSEN" : ""}
                 </p>
                 <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-zinc-500">Momentum</dt>
+                    <dt className="text-zinc-500">Dynamik</dt>
                     <dd className="mt-1">{character.dynamic.momentum}</dd>
                   </div>
                   <div>
@@ -41,7 +41,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                     <dd className="mt-1">{character.dynamic.instability}</dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Ambition</dt>
+                    <dt className="text-zinc-500">Ehrgeiz</dt>
                     <dd className="mt-1">{character.personality.ambition}</dd>
                   </div>
                 </dl>
@@ -67,7 +67,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                   ].includes(character.role),
               )
               .map((character) => {
-                const activeLeverage = flow.political.leverages.filter(
+                const activeDruckmittel = flow.political.leverages.filter(
                   (leverage) =>
                     leverage.ownerCharacterId === character.id &&
                     leverage.active,
@@ -85,7 +85,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
                       {label(character.role)}
-                      {character.active === false ? " · LEFT TEAM" : ""}
+                      {character.active === false ? " · TEAM VERLASSEN" : ""}
                     </p>
                     <h3 className="mt-2 text-xl font-semibold">
                       {character.name}
@@ -94,7 +94,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                       <div>
                         <p className="text-zinc-500">Internal influence</p>
                         <p className="mt-1">
-                          {character.power.internalInfluence}
+                          {character.power.internalEinfluss}
                         </p>
                       </div>
                       <div>
@@ -112,9 +112,9 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                         <p className="mt-1">{liveIssues.length}</p>
                       </div>
                     </div>
-                    {activeLeverage.length > 0 ? (
+                    {activeDruckmittel.length > 0 ? (
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {activeLeverage.map((leverage) => (
+                        {activeDruckmittel.map((leverage) => (
                           <span
                             key={leverage.id}
                             className="rounded-full border border-violet-900 px-2.5 py-1 text-xs text-violet-300"
