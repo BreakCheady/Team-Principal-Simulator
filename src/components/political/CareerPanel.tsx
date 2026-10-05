@@ -280,7 +280,10 @@ export function CareerPanel({ flow, view, onAction }: Props) {
           .filter((o) => o.status === "OPEN")
           .map((o) => (
             <article key={o.id} className={card}>
-              <p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-rose-300">
+                Rival approach
+              </p>
+              <p className="mt-2">
                 {o.club} wants {name(o.characterId)}
               </p>
               <p className="mt-2 text-sm text-zinc-400">
