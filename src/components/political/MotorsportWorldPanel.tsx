@@ -248,7 +248,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 </span>
               </button>
             )) : (
-              <p className="text-sm text-zinc-500">No immediate expiry pressure.</p>
+              <p className="text-sm text-zinc-500">Kein unmittelbarer Vertragsdruck.</p>
             )}
           </div>
         </article>
@@ -271,7 +271,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               <tr>
                 <th>Pos</th>
                 <th>Team</th>
-                <th>Points</th>
+                <th>Punkte</th>
               </tr>
             </thead>
             <tbody>
@@ -308,8 +308,8 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               <thead>
                 <tr>
                   <th>Pos</th>
-                  <th>Driver</th>
-                  <th>Points</th>
+                  <th>Fahrer</th>
+                  <th>Punkte</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,12 +416,12 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Role</th>
-              <th>Age</th>
+              <th>Rolle</th>
+              <th>Alter</th>
               <th>Nation</th>
-              <th>Skill / potential</th>
+              <th>Stärke / Potenzial</th>
               <th>Employer</th>
-              <th>Salary / season</th>
+              <th>Gehalt / Saison</th>
             </tr>
           </thead>
           <tbody>
