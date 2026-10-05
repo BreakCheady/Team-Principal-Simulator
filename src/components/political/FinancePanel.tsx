@@ -61,7 +61,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
       summary.projectedNextRundeCash < 0 ? (
         <p className="rounded-xl border border-amber-900 bg-amber-950/20 p-4 text-sm text-amber-200">
           {summary.cashKontostand < 0
-            ? "The team has a cash deficit. Existing contractual payments continue; new deals must pass the budget check."
+            ? "Das Team weist ein Defizit auf. Bestehende vertragliche Zahlungen laufen weiter; neue Verträge müssen die Budgetprüfung bestehen."
             : "Die finanziellen Reserven werden knapp. Prüfe anstehende Zahlungen, bevor du neue Verpflichtungen eingehst."}
         </p>
       ) : null}
@@ -94,7 +94,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-2xl border border-zinc-800 p-5">
-          <h3 className="font-semibold">Request emergency owner funding</h3>
+          <h3 className="font-semibold">Notfinanzierung beim Eigentümer anfragen</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Receive {money(getOwnerFundingBetrag(state))} once when cash falls
             below €8m. Your reputation falls by 8, owner trust in you by 10, and
@@ -149,7 +149,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
         </p>
         {transactions.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            The next round will book the first payments.
+            In der nächsten Runde werden die ersten Zahlungen verbucht.
           </p>
         ) : (
           <div className="mt-4 max-h-96 overflow-auto">
