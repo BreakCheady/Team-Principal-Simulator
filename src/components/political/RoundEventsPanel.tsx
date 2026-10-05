@@ -10,6 +10,7 @@ import { ContractsPanel } from "@/components/political/ContractsPanel";
 import { InboxIssuesPanel } from "@/components/political/InboxIssuesPanel";
 import { PeoplePowerCentersPanel } from "@/components/political/PeoplePowerCentersPanel";
 import { PoliticalConflictsPanel } from "@/components/political/PoliticalConflictsPanel";
+import { HqDashboard } from "@/components/political/HqDashboard";
 import { getCashBalance } from "@/game/finance/finances";
 import type { IssueDefinition } from "@/game/issues/issues";
 import type { PoliticalCoreState } from "@/game/political/types";
@@ -39,6 +40,7 @@ type Props = {
 };
 
 type HqTab =
+  | "HOME"
   | "WORLD"
   | "MARKET"
   | "RACING"
@@ -70,7 +72,7 @@ export function RoundEventsPanel({
       ? structuredClone(initialFlow)
       : createCareerFlow(initialState, events, afterRound),
   );
-  const [tab, setTab] = useState<HqTab>("INBOX");
+  const [tab, setTab] = useState<HqTab>("HOME");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const raceActive =
@@ -188,7 +190,7 @@ export function RoundEventsPanel({
       const save = decodeSave<RoundFlowState>(raw, "ROUND_FLOW");
       setRoundFlow(save.state);
       setSaveMessage("Local save loaded.");
-      setTab("INBOX");
+      setTab("HOME");
     } catch (error) {
       setSaveMessage(
         error instanceof Error ? error.message : "Could not load save.",
@@ -202,11 +204,12 @@ export function RoundEventsPanel({
         ? structuredClone(initialFlow)
         : createCareerFlow(initialState, events, afterRound),
     );
-    setTab("INBOX");
+    setTab("HOME");
     setSaveMessage("Round flow reset.");
   }
 
   const tabs: Array<{ id: HqTab; title: string }> = [
+    { id: "HOME", title: "HQ Overview" },
     ...(roundFlow.career?.world
       ? [{ id: "WORLD" as HqTab, title: "Motorsport World" }]
       : []),
@@ -238,11 +241,11 @@ export function RoundEventsPanel({
   ];
 
   return (
-    <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950/50 p-4 md:p-6">
-      <header className="rounded-2xl border border-sky-900/70 bg-sky-950/20 p-6">
+    <section className="mt-6">
+      <header className="tps-panel tps-track-grid overflow-hidden p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">
+            <p className="tps-kicker">
               Team HQ · live season
             </p>
             <h2 className="mt-2 text-3xl font-semibold">
@@ -339,30 +342,38 @@ export function RoundEventsPanel({
         ) : null}
       </header>
 
-      <nav className="mt-5 flex gap-2 overflow-x-auto pb-2">
-        {tabs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setTab(item.id)}
-            className={
-              tab === item.id
-                ? "whitespace-nowrap rounded-full bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950"
-                : "whitespace-nowrap rounded-full border border-zinc-800 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-600"
-            }
-          >
-            {item.title}
-          </button>
-        ))}
-      </nav>
+      <div className="mt-5 grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav className="tps-scrollbar flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-4 lg:block lg:h-fit lg:space-y-1 lg:overflow-visible lg:pb-0">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTab(item.id)}
+              className={
+                tab === item.id
+                  ? "whitespace-nowrap rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-left text-sm font-semibold text-cyan-200 lg:block lg:w-full"
+                  : "whitespace-nowrap rounded-xl border border-transparent px-4 py-3 text-left text-sm text-zinc-500 hover:border-slate-800 hover:bg-slate-900/60 hover:text-zinc-200 lg:block lg:w-full"
+              }
+            >
+              {item.title}
+            </button>
+          ))}
+        </nav>
 
       <fieldset
-        className="mt-5 min-w-0"
+        className="min-w-0 tps-panel p-4 md:p-6"
         disabled={
           roundFlow.career?.status === "DISMISSED" ||
           (raceActive && tab !== "RACING")
         }
       >
+        {tab === "HOME" ? (
+          <HqDashboard
+            flow={roundFlow}
+            onNavigate={(next) => setTab(next)}
+            onStartNextRound={startNextRound}
+          />
+        ) : null}
         {tab === "WORLD" && roundFlow.career?.world ? (
           <MotorsportWorldPanel world={roundFlow.career.world} />
         ) : null}
@@ -448,9 +459,10 @@ export function RoundEventsPanel({
         ) : null}
 
       </fieldset>
+      </div>
 
       {roundFlow.history.length > 0 ? (
-        <footer className="mt-6 border-t border-zinc-800 pt-5">
+        <footer className="mt-6 px-1">
           <div className="flex flex-wrap gap-2">
             {roundFlow.history.map((entry) => (
               <span
