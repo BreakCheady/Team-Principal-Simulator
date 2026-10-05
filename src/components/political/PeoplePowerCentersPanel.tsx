@@ -106,7 +106,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                       <div>
                         <p className="text-zinc-500">Interner Einfluss</p>
                         <p className="mt-1">
-                          {character.power.internalEinfluss}
+                          {character.power.internalInfluence}
                         </p>
                       </div>
                       <div>
