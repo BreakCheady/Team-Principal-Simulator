@@ -37,6 +37,18 @@ const label = (s: string) => {
     AERO: "Aerodynamik",
     RELIABILITY: "Zuverlässigkeit",
     FACILITIES: "Infrastruktur",
+    RUNNING: "LAUFEND",
+    REVIEW: "AUSWERTUNG",
+    DISMISSED: "ENTLASSEN",
+    CONSOLIDATE: "KONSOLIDIEREN",
+    CHALLENGE: "ANGREIFEN",
+    OPEN: "OFFEN",
+    ESCALATED: "ESKALIERT",
+    ACCEPTED: "ANGENOMMEN",
+    REJECTED: "ABGELEHNT",
+    RENEWAL: "VERLÄNGERUNG",
+    AUTHORITY: "AUTORITÄT",
+    SUPPORT: "UNTERSTÜTZUNG",
   };
   return labels[s] ?? s.replaceAll("_", " ");
 };
@@ -180,7 +192,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             a.character.name.localeCompare(b.character.name),
     );
   const pages = Math.max(1, Math.ceil(available.length / 24));
-  const currentSeite = Math.min(page, pages - 1);
+  const currentPage = Math.min(page, pages - 1);
   const name = (id: string | null) =>
     flow.political.characters.find((a) => a.id === id)?.name ?? "Unbesetzt";
   if (view === "MARKET")
@@ -292,7 +304,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 Anfrage eines Rivalen
               </p>
               <p className="mt-2">
-                {o.club} wants {name(o.characterId)}
+                {o.club} möchte {name(o.characterId)}
               </p>
               <p className="mt-2 text-sm text-zinc-400">
                 Gehalt {money(o.salary)} · Ablöseerlös {money(o.fee)} ·
@@ -404,15 +416,12 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         {c.world ? (
           <p className="text-sm text-zinc-400">
             Gesamter Pool:{" "}
-            {c.world.people.filter((p) => p.role === "DRIVER").length} drivers
-            and {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
-            across nine series. Recruitment here shows people eligible for{" "}
-            {c.world.playerSeriesId}; scout the full world in Motorsport World.
+            {c.world.people.filter((p) => p.role === "DRIVER").length} Fahrer und {c.world.people.filter((p) => p.role !== "DRIVER").length} Mitarbeiter in neun Rennserien. Hier werden Personen angezeigt, die für {c.world.playerSeriesId} infrage kommen; den gesamten Markt findest du in der Motorsport-Welt.
           </p>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-2">
           {available
-            .slice(currentSeite * 24, (currentSeite + 1) * 24)
+            .slice(currentPage * 24, (currentPage + 1) * 24)
             .map((candidate) => (
               <CandidateCard
                 key={candidate.id}
@@ -425,18 +434,18 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         <div className="flex gap-3">
           <button
             className={button}
-            disabled={currentSeite === 0}
-            onClick={() => setPage(currentSeite - 1)}
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
           >
             Zurück
           </button>
           <span className="py-2 text-sm">
-            Seite {currentSeite + 1} / {pages}
+            Seite {currentPage + 1} / {pages}
           </span>
           <button
             className={button}
-            disabled={currentSeite === pages - 1}
-            onClick={() => setPage(currentSeite + 1)}
+            disabled={currentPage === pages - 1}
+            onClick={() => setPage(currentPage + 1)}
           >
             Weiter
           </button>
@@ -460,7 +469,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     PROJECTS[kind].cost *
                       (c.world ? playerTeam(c.world).budget / 120 : 1),
                   )}{" "}
-                  · {PROJECTS[kind].duration} rounds · base risk{" "}
+                  · {PROJECTS[kind].duration} Runden · Grundrisiko{" "}
                   {PROJECTS[kind].risk}%
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
@@ -468,7 +477,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   {kind === "AERO"
                     ? "Fahrzeugtempo"
                     : kind === "RELIABILITY"
-                      ? "reliability"
+                      ? "Zuverlässigkeit"
                       : "Stärke Sportleitung"}
                 </p>
                 <button
@@ -492,10 +501,10 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         {c.projects.map((p) => (
           <article className={card} key={p.id}>
             <p>
-              {p.kind} · {p.status}
+              {label(p.kind)} · {label(p.status)}
             </p>
             <p className="mt-2 text-sm text-zinc-400">
-              R{p.startedRound} → R{p.dueRound} · {money(p.cost)} · risk{" "}
+              R{p.startedRound} → R{p.dueRound} · {money(p.cost)} · Risiko{" "}
               {p.risk}% · Sponsor: {name(p.sponsorId)}
             </p>
           </article>
@@ -508,17 +517,15 @@ export function CareerPanel({ flow, view, onAction }: Props) {
       <h3 className="text-xl font-semibold">Karriere & Vorstand</h3>
       <article className={card}>
         <p>
-          Season {2025 + c.season} · {c.status} · Vorstandswarnungen {c.warnings}/2
+          Saison {2025 + c.season} · {label(c.status)} · Vorstandswarnungen {c.warnings}/2
         </p>
         <p className="mt-2 text-sm text-zinc-400">
-          Ziele: Teamwertung P{c.targets.teamPosition} · closing cash ≥{" "}
+          Ziele: Teamwertung P{c.targets.teamPosition} · Saisonendbestand ≥{" "}
           {money(c.targets.cash)} · Stabilität ≥ {c.targets.stability}
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          Board score: sport 35, finances 30, stability 35. Below 60: warning;
-          below 30 or two consecutive warnings: dismissal. Cash below −€
-          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m also
-          ends your tenure. Season prizes scale with constructor rank.
+          Vorstandswertung: Sport 35, Finanzen 30, Stabilität 35. Unter 60 folgt eine Warnung; unter 30 oder nach zwei Warnungen in Folge die Entlassung. Ein Kassenstand unter −€
+          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25} Mio. beendet die Amtszeit ebenfalls. Die Saisonprämie richtet sich nach dem Rang in der Teamwertung.
         </p>
         {c.status === "REVIEW" ? (
           <div className="mt-4 flex flex-wrap gap-3">
@@ -526,15 +533,14 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               className={button}
               onClick={() => onAction((s) => startNextSeason(s, "CONSOLIDATE"))}
             >
-              Next season · P5 / €0m / stability 55
+              Nächste Saison · P5 / €0 Mio. / Stabilität 55
             </button>
             <button
               className={button}
               onClick={() => onAction((s) => startNextSeason(s, "CHALLENGE"))}
             >
-              Next season · P2 / €
-              {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5}m /
-              stability 65
+              Nächste Saison · P2 / €
+              {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5} Mio. / Stabilität 65
             </button>
           </div>
         ) : null}
@@ -546,10 +552,10 @@ export function CareerPanel({ flow, view, onAction }: Props) {
       </article>
       {c.reviews.map((r) => (
         <article className={card} key={r.season}>
-          Season {2025 + r.season}: {r.verdict} · {r.score}/100
+          Saison {2025 + r.season}: {label(r.verdict)} · {r.score}/100
           <p className="mt-2 text-sm text-zinc-400">
-            P{r.teamPosition} · cash {money(r.cash)} · stability{" "}
-            {r.stability.toFixed(0)} · prize {money(r.prize)}
+            P{r.teamPosition} · Kassenbestand {money(r.cash)} · Stabilität{" "}
+            {r.stability.toFixed(0)} · Prämie {money(r.prize)}
           </p>
         </article>
       ))}
@@ -562,7 +568,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         .map((r) => (
           <article className={card} key={r.id}>
             <p>
-              {name(r.characterId)} · {r.kind} · {r.status}
+              {name(r.characterId)} · {label(r.kind)} · {label(r.status)}
             </p>
             <p className="mt-2 text-sm text-zinc-400">
               {r.summary} Frist R{r.deadline}.
@@ -584,7 +590,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   onAction((s) => respondActorRequest(s, r.id, false))
                 }
               >
-                Refuse
+                Ablehnen
               </button>
             </div>
           </article>
@@ -598,12 +604,11 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             .map((o) => (
               <article className={card} key={o.id}>
                 <p>
-                  {name(contract.characterId)} · window R{o.exerciseFromRound}–R
-                  {o.exerciseUntilRound} · +{o.extensionRounds} rounds
+                  {name(contract.characterId)} · Frist R{o.exerciseFromRound}–R
+                  {o.exerciseUntilRound} · +{o.extensionRounds} Runden
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
-                  Actor consent depends on trust, willingness to compromise and
-                  instability. The team must have budget approval.
+                  Die Zustimmung hängt von Vertrauen, Kompromissbereitschaft und Instabilität ab. Das Team benötigt Budgetfreigabe.
                 </p>
                 <button
                   className={button + " mt-3"}
@@ -615,7 +620,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     onAction((s) => agreeMutualOption(s, contract.id, o.id))
                   }
                 >
-                  Seek consent & exercise
+                  Zustimmung einholen & Option ziehen
                 </button>
               </article>
             )),
