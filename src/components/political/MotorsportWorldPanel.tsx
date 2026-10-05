@@ -259,7 +259,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
         </h4>
         <p className="mt-2 text-sm text-zinc-400">{cfg.description}</p>
         <p className="mt-2 text-xs text-zinc-500">
-          {series === "WEC" ? "WEC 2026 calendar and class structure; fictional budgets, teams and Fahrer." : "Fiktive Spielkalender, Budgets und Kader. Formel 4, GT und Rallye sind spielintern definiert."}
+          {series === "WEC" ? "WEC-Kalender und Klassenstruktur; Budgets, Teams und Fahrer sind fiktiv." : "Fiktive Spielkalender, Budgets und Kader. Formel 4, GT und Rallye sind spielintern definiert."}
         </p>
       </article>
       {series === "WEC" ? <WecStandings world={world} /> : <div className="grid gap-4 lg:grid-cols-2">
