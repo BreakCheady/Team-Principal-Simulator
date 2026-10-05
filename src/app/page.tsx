@@ -1,135 +1,116 @@
 import Link from "next/link";
 
-const features = [
-  ["Run the whole team", "Contracts, staffing, finance, car development and board expectations all compete for your attention."],
-  ["Race under pressure", "Practice, qualifying and live strategy turn management decisions into lap-by-lap consequences."],
-  ["Survive the paddock", "Owners, sponsors, staff and rivals have their own leverage, agendas and reactions."],
-  ["A world that moves", "Nine championships continue around you with transfers, promotions, rumors and changing team fortunes."],
+const funktionen = [
+  ["Team führen", "Fahrer, Personal, Verträge, Finanzen und Entwicklung unter einem Dach."],
+  ["Rennen entscheiden", "Training, Qualifying, Strategie, Boxenstopps, Wetter und Zwischenfälle."],
+  ["Paddock beherrschen", "Eigentümer, Sponsoren und Schlüsselpersonen verfolgen eigene Interessen."],
+  ["Karriere aufbauen", "Neun Rennserien, ein lebendiger Transfermarkt und mehrere Saisons."],
 ];
 
-const series = ["F1", "F2", "F3", "F4", "WEC", "GT3", "GT4", "INDYCAR", "RALLY"];
+const serien = ["F1", "F2", "F3", "F4", "WEC", "GT3", "GT4", "INDYCAR", "RALLY"];
 
 export default function Home() {
   return (
-    <main className="tps-shell min-h-screen overflow-hidden">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg border border-cyan-400/40 bg-cyan-400/10 text-sm font-black italic text-cyan-300">TP</span>
-          <span>
-            <span className="block text-sm font-semibold tracking-wide">TEAM PRINCIPAL</span>
-            <span className="block text-[10px] uppercase tracking-[.22em] text-zinc-500">Simulator</span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <a href="#game" className="hidden rounded-lg px-3 py-2 text-sm text-zinc-400 hover:text-white sm:block">The game</a>
-          <Link href="/game" className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200">Enter HQ</Link>
-        </div>
-      </nav>
-
-      <section className="relative mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-16 lg:grid-cols-[1.08fr_.92fr] lg:px-8 lg:pb-28 lg:pt-24">
-        <div className="relative z-10">
-          <p className="tps-kicker">Motorsport management · political strategy</p>
-          <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[.94] tracking-[-.055em] sm:text-6xl lg:text-8xl">
-            Win the race.
-            <span className="block text-zinc-500">Keep the team.</span>
-          </h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
-            You are not the driver. You are the person responsible for everything around them:
-            performance, people, money, politics and the decisions nobody else wants to make.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/game" className="rounded-xl bg-cyan-300 px-6 py-3.5 font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-cyan-200">Start a career</Link>
-            <a href="#game" className="rounded-xl border border-slate-700 bg-slate-950/50 px-6 py-3.5 font-semibold text-zinc-200 hover:border-slate-500">See how it plays</a>
-          </div>
-          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4 text-sm">
-            <div><strong className="tps-number block text-2xl text-white">9</strong><span className="text-zinc-500">championships</span></div>
-            <div><strong className="tps-number block text-2xl text-white">116</strong><span className="text-zinc-500">fictional teams</span></div>
-            <div><strong className="tps-number block text-2xl text-white">1,600+</strong><span className="text-zinc-500">drivers & staff</span></div>
-          </div>
-        </div>
-
-        <div className="relative min-h-[460px]">
-          <div className="absolute inset-0 translate-x-10 rotate-[-4deg] rounded-[2.5rem] border border-cyan-300/10 bg-cyan-300/[.025]" />
-          <div className="tps-panel tps-track-grid relative overflow-hidden p-5 sm:p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div><p className="tps-kicker">Race control</p><p className="mt-1 font-semibold">Canadian GP · Race 7</p></div>
-              <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">LIVE</span>
-            </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-[1.3fr_.7fr]">
-              <div className="rounded-2xl border border-slate-800 bg-black/25 p-4">
-                <div className="flex h-52 items-center justify-center">
-                  <svg viewBox="0 0 400 220" className="h-full w-full" aria-label="Abstract racing circuit">
-                    <path d="M52 150 C72 86 120 57 179 69 C232 80 230 27 290 45 C355 63 360 117 314 136 C261 157 236 119 197 145 C156 173 125 190 82 177 C63 171 51 163 52 150Z" fill="none" stroke="rgba(94,231,255,.9)" strokeWidth="11" strokeLinecap="round"/>
-                    <path d="M52 150 C72 86 120 57 179 69 C232 80 230 27 290 45 C355 63 360 117 314 136 C261 157 236 119 197 145 C156 173 125 190 82 177 C63 171 51 163 52 150Z" fill="none" stroke="#101722" strokeWidth="5" strokeLinecap="round"/>
-                    <circle cx="198" cy="145" r="7" fill="#52e5a3"/>
-                  </svg>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-xs text-zinc-500">
-                  <span>Lap <b className="block text-base text-white">41/70</b></span>
-                  <span>Weather <b className="block text-base text-white">Dry</b></span>
-                  <span>Gap <b className="block text-base text-white">+3.8s</b></span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {[
-                  ["P1","Keller","+0.0"],
-                  ["P2","Moretti","+3.8"],
-                  ["P3","Sato","+7.1"],
-                  ["P4","Vidal","+8.4"],
-                  ["P5","Chen","+12.9"],
-                ].map(([pos,name,gap],i)=>(
-                  <div key={name} className={"flex items-center justify-between rounded-xl border p-3 text-sm "+(i===1?"border-cyan-400/50 bg-cyan-400/10":"border-slate-800 bg-black/20")}>
-                    <span className="font-bold">{pos}</span><span className="text-zinc-300">{name}</span><span className="tps-number text-zinc-500">{gap}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="tps-panel absolute -bottom-9 -left-5 w-[72%] p-4 sm:-left-10">
-            <p className="tps-kicker">Decision required</p>
-            <p className="mt-2 font-semibold">Rain expected in 8–12 minutes</p>
-            <p className="mt-1 text-sm text-zinc-500">Pit now and sacrifice track position, or extend the stint?</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="game" className="border-y border-slate-800/80 bg-black/20">
-        <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-[.75fr_1.25fr]">
+    <main className="mm-app min-h-screen">
+      <div className="mm-topbar">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-md bg-cyan-400 font-black text-slate-950">TP</div>
             <div>
-              <p className="tps-kicker">The game</p>
-              <h2 className="mt-4 text-4xl font-bold tracking-tight">Every result has a backstory.</h2>
-              <p className="mt-5 leading-7 text-zinc-400">The race is only the visible part. Your real job is building the organization that gets there — and handling what happens when interests collide.</p>
+              <p className="text-sm font-black tracking-wide">TEAM PRINCIPAL</p>
+              <p className="text-[10px] uppercase tracking-[.18em] text-slate-500">Simulator</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {features.map(([title,body],i)=>(
-                <article key={title} className="tps-panel p-5">
-                  <span className="text-xs font-bold text-cyan-300">0{i+1}</span>
-                  <h3 className="mt-6 text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500">{body}</p>
-                </article>
-              ))}
+          </div>
+          <Link href="/game" className="mm-button mm-button-primary">Spiel starten</Link>
+        </div>
+      </div>
+
+      <section className="mx-auto max-w-6xl px-4 py-10 md:py-16">
+        <div className="grid gap-5 lg:grid-cols-[1fr_1.25fr]">
+          <div className="mm-panel overflow-hidden">
+            <div className="mm-panel-header">Deine Karriere</div>
+            <div className="p-6 md:p-8">
+              <p className="mm-label text-cyan-300">Motorsport-Management</p>
+              <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight md:text-5xl">
+                Führe dein Team.<br />
+                Gewinne die Meisterschaft.
+              </h1>
+              <p className="mt-5 max-w-xl leading-7 text-slate-400">
+                Übernimm die Rolle des Teamchefs und entscheide über Fahrer, Personal,
+                Technik, Verträge, Budget und Rennstrategie. Jede Entscheidung wirkt sich
+                auf Leistung, Politik und Zukunft deines Teams aus.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link href="/game" className="mm-button mm-button-primary px-6 py-3">Neue Karriere</Link>
+                <a href="#funktionen" className="mm-button px-6 py-3">Mehr erfahren</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mm-panel mm-track overflow-hidden">
+            <div className="mm-panel-header flex items-center justify-between">
+              <span>Nächstes Rennen</span>
+              <span className="text-cyan-300">Runde 7 / 18</span>
+            </div>
+            <div className="grid min-h-[320px] gap-5 p-5 md:grid-cols-[1.3fr_.7fr]">
+              <div className="flex flex-col justify-between rounded-lg border border-slate-700/70 bg-black/20 p-5">
+                <div>
+                  <p className="mm-label">Kanada</p>
+                  <h2 className="mt-2 text-4xl font-black">VANCOUVER</h2>
+                  <p className="mt-2 text-sm text-slate-400">57 Runden · 193 Meilen</p>
+                </div>
+                <svg viewBox="0 0 360 170" className="my-4 w-full" aria-label="Abstrakter Rennkurs">
+                  <path d="M38 118 C62 57 108 42 154 64 C198 84 205 29 254 35 C311 42 334 84 295 106 C248 132 221 99 184 121 C143 146 105 152 66 140 C48 135 38 128 38 118Z" fill="none" stroke="#f2f6fb" strokeWidth="9" strokeLinecap="round"/>
+                  <path d="M38 118 C62 57 108 42 154 64 C198 84 205 29 254 35 C311 42 334 84 295 106 C248 132 221 99 184 121 C143 146 105 152 66 140 C48 135 38 128 38 118Z" fill="none" stroke="#161e2f" strokeWidth="4" strokeLinecap="round"/>
+                </svg>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div><p className="mm-label">Training</p><p className="mt-1">Trocken</p></div>
+                  <div><p className="mm-label">Qualifying</p><p className="mt-1">Trocken</p></div>
+                  <div><p className="mm-label">Rennen</p><p className="mt-1">Bewölkt</p></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="rounded-lg border border-slate-700/70 bg-black/20 p-4">
+                  <p className="mm-label">Teamstatus</p>
+                  <p className="mt-2 text-2xl font-black text-emerald-300">STABIL</p>
+                </div>
+                <div className="rounded-lg border border-slate-700/70 bg-black/20 p-4">
+                  <p className="mm-label">Saisonziel</p>
+                  <p className="mt-2 font-bold">Top 5</p>
+                  <div className="mm-progress mt-3"><span style={{ width: "64%" }} /></div>
+                </div>
+                <div className="rounded-lg border border-slate-700/70 bg-black/20 p-4">
+                  <p className="mm-label">Offene Aufgaben</p>
+                  <p className="mt-2 text-3xl font-black text-amber-300">3</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div><p className="tps-kicker">One career, many paddocks</p><h2 className="mt-3 text-3xl font-bold">Choose where your story starts.</h2></div>
-          <Link href="/game" className="text-sm font-semibold text-cyan-300 hover:text-cyan-200">Open championship selector →</Link>
-        </div>
-        <div className="mt-8 flex flex-wrap gap-2">
-          {series.map((item)=> <span key={item} className="rounded-full border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-semibold text-zinc-300">{item}</span>)}
+      <section id="funktionen" className="mx-auto max-w-6xl px-4 pb-12">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {funktionen.map(([titel, text], index) => (
+            <article key={titel} className="mm-panel overflow-hidden">
+              <div className="mm-panel-header">0{index + 1}</div>
+              <div className="p-5">
+                <h3 className="font-bold">{titel}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <footer className="border-t border-slate-800 px-5 py-8 text-sm text-zinc-600">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 lg:px-3">
-          <span>Team Principal Simulator</span>
-          <span>People · performance · politics</span>
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="mm-panel p-5">
+          <p className="mm-label">Verfügbare Rennserien</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {serien.map((serie) => <span key={serie} className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold">{serie}</span>)}
+          </div>
         </div>
-      </footer>
+      </section>
     </main>
   );
 }
