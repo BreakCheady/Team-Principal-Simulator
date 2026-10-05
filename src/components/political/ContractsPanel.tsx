@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  createVerhandlungOffer,
-  type ContractVerhandlungOffer,
+  createNegotiationOffer,
+  type ContractNegotiationOffer,
 } from "@/game/contracts/negotiations";
 import {
   canExerciseTeamOption,
@@ -13,29 +13,29 @@ import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  startVerhandlung: (contractId: string) => void;
+  startNegotiation: (contractId: string) => void;
   exerciseTeamOption: (contractId: string, optionId: string) => void;
   submitContractOffer: (
     negotiationId: string,
     posture: "FIRM" | "BALANCED" | "GENEROUS",
   ) => void;
   acceptCounterOffer: (negotiationId: string) => void;
-  walkAwayFromVerhandlung: (negotiationId: string) => void;
+  walkAwayFromNegotiation: (negotiationId: string) => void;
 };
 
 function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function VerträgePanel({
+export function ContractsPanel({
   flow,
-  startVerhandlung,
+  startNegotiation,
   exerciseTeamOption,
   submitContractOffer,
   acceptCounterOffer,
-  walkAwayFromVerhandlung,
+  walkAwayFromNegotiation,
 }: Props) {
-  function offerBudget(contractId: string, offer: ContractVerhandlungOffer) {
+  function offerBudget(contractId: string, offer: ContractNegotiationOffer) {
     const contract = flow.political.contracts.find(
       (item) => item.id === contractId,
     )!;
@@ -44,7 +44,7 @@ export function VerträgePanel({
       contractId,
       {
         salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-        garantiertGehaltMillions: offer.garantiertGehaltMillions,
+        guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
         endRound:
           Math.max(contract.endRound, flow.currentRound) +
           offer.extensionRounds,
@@ -86,12 +86,12 @@ export function VerträgePanel({
                     flow.currentRound,
                   ),
                 );
-                const openVerhandlung = flow.negotiations.some(
+                const openNegotiation = flow.negotiations.some(
                   (session) =>
                     session.contractId === contract.id &&
                     ["OPEN", "COUNTERED"].includes(session.status),
                 );
-                const offenTriggers = contract.performanceTriggers.filter(
+                const pendingTriggers = contract.performanceTriggers.filter(
                   (trigger) => !trigger.ausgelöst,
                 );
 
@@ -116,7 +116,7 @@ export function VerträgePanel({
                     </div>
 
                     <p className="mt-3 text-sm text-zinc-400">
-                      Guaranteed €{contract.garantiertGehaltMillions}m · bonuses
+                      Garantiert €{contract.guaranteedSalaryMillions}m · Boni
                       earned €{contract.earnedBonusesMillions}m
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
@@ -124,7 +124,7 @@ export function VerträgePanel({
                       remaining garantiert pay €
                       {Math.max(
                         0,
-                        contract.garantiertGehaltMillions -
+                        contract.guaranteedSalaryMillions -
                           contract.salaryPaidMillions,
                       ).toFixed(2)}
                       m
@@ -153,8 +153,8 @@ export function VerträgePanel({
                                         option.salaryMultiplier
                                       ).toFixed(2),
                                     ),
-                                    garantiertGehaltMillions:
-                                      contract.garantiertGehaltMillions,
+                                    guaranteedSalaryMillions:
+                                      contract.guaranteedSalaryMillions,
                                     endRound:
                                       contract.endRound +
                                       option.extensionRounds,
@@ -198,7 +198,7 @@ export function VerträgePanel({
                                       }
                                       disabled={
                                         !eligible ||
-                                        openVerhandlung ||
+                                        openNegotiation ||
                                         !budget?.affordable
                                       }
                                       className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
@@ -220,7 +220,7 @@ export function VerträgePanel({
                                       : "Diese Option liegt bei der Person."}
                                   </p>
                                 ) : null}
-                                {openVerhandlung &&
+                                {openNegotiation &&
                                 option.holder === "TEAM" &&
                                 !option.ausgeübt ? (
                                   <p className="mt-2">
@@ -282,7 +282,7 @@ export function VerträgePanel({
                             </div>
                           ))}
                         </div>
-                        {offenTriggers.length === 0 ? (
+                        {pendingTriggers.length === 0 ? (
                           <p className="mt-2 text-xs text-emerald-400">
                             All performance triggers resolved.
                           </p>
@@ -309,7 +309,7 @@ export function VerträgePanel({
                         ) ? (
                           <button
                             type="button"
-                            onClick={() => startVerhandlung(contract.id)}
+                            onClick={() => startNegotiation(contract.id)}
                             className="rounded-lg border border-emerald-800 px-3 py-2 text-sm text-emerald-300 hover:border-emerald-600"
                           >
                             Verlängerungsgespräche starten
@@ -346,7 +346,7 @@ export function VerträgePanel({
                                 m / season · garantiert €
                                 {
                                   negotiation.characterDemand
-                                    .garantiertGehaltMillions
+                                    .guaranteedSalaryMillions
                                 }
                                 m · +
                                 {negotiation.characterDemand.extensionRounds}{" "}
@@ -382,7 +382,7 @@ export function VerträgePanel({
                                   m / season · garantiert €
                                   {
                                     negotiation.counterOffer
-                                      .garantiertGehaltMillions
+                                      .guaranteedSalaryMillions
                                   }
                                   m · +
                                   {negotiation.counterOffer.extensionRounds}{" "}
@@ -438,7 +438,7 @@ export function VerträgePanel({
                             <div className="grid gap-2 sm:grid-cols-3">
                               {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
                                 (posture) => {
-                                  const offer = createVerhandlungOffer(
+                                  const offer = createNegotiationOffer(
                                     negotiation,
                                     posture,
                                   );
@@ -487,7 +487,7 @@ export function VerträgePanel({
                             <button
                               type="button"
                               onClick={() =>
-                                walkAwayFromVerhandlung(negotiation.id)
+                                walkAwayFromNegotiation(negotiation.id)
                               }
                               className="text-xs text-red-300 hover:text-red-200"
                             >
