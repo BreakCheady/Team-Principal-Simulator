@@ -71,7 +71,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {[
             ["Sponsoreneinnahmen", finance.sponsorIncomeMillionsPerRound],
-            ["Eigentümerbeitrag", finance.ownerIncomeMillionsPerRunde],
+            ["Eigentümerbeitrag", finance.ownerIncomeMillionsPerRound],
             ["Betriebskosten", finance.operatingCostMillionsPerRound],
             ["Gehälter nächste Runde", summary.nextSalary],
             ["Garantien nächste Runde", summary.nextGuarantees],
