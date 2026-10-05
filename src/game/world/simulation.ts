@@ -154,6 +154,109 @@ export function advanceWorld(flow: RoundFlowState) {
   team.pace = c.car.pace;
   team.reliability = c.car.reliability;
 }
+
+function offseasonCandidateScore(
+  world: MotorsportWorld,
+  team: MotorsportWorld["teams"][number],
+  person: MotorsportWorld["people"][number],
+) {
+  const youthUpside =
+    person.role === "DRIVER" && person.age <= 24
+      ? Math.max(0, person.potential - person.skill) * 0.7
+      : 0;
+  const ambitionFit = person.ambition * 0.08;
+  const experienceFit = Math.min(12, person.experience * 0.25);
+  const noise = worldRandom(world) * 6;
+  return (
+    person.skill +
+    youthUpside +
+    ambitionFit +
+    experienceFit +
+    team.reputation * 0.08 +
+    noise
+  );
+}
+
+function runAiOffseason(world: MotorsportWorld) {
+  const completedSeason = world.season;
+  const playerId = world.playerTeamId;
+  const rosterRoles = ["DRIVER", "TECHNICAL_DIRECTOR", "SPORTING_DIRECTOR", "RACE_ENGINEER"] as const;
+
+  // Expiring AI contracts enter the market before teams recruit, which creates
+  // genuine replacement chains across the world instead of isolated swaps.
+  for (const person of world.people) {
+    if (
+      !person.teamId ||
+      person.teamId === playerId ||
+      person.role === "TEAM_PRINCIPAL" ||
+      person.contractEndSeason > completedSeason
+    )
+      continue;
+    const team = world.teams.find((item) => item.id === person.teamId);
+    if (!team) continue;
+    if (person.role === "DRIVER")
+      team.drivers = team.drivers.filter((id) => id !== person.id);
+    else team.staff = team.staff.filter((id) => id !== person.id);
+    person.teamId = null;
+  }
+
+  const championshipPosition = new Map<string, number>();
+  for (const table of world.series) {
+    [...table.teams]
+      .sort((a, b) => b.points - a.points || a.teamId.localeCompare(b.teamId))
+      .forEach((entry, index) => championshipPosition.set(entry.teamId, index + 1));
+  }
+
+  for (const team of world.teams) {
+    if (team.id === playerId) continue;
+    const cfg = getSeries(team.seriesId);
+    const position = championshipPosition.get(team.id) ?? cfg.teamNames.length;
+    const performance = 1 - (position - 1) / Math.max(1, cfg.teamNames.length - 1);
+
+    // Sponsor/owner confidence changes the resources available next season.
+    const budgetSwing = 0.96 + performance * 0.08 + (worldRandom(world) - 0.5) * 0.04;
+    team.budget = Number(Math.max(cfg.budget * 0.25, team.budget * budgetSwing).toFixed(3));
+    team.reputation = Math.max(
+      35,
+      Math.min(98, Math.round(team.reputation + (performance - 0.5) * 6 + (worldRandom(world) - 0.5) * 4)),
+    );
+
+    const needs = new Map<(typeof rosterRoles)[number], number>([
+      ["DRIVER", Math.max(0, cfg.driversPerTeam - team.drivers.length)],
+      ["TECHNICAL_DIRECTOR", team.staff.some((id) => world.people.find((p) => p.id === id)?.role === "TECHNICAL_DIRECTOR") ? 0 : 1],
+      ["SPORTING_DIRECTOR", team.staff.some((id) => world.people.find((p) => p.id === id)?.role === "SPORTING_DIRECTOR") ? 0 : 1],
+      ["RACE_ENGINEER", team.staff.some((id) => world.people.find((p) => p.id === id)?.role === "RACE_ENGINEER") ? 0 : 1],
+    ]);
+
+    for (const role of rosterRoles) {
+      const count = needs.get(role) ?? 0;
+      for (let slot = 0; slot < count; slot++) {
+        const candidates = world.people
+          .filter(
+            (p) =>
+              !p.teamId &&
+              p.role === role &&
+              p.specialties.includes(team.seriesId) &&
+              (role !== "DRIVER" || p.skill >= cfg.minDriverSkill) &&
+              !(team.classId === "HYPERCAR" && p.rating === "BRONZE"),
+          )
+          .map((p) => ({ p, score: offseasonCandidateScore(world, team, p) }))
+          .sort((a, b) => b.score - a.score || a.p.id.localeCompare(b.p.id));
+        const chosen = candidates[0]?.p;
+        if (!chosen) continue;
+        chosen.teamId = team.id;
+        chosen.seriesId = team.seriesId;
+        chosen.contractEndSeason = completedSeason + 1 + Math.floor(worldRandom(world) * 3);
+        chosen.salary = Number(
+          Math.max(chosen.salary, cfg.budget * (role === "DRIVER" ? 0.035 : 0.008) * (0.6 + chosen.skill / 100)).toFixed(4),
+        );
+        if (role === "DRIVER") team.drivers.push(chosen.id);
+        else team.staff.push(chosen.id);
+      }
+    }
+  }
+}
+
 export function nextWorldSeason(flow: RoundFlowState) {
   const c = flow.career!,
     w = c.world;
@@ -174,6 +277,7 @@ export function nextWorldSeason(flow: RoundFlowState) {
     });
     }
   }
+  runAiOffseason(w);
   w.season = c.season;
   for (const p of w.people) {
     p.age = Math.min(80, p.age + 1);
