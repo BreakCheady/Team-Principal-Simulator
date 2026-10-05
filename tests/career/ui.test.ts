@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { KarrierePanel } from "../../src/components/political/KarrierePanel";
+import { CareerPanel } from "../../src/components/political/CareerPanel";
 import { RoundEventsPanel } from "../../src/components/political/RoundEventsPanel";
 import { MotorsportWorldPanel } from "../../src/components/political/MotorsportWorldPanel";
 import { MotorsportGame } from "../../src/components/political/MotorsportGame";
@@ -9,7 +9,7 @@ import Home from "../../src/app/page";
 import { InboxIssuesPanel } from "../../src/components/political/InboxIssuesPanel";
 import { PeoplePowerCentersPanel } from "../../src/components/political/PeoplePowerCentersPanel";
 import { PoliticalConflictsPanel } from "../../src/components/political/PoliticalConflictsPanel";
-import { createKarriereFlow, reviewSeason } from "../../src/game/career/career";
+import { createCareerFlow, reviewSeason } from "../../src/game/career/career";
 import { advanceActors } from "../../src/game/career/actors";
 import { demoState } from "../../src/game/data/demo-state";
 import { demoRoundEvents } from "../../src/game/data/demo-round-events";
@@ -18,11 +18,11 @@ import { createWorld } from "../../src/game/world/world";
 describe("career HQ rendering", () => {
   it("renders market offers, development, race tables and actionable actor requests", () => {
     const flow = advanceActors(
-      createKarriereFlow(demoState, demoRoundEvents, 18),
+      createCareerFlow(demoState, demoRoundEvents, 18),
     );
     for (const view of ["MARKET", "DEVELOPMENT", "RACING", "CAREER"] as const) {
       const html = renderToStaticMarkup(
-        createElement(KarrierePanel, { flow, view, onAction: () => {} }),
+        createElement(CareerPanel, { flow, view, onAction: () => {} }),
       );
       expect(html).toContain("<button");
       if (view === "MARKET") {
@@ -35,14 +35,14 @@ describe("career HQ rendering", () => {
     }
   });
   it("shows next season objectives and retains a readable dismissal report", () => {
-    const flow = reviewSeason(createKarriereFlow(demoState, [], 24));
+    const flow = reviewSeason(createCareerFlow(demoState, [], 24));
     let html = renderToStaticMarkup(
-      createElement(KarrierePanel, { flow, view: "CAREER", onAction: () => {} }),
+      createElement(CareerPanel, { flow, view: "CAREER", onAction: () => {} }),
     );
     expect(html).toContain("Nächste Saison");
     flow.career!.status = "DISMISSED";
     html = renderToStaticMarkup(
-      createElement(KarrierePanel, { flow, view: "CAREER", onAction: () => {} }),
+      createElement(CareerPanel, { flow, view: "CAREER", onAction: () => {} }),
     );
     expect(html).toContain("Deine Amtszeit ist beendet");
     expect(html).not.toContain("Nächste Saison");
@@ -70,7 +70,7 @@ describe("career HQ rendering", () => {
       expect(html).toContain(text);
   });
   it("renders extracted HQ workspaces independently", () => {
-    const flow = createKarriereFlow(demoState, demoRoundEvents, 15);
+    const flow = createCareerFlow(demoState, demoRoundEvents, 15);
 
     const inbox = renderToStaticMarkup(
       createElement(InboxIssuesPanel, {
@@ -78,7 +78,7 @@ describe("career HQ rendering", () => {
         issueDefinitions: [],
         view: "INBOX",
         onIssueAction: () => {},
-        onOpenKarriere: () => {},
+        onOpenCareer: () => {},
       }),
     );
     expect(inbox).toContain("Starte die nächste Runde");
@@ -89,7 +89,7 @@ describe("career HQ rendering", () => {
         issueDefinitions: [],
         view: "ISSUES",
         onIssueAction: () => {},
-        onOpenKarriere: () => {},
+        onOpenCareer: () => {},
       }),
     );
     expect(issues).toContain("Noch keine Themen erfasst.");
@@ -108,7 +108,7 @@ describe("career HQ rendering", () => {
       createElement(PoliticalConflictsPanel, {
         flow,
         onConflictDecision: () => {},
-        onOpenKarriere: () => {},
+        onOpenCareer: () => {},
       }),
     );
     expect(conflicts.length).toBeGreaterThan(20);
@@ -123,7 +123,7 @@ describe("career HQ rendering", () => {
         id: "activity_test_signing",
         season: 1,
         seriesId: "F1",
-        type: "Verpflichtung",
+        type: "SIGNING",
         personId: person.id,
         fromTeamId: null,
         toTeamId: team.id,
