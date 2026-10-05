@@ -743,7 +743,7 @@ export function RacePanel({ flow, onAction }: Props) {
               <tr>
                 <th>Pos</th>
                 <th>Team</th>
-                <th>Points</th>
+                <th>Punkte</th>
               </tr>
             </thead>
             <tbody>
@@ -764,8 +764,8 @@ export function RacePanel({ flow, onAction }: Props) {
               <thead>
                 <tr>
                   <th>Pos</th>
-                  <th>Driver</th>
-                  <th>Points</th>
+                  <th>Fahrer</th>
+                  <th>Punkte</th>
                   <th>Siege</th>
                 </tr>
               </thead>
@@ -817,7 +817,7 @@ export function RacePanel({ flow, onAction }: Props) {
                   <th>Pos</th>
                   <th>Fahrer / Fahrzeug</th>
                   <th>Team</th>
-                  <th>Points</th>
+                  <th>Punkte</th>
                   <th>Status</th>
                 </tr>
               </thead>
