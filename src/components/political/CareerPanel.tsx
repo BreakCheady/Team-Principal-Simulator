@@ -591,9 +591,6 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             .filter((o) => o.holder === "MUTUAL" && !o.exercised && o.available)
             .map((o) => (
               <article className={card} key={o.id}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-rose-300">
-                  Rival approach
-                </p>
                 <p>
                   {name(contract.characterId)} · window R{o.exerciseFromRound}–R
                   {o.exerciseUntilRound} · +{o.extensionRounds} rounds
