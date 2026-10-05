@@ -15,7 +15,7 @@ type Props = {
 };
 
 function money(value: number) {
-  return `€${value.toFixed(2)}m`;
+  return `€${value.toFixed(2)} Mio.`;
 }
 
 export function FinancePanel({ state, round, onAction }: Props) {
@@ -84,11 +84,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
           ))}
         </dl>
         <p className="mt-4 text-xs leading-5 text-zinc-500">
-          Salaries are paid over {finance.roundsPerSeason} rounds per season.
-          Bonuses are paid when triggered. Remaining guaranteed pay is settled
-          when a contract expires. Potential unpaid bonuses:{" "}
-          {money(summary.possibleBonuses)}. Approved commitment limit:{" "}
-          {money(finance.commitmentBudgetMillions)}.
+          Gehälter werden über {finance.roundsPerSeason} Runden pro Saison gezahlt. Boni werden bei Auslösung fällig. Verbleibende Garantien werden beim Vertragsende ausgeglichen. Mögliche offene Boni: {money(summary.possibleBonuses)}. Freigegebene Verpflichtungsgrenze: {money(finance.commitmentBudgetMillions)}.
         </p>
       </article>
 
@@ -96,9 +92,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
         <article className="rounded-lg border border-zinc-800 p-5">
           <h3 className="font-semibold">Notfallfinanzierung anfragen</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Receive {money(getOwnerFundingAmount(state))} once when cash falls
-            below €8m. Your reputation falls by 8, owner trust in you by 10, and
-            the owner gains 5 influence.
+            Erhalte einmalig {money(getOwnerFundingAmount(state))}, wenn der Kassenbestand unter €8 Mio. fällt. Deine Reputation sinkt um 8, das Vertrauen des Eigentümers um 10 und dessen Einfluss steigt um 5.
           </p>
           <button
             type="button"
@@ -115,13 +109,12 @@ export function FinancePanel({ state, round, onAction }: Props) {
         <article className="rounded-lg border border-zinc-800 p-5">
           <h3 className="font-semibold">Betriebskosten senken</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Reduce future operating costs by 20% to{" "}
+            Senke künftige Betriebskosten um 20 % auf{" "}
             {money(
               finance.operatingCostMillionsPerRound *
                 (finance.costCutsApplied ? 1 : 0.8),
             )}{" "}
-            per round. Technical leadership and race engineers gain 8
-            instability and 8 political fatigue.
+            pro Runde. Technische Leitung und Renningenieure erhalten jeweils +8 Instabilität und +8 politische Ermüdung.
           </p>
           <button
             type="button"
@@ -142,23 +135,22 @@ export function FinancePanel({ state, round, onAction }: Props) {
       <article className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
         <h3 className="text-lg font-semibold">Kontobuch</h3>
         <p className="mt-2 text-xs text-zinc-500">
-          Opening cash {money(finance.openingBalanceMillions)} after round{" "}
+          Eröffnungsbestand {money(finance.openingBalanceMillions)} nach Runde{" "}
           {finance.openedAfterRound}
-          {" · "}Income {money(income)} · Expenses {money(expenses)} · Settled
-          through R{finance.settledThroughRound}
+          {" · "}Einnahmen {money(income)} · Ausgaben {money(expenses)} · verbucht bis R{finance.settledThroughRound}
         </p>
         {transactions.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            The next round will book the first payments.
+            In der nächsten Runde werden die ersten Zahlungen verbucht.
           </p>
         ) : (
           <div className="mt-4 max-h-96 overflow-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs text-zinc-500">
                 <tr>
-                  <th className="p-2">Round</th>
-                  <th className="p-2">Booking</th>
-                  <th className="p-2 text-right">Amount</th>
+                  <th className="p-2">Runde</th>
+                  <th className="p-2">Buchung</th>
+                  <th className="p-2 text-right">Betrag</th>
                 </tr>
               </thead>
               <tbody>
