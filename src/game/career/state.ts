@@ -255,7 +255,7 @@ export function createCareer(
     log: [
       {
         round,
-        text: "Career opened. Championship counters start here; earlier race results are not reconstructed.",
+        text: "Karriere gestartet. Die Meisterschaftszähler beginnen hier; frühere Rennergebnisse werden nicht nachgebildet.",
       },
     ],
     car: { pace: 78, reliability: 84 },
@@ -430,7 +430,7 @@ export function validateCareer(
         (c.status !== "RUNNING" || c.races.some((r) => r.round === round))) ||
       new Set(weekend.cars.map((car) => car.id)).size !== weekend.cars.length
     )
-      throw new Error("Inconsistent active race weekend.");
+      throw new Error("Inkonsistentes aktives Rennwochenende.");
     for (const car of weekend.cars) {
       if (
         car.activeDriver >= car.crew.length ||
@@ -443,7 +443,7 @@ export function validateCareer(
         car.nextLapAt < car.totalSeconds ||
         new Set(car.crew.map((d) => d.id)).size !== car.crew.length
       )
-        throw new Error("Invalid live race entry.");
+        throw new Error("Ungültiger Live-Renneintrag.");
     }
     if (
       new Set(weekend.qualifying.map((q) => q.id)).size !==
@@ -460,12 +460,12 @@ export function validateCareer(
         ),
       )
     )
-      throw new Error("Invalid race telemetry references.");
+      throw new Error("Ungültige Referenzen in der Renntelemetrie.");
   }
   if (c.world) {
     c.world = validateWorld(c.world);
     if (c.world.season !== c.season)
-      throw new Error("World season is inconsistent.");
+      throw new Error("Die Saison der Motorsport-Welt ist inkonsistent.");
     if (
       c.world.series.find((s) => s.seriesId === c.world!.playerSeriesId)!
         .completedRounds !==
@@ -474,24 +474,24 @@ export function validateCareer(
         round - c.seasonStart + (c.weekend && !c.weekend.committed ? 0 : 1),
       )
     )
-      throw new Error("World race clock is inconsistent.");
+      throw new Error("Der Rennkalender der Motorsport-Welt ist inkonsistent.");
   }
   for (const id of c.activeActorIds)
-    if (!ids.has(id)) throw new Error("Career references an unknown actor.");
+    if (!ids.has(id)) throw new Error("Die Karriere verweist auf eine unbekannte Person.");
   if (
     new Set(c.activeActorIds).size !== c.activeActorIds.length ||
     new Set(c.seats.map((s) => s.seat)).size !== c.seats.length ||
     c.seats.length !==
       (c.world ? getSeries(c.world.playerSeriesId).driversPerTeam + 3 : 5)
   )
-    throw new Error("Career has duplicate actors or invalid seats.");
+    throw new Error("Die Karriere enthält doppelte Personen oder ungültige Positionen.");
   if (
     political.characters.some(
       (actor) =>
         c.activeActorIds.includes(actor.id) === (actor.active === false),
     )
   )
-    throw new Error("Career and political actor activity disagree.");
+    throw new Error("Karriere- und Politikstatus einer Person widersprechen sich.");
   const occupied = c.seats.flatMap((s) =>
     s.characterId ? [s.characterId] : [],
   );
@@ -499,7 +499,7 @@ export function validateCareer(
     new Set(occupied).size !== occupied.length ||
     occupied.some((id) => !c.activeActorIds.includes(id))
   )
-    throw new Error("Invalid career lineup.");
+    throw new Error("Ungültige Teamaufstellung.");
   for (const collection of [
     c.candidates,
     c.offers,
@@ -508,11 +508,11 @@ export function validateCareer(
     c.standings,
   ]) {
     if (new Set(collection.map((x) => x.id)).size !== collection.length)
-      throw new Error("Duplicate career IDs.");
+      throw new Error("Doppelte Karriere-IDs.");
   }
   for (const request of c.requests) {
     if (!ids.has(request.characterId))
-      throw new Error("Unknown request actor.");
+      throw new Error("Unbekannte Person in einer Anfrage.");
     if (request.contractId) {
       const contract = political.contracts.find(
         (x) =>
@@ -523,11 +523,11 @@ export function validateCareer(
         (request.optionId &&
           !contract.options.some((o) => o.id === request.optionId))
       )
-        throw new Error("Invalid option request.");
+        throw new Error("Ungültige Optionsanfrage.");
     }
   }
   for (const offer of c.offers) {
-    if (!ids.has(offer.characterId)) throw new Error("Unknown transfer actor.");
+    if (!ids.has(offer.characterId)) throw new Error("Unbekannte Person im Transfer.");
     if (
       offer.clauseId &&
       !political.contracts.some(
@@ -538,13 +538,13 @@ export function validateCareer(
           ),
       )
     )
-      throw new Error("Unknown transfer release clause.");
+      throw new Error("Unbekannte Ausstiegsklausel im Transfer.");
   }
   for (const project of c.projects)
     if (project.sponsorId && !ids.has(project.sponsorId))
-      throw new Error("Unknown project sponsor.");
+      throw new Error("Unbekannter Verantwortlicher für das Projekt.");
   if (new Set(c.races.map((r) => r.round)).size !== c.races.length)
-    throw new Error("Duplicate race rounds.");
+    throw new Error("Doppelte Rennrunden.");
   for (const race of c.races)
     if (
       race.season !== Math.floor((race.round - 1) / length) + 1 ||
@@ -552,7 +552,7 @@ export function validateCareer(
         race.results.length ||
       race.results.some((r) => !c.standings.some((s) => s.id === r.characterId))
     )
-      throw new Error("Invalid race references.");
+      throw new Error("Ungültige Rennreferenzen.");
   if (
     c.seasonStart !== (c.season - 1) * length + 1 ||
     c.seasonEnd !== c.season * length ||
@@ -560,6 +560,6 @@ export function validateCareer(
     round > c.seasonEnd ||
     c.races.some((r) => r.round > round)
   )
-    throw new Error("Career calendar does not match current round.");
+    throw new Error("Der Karriere-Kalender passt nicht zur aktuellen Runde.");
   return c;
 }
