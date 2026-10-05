@@ -78,3 +78,14 @@ presentation and derived view calculations. Simulation mutations remain in `src/
 Production CI runs lint, an explicit TypeScript check, tests and the Next.js production build.
 The app-level error boundary provides a recoverable failure screen without replacing or
 silently mutating the user's local save.
+
+
+### HQ workspace split
+
+The season shell now delegates inbox/issues, people/power centers, political conflicts,
+contracts, finance, career/racing and world views to focused components. Cross-domain
+mutation callbacks stay in the shell and continue to call simulation functions from
+`src/game`; presentation components must not become alternate simulation engines.
+
+Regression coverage includes an explicit race-to-contract-to-finance-to-politics path so
+future UI work cannot silently sever the gameplay systems while preserving isolated tests.
