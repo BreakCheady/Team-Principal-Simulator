@@ -76,7 +76,6 @@ export function MotorsportGame() {
           {preview.people.filter((p) => p.role !== "DRIVER").length} staff
         </p>
       </header>
-      </header>
       <section className="tps-panel p-5 md:p-6">
         <div className="flex items-end justify-between gap-4">
           <div><p className="tps-kicker">Step 01</p><h2 className="mt-2 text-xl font-semibold">Choose series</h2></div>
