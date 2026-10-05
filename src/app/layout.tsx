@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Team Principal Simulator",
-  description: "A motorsport management game about people, power and paddock politics.",
+  description: "Ein Motorsport-Managementspiel über Menschen, Macht, Strategie und Fahrerlagerpolitik.",
 };
 
 export default function RootLayout({
