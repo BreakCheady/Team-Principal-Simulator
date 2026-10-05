@@ -39,7 +39,7 @@ export function MotorsportGame() {
               ? preview.teams.find(
                   (t) => t.id === flow.career!.world!.playerTeamId,
                 )?.name
-              : "Legacy career"}
+              : "Ältere Karriere"}
           </h1>
           </div>
           <span className="hidden rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-xs font-semibold text-zinc-500 md:block">
