@@ -1,50 +1,50 @@
 "use client";
 
 import {
-  createNegotiationOffer,
-  type ContractNegotiationOffer,
+  createVerhandlungOffer,
+  type VertragVerhandlungOffer,
 } from "@/game/contracts/negotiations";
 import {
   canExerciseTeamOption,
   isReleaseClauseInForce,
 } from "@/game/contracts/contracts";
-import { assessContractBudget } from "@/game/finance/finances";
+import { assessVertragBudget } from "@/game/finance/finances";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  startNegotiation: (contractId: string) => void;
+  startVerhandlung: (contractId: string) => void;
   exerciseTeamOption: (contractId: string, optionId: string) => void;
-  submitContractOffer: (
+  submitVertragOffer: (
     negotiationId: string,
     posture: "FIRM" | "BALANCED" | "GENEROUS",
   ) => void;
   acceptCounterOffer: (negotiationId: string) => void;
-  walkAwayFromNegotiation: (negotiationId: string) => void;
+  walkAwayFromVerhandlung: (negotiationId: string) => void;
 };
 
 function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function ContractsPanel({
+export function VertragsPanel({
   flow,
-  startNegotiation,
+  startVerhandlung,
   exerciseTeamOption,
-  submitContractOffer,
+  submitVertragOffer,
   acceptCounterOffer,
-  walkAwayFromNegotiation,
+  walkAwayFromVerhandlung,
 }: Props) {
-  function offerBudget(contractId: string, offer: ContractNegotiationOffer) {
+  function offerBudget(contractId: string, offer: VertragVerhandlungOffer) {
     const contract = flow.political.contracts.find(
       (item) => item.id === contractId,
     )!;
-    return assessContractBudget(
+    return assessVertragBudget(
       flow.political,
       contractId,
       {
         salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-        guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
+        guaranteedGehaltMillions: offer.guaranteedGehaltMillions,
         endRound:
           Math.max(contract.endRound, flow.currentRound) +
           offer.extensionRounds,
@@ -56,13 +56,13 @@ export function ContractsPanel({
 
   return (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Contract room</h3>
+            <h3 className="text-xl font-semibold">Vertragszentrale</h3>
             {flow.issues
               .filter((issue) => issue.category === "CONTRACT")
               .map((issue) => (
                 <article
                   key={issue.id}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                 >
                   <p className="font-medium">{issue.title}</p>
                   <p className="mt-2 text-sm text-zinc-500">
@@ -86,10 +86,10 @@ export function ContractsPanel({
                     flow.currentRound,
                   ),
                 );
-                const openNegotiation = flow.negotiations.some(
+                const openVerhandlung = flow.negotiations.some(
                   (session) =>
                     session.contractId === contract.id &&
-                    ["OPEN", "COUNTERED"].includes(session.status),
+                    ["OFFEN", "COUNTERED"].includes(session.status),
                 );
                 const pendingTriggers = contract.performanceTriggers.filter(
                   (trigger) => !trigger.triggered,
@@ -98,7 +98,7 @@ export function ContractsPanel({
                 return (
                   <article
                     key={contract.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -116,15 +116,15 @@ export function ContractsPanel({
                     </div>
 
                     <p className="mt-3 text-sm text-zinc-400">
-                      Guaranteed €{contract.guaranteedSalaryMillions}m · bonuses
+                      Guaranteed €{contract.guaranteedGehaltMillions}m · bonuses
                       earned €{contract.earnedBonusesMillions}m
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
-                      Salary paid €{contract.salaryPaidMillions.toFixed(2)}m ·
+                      Gehalt paid €{contract.salaryPaidMillions.toFixed(2)}m ·
                       remaining guaranteed pay €
                       {Math.max(
                         0,
-                        contract.guaranteedSalaryMillions -
+                        contract.guaranteedGehaltMillions -
                           contract.salaryPaidMillions,
                       ).toFixed(2)}
                       m
@@ -133,7 +133,7 @@ export function ContractsPanel({
                     {contract.options.length > 0 ? (
                       <div className="mt-4">
                         <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                          Options
+                          Optionen
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.options.map((option) => {
@@ -143,7 +143,7 @@ export function ContractsPanel({
                               flow.currentRound,
                             );
                             const budget = eligible
-                              ? assessContractBudget(
+                              ? assessVertragBudget(
                                   flow.political,
                                   contract.id,
                                   {
@@ -153,10 +153,10 @@ export function ContractsPanel({
                                         option.salaryMultiplier
                                       ).toFixed(2),
                                     ),
-                                    guaranteedSalaryMillions:
-                                      contract.guaranteedSalaryMillions,
+                                    guaranteedGehaltMillions:
+                                      contract.guaranteedGehaltMillions,
                                     endRound:
-                                      contract.endRound +
+                                      contract.endRunde +
                                       option.extensionRounds,
                                   },
                                   flow.currentRound,
@@ -171,12 +171,12 @@ export function ContractsPanel({
                                 rounds · window R{option.exerciseFromRound}–R
                                 {option.exerciseUntilRound} ·
                                 {option.exercised
-                                  ? " exercised"
+                                  ? " ausgeübt"
                                   : option.available
-                                    ? " available"
-                                    : " locked"}
+                                    ? " verfügbar"
+                                    : " gesperrt"}
                                 <p className="mt-1">
-                                  Salary on exercise: €
+                                  Gehalt on exercise: €
                                   {(
                                     contract.salaryMillionsPerSeason *
                                     (option.exercised
@@ -198,7 +198,7 @@ export function ContractsPanel({
                                       }
                                       disabled={
                                         !eligible ||
-                                        openNegotiation ||
+                                        openVerhandlung ||
                                         !budget?.affordable
                                       }
                                       className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
@@ -216,11 +216,11 @@ export function ContractsPanel({
                                 !option.exercised ? (
                                   <p className="mt-2">
                                     {option.holder === "MUTUAL"
-                                      ? "Requires agreement from both parties."
-                                      : "The character controls this option."}
+                                      ? "Erfordert die Zustimmung beider Parteien."
+                                      : "Diese Option liegt bei der Person."}
                                   </p>
                                 ) : null}
-                                {openNegotiation &&
+                                {openVerhandlung &&
                                 option.holder === "TEAM" &&
                                 !option.exercised ? (
                                   <p className="mt-2">
@@ -238,7 +238,7 @@ export function ContractsPanel({
                     {contract.releaseClauses.length > 0 ? (
                       <div className="mt-4">
                         <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                          Release clauses
+                          Ausstiegsklausels
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.releaseClauses.map((clause) => (
@@ -254,10 +254,10 @@ export function ContractsPanel({
                                 clause,
                                 flow.currentRound,
                               )
-                                ? " in force"
+                                ? " gültig"
                                 : clause.active
-                                  ? " outside active term or window"
-                                  : " locked"}
+                                  ? " außerhalb der gültigen Laufzeit oder Frist"
+                                  : " gesperrt"}
                             </div>
                           ))}
                         </div>
@@ -267,7 +267,7 @@ export function ContractsPanel({
                     {contract.performanceTriggers.length > 0 ? (
                       <div className="mt-4">
                         <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                          Performance triggers
+                          Leistungsbedingungen
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.performanceTriggers.map((trigger) => (
@@ -309,7 +309,7 @@ export function ContractsPanel({
                         ) ? (
                           <button
                             type="button"
-                            onClick={() => startNegotiation(contract.id)}
+                            onClick={() => startVerhandlung(contract.id)}
                             className="rounded-lg border border-emerald-800 px-3 py-2 text-sm text-emerald-300 hover:border-emerald-600"
                           >
                             Start renewal talks
@@ -333,7 +333,7 @@ export function ContractsPanel({
                               </span>
                             </div>
 
-                            <div className="rounded-xl border border-zinc-800 bg-black/20 p-4 text-xs text-zinc-400">
+                            <div className="rounded-md border border-zinc-800 bg-black/20 p-4 text-xs text-zinc-400">
                               <p className="font-medium text-zinc-300">
                                 Character demand
                               </p>
@@ -346,14 +346,14 @@ export function ContractsPanel({
                                 m / season · guaranteed €
                                 {
                                   negotiation.characterDemand
-                                    .guaranteedSalaryMillions
+                                    .guaranteedGehaltMillions
                                 }
                                 m · +
                                 {negotiation.characterDemand.extensionRounds}{" "}
                                 rounds
                               </p>
                               <p className="mt-1">
-                                Release clause{" "}
+                                Ausstiegsklausel{" "}
                                 {negotiation.characterDemand
                                   .releaseClauseMillions === null
                                   ? "none"
@@ -371,8 +371,8 @@ export function ContractsPanel({
                             </div>
 
                             {negotiation.counterOffer ? (
-                              <div className="rounded-xl border border-amber-900 bg-amber-950/10 p-4 text-xs text-amber-200">
-                                <p className="font-medium">Counteroffer</p>
+                              <div className="rounded-md border border-amber-900 bg-amber-950/10 p-4 text-xs text-amber-200">
+                                <p className="font-medium">Gegenangebot</p>
                                 <p className="mt-2">
                                   €
                                   {
@@ -382,14 +382,14 @@ export function ContractsPanel({
                                   m / season · guaranteed €
                                   {
                                     negotiation.counterOffer
-                                      .guaranteedSalaryMillions
+                                      .guaranteedGehaltMillions
                                   }
                                   m · +
                                   {negotiation.counterOffer.extensionRounds}{" "}
                                   rounds
                                 </p>
                                 <p className="mt-1">
-                                  Release clause{" "}
+                                  Ausstiegsklausel{" "}
                                   {negotiation.counterOffer
                                     .releaseClauseMillions === null
                                     ? "none"
@@ -417,7 +417,7 @@ export function ContractsPanel({
                                   }
                                   className="mt-3 rounded-lg bg-amber-200 px-3 py-2 font-medium text-amber-950 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                                 >
-                                  Accept counteroffer
+                                  Gegenangebot annehmen
                                 </button>
                                 {offerBudget(
                                   contract.id,
@@ -438,7 +438,7 @@ export function ContractsPanel({
                             <div className="grid gap-2 sm:grid-cols-3">
                               {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
                                 (posture) => {
-                                  const offer = createNegotiationOffer(
+                                  const offer = createVerhandlungOffer(
                                     negotiation,
                                     posture,
                                   );
@@ -451,7 +451,7 @@ export function ContractsPanel({
                                       <button
                                         type="button"
                                         onClick={() =>
-                                          submitContractOffer(
+                                          submitVertragOffer(
                                             negotiation.id,
                                             posture,
                                           )
@@ -460,10 +460,10 @@ export function ContractsPanel({
                                         className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
                                       >
                                         {posture === "FIRM"
-                                          ? "Firm offer"
+                                          ? "Hartes Angebot"
                                           : posture === "BALANCED"
-                                            ? "Balanced offer"
-                                            : "Generous offer"}
+                                            ? "Ausgewogenes Angebot"
+                                            : "Großzügiges Angebot"}
                                       </button>
                                       <p className="mt-2 text-xs text-zinc-500">
                                         €
@@ -487,11 +487,11 @@ export function ContractsPanel({
                             <button
                               type="button"
                               onClick={() =>
-                                walkAwayFromNegotiation(negotiation.id)
+                                walkAwayFromVerhandlung(negotiation.id)
                               }
                               className="text-xs text-red-300 hover:text-red-200"
                             >
-                              Walk away from talks
+                              Verhandlung beenden from talks
                             </button>
                           </div>
                         )}
