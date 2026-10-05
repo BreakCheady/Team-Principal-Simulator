@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  getFinanzenSummary,
+  getFinanceSummary,
   getOwnerFundingBlockReason,
-  isFinanzenEinnahmen,
+  isFinanceIncome,
   getOwnerFundingBetrag,
 } from "@/game/finance/finances";
 import type { PoliticalCoreState } from "@/game/political/types";
@@ -18,18 +18,18 @@ function money(value: number) {
   return `€${value.toFixed(2)}m`;
 }
 
-export function FinanzenPanel({ state, round, onAction }: Props) {
+export function FinancePanel({ state, round, onAction }: Props) {
   const finance = state.finance;
-  const summary = getFinanzenSummary(state, round);
+  const summary = getFinanceSummary(state, round);
   const ownerFundingReason = getOwnerFundingBlockReason(state);
   const transactions = [...finance.transactions]
     .reverse()
     .sort((a, b) => b.round - a.round);
   const income = finance.transactions
-    .filter(isFinanzenEinnahmen)
+    .filter(isFinanceIncome)
     .reduce((sum, item) => sum + item.amountMillions, 0);
   const expenses = finance.transactions
-    .filter((item) => !isFinanzenEinnahmen(item))
+    .filter((item) => !isFinanceIncome(item))
     .reduce((sum, item) => sum + item.amountMillions, 0);
 
   return (
@@ -70,8 +70,8 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
         <h3 className="text-lg font-semibold">Runde cash flow</h3>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {[
-            ["Sponsoreneinnahmen", finance.sponsorEinnahmenMillionsPerRunde],
-            ["Eigentümerbeitrag", finance.ownerEinnahmenMillionsPerRunde],
+            ["Sponsoreneinnahmen", finance.sponsorIncomeMillionsPerRunde],
+            ["Eigentümerbeitrag", finance.ownerIncomeMillionsPerRunde],
             ["Betriebskosten", finance.operatingCostMillionsPerRunde],
             ["Gehälter nächste Runde", summary.nextSalary],
             ["Garantien nächste Runde", summary.nextGuarantees],
@@ -94,7 +94,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-2xl border border-zinc-800 p-5">
-          <h3 className="font-semibold">Notfinanzierung beim Eigentümer anfragen</h3>
+          <h3 className="font-semibold">Request emergency owner funding</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Receive {money(getOwnerFundingBetrag(state))} once when cash falls
             below €8m. Your reputation falls by 8, owner trust in you by 10, and
@@ -106,7 +106,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
             disabled={ownerFundingReason !== null}
             className="mt-4 rounded-lg border border-amber-800 px-4 py-2 text-sm text-amber-200 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
           >
-            Eigentümer um Finanzierung bitten
+            Request owner funding
           </button>
           {ownerFundingReason ? (
             <p className="mt-2 text-xs text-zinc-500">{ownerFundingReason}</p>
@@ -144,7 +144,7 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
         <p className="mt-2 text-xs text-zinc-500">
           Opening cash {money(finance.openingKontostandMillions)} after round{" "}
           {finance.openedAfterRunde}
-          {" · "}Einnahmen {money(income)} · Ausgabens {money(expenses)} · Settled
+          {" · "}Income {money(income)} · Expenses {money(expenses)} · Settled
           through R{finance.settledThroughRunde}
         </p>
         {transactions.length === 0 ? (
@@ -169,9 +169,9 @@ export function FinanzenPanel({ state, round, onAction }: Props) {
                       {transaction.description}
                     </td>
                     <td
-                      className={`whitespace-nowrap p-2 text-right ${isFinanzenEinnahmen(transaction) ? "text-emerald-300" : "text-amber-300"}`}
+                      className={`whitespace-nowrap p-2 text-right ${isFinanceIncome(transaction) ? "text-emerald-300" : "text-amber-300"}`}
                     >
-                      {isFinanzenEinnahmen(transaction) ? "+" : "−"}
+                      {isFinanceIncome(transaction) ? "+" : "−"}
                       {money(transaction.amountMillions)}
                     </td>
                   </tr>
