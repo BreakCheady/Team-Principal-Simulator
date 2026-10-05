@@ -19,9 +19,9 @@ export function MotorsportGame() {
     team = teams.find((t) => t.id === selected) ?? teams[0];
   function load() {
     try {
-      const raw = window.localStorage.getItem(
-        "team-principal-simulator-v03-rounds",
-      );
+      const raw =
+        window.localStorage.getItem("team-principal-simulator-v11-rounds") ??
+        window.localStorage.getItem("team-principal-simulator-v03-rounds");
       if (!raw) throw new Error("No local save found.");
       setFlow(decodeSave<RoundFlowState>(raw, "ROUND_FLOW").state);
     } catch (e) {
@@ -30,19 +30,23 @@ export function MotorsportGame() {
   }
   if (flow)
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <header>
-          <p className="text-xs uppercase tracking-widest text-sky-400">
-            Team Principal Simulator
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold">
+      <main className="tps-shell min-h-screen px-4 py-6 md:px-6">
+        <header className="mx-auto flex max-w-[1600px] items-end justify-between gap-4">
+          <div>
+          <p className="tps-kicker">Team Principal Simulator</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">
             {flow.career?.world
               ? preview.teams.find(
                   (t) => t.id === flow.career!.world!.playerTeamId,
                 )?.name
               : "Legacy career"}
           </h1>
+          </div>
+          <span className="hidden rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-xs font-semibold text-zinc-500 md:block">
+            Race operations online
+          </span>
         </header>
+        <div className="mx-auto max-w-[1600px]">
         <RoundEventsPanel
           key={flow.career?.world?.playerTeamId ?? "legacy"}
           initialState={flow.political}
@@ -52,29 +56,32 @@ export function MotorsportGame() {
           initialFlow={flow}
           onChooseCareer={() => setFlow(null)}
         />
+        </div>
       </main>
     );
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-4 py-10">
-      <header>
-        <p className="text-xs uppercase tracking-widest text-sky-400">
-          Team Principal Simulator · Motorsport World
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold">Start your career</h1>
+    <main className="tps-shell min-h-screen px-4 py-8 md:px-6">
+      <div className="mx-auto max-w-[1500px] space-y-6">
+      <header className="tps-panel tps-track-grid overflow-hidden p-6 md:p-8">
+        <p className="tps-kicker">Team Principal Simulator · Career setup</p>
+        <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-[-.04em] md:text-6xl">Choose your paddock.</h1>
         <p className="mt-4 max-w-3xl text-zinc-400">
           Choose a championship and a fictional team. Start in preseason,
           prepare your lineup and budget, then race a complete season from round
           1.
         </p>
-        <p className="mt-3 text-sm text-sky-300">
+        <p className="mt-5 text-sm font-semibold text-cyan-300">
           9 series · {preview.teams.length} teams ·{" "}
           {preview.people.filter((p) => p.role === "DRIVER").length} drivers ·{" "}
           {preview.people.filter((p) => p.role !== "DRIVER").length} staff
         </p>
       </header>
-      <section>
-        <h2 className="text-xl font-semibold">Choose series</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <section className="tps-panel p-5 md:p-6">
+        <div className="flex items-end justify-between gap-4">
+          <div><p className="tps-kicker">Step 01</p><h2 className="mt-2 text-xl font-semibold">Choose series</h2></div>
+          <span className="text-xs text-zinc-600">9 championships</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {SERIES.map((s) => (
             <button
               key={s.id}
@@ -84,7 +91,7 @@ export function MotorsportGame() {
                 setSelected(`team_${s.id.toLowerCase()}_0`);
                 setError("");
               }}
-              className={`rounded-2xl border p-4 text-left ${series === s.id ? "border-sky-500 bg-sky-950/50" : "border-zinc-800 bg-zinc-950"}`}
+              className={`rounded-2xl border p-5 text-left transition ${series === s.id ? "border-cyan-400/50 bg-cyan-400/10 shadow-[inset_3px_0_0_rgba(94,231,255,.8)]" : "border-slate-800 bg-black/20 hover:border-slate-600"}`}
             >
               <span className="font-semibold">{s.name}</span>
               <span className="mt-2 block text-sm text-zinc-400">
@@ -96,15 +103,16 @@ export function MotorsportGame() {
         </div>
         <p className="mt-4 text-sm text-zinc-400">{cfg.description}</p>
       </section>
-      <section>
-        <h2 className="text-xl font-semibold">Choose team · {cfg.name}</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <section className="tps-panel p-5 md:p-6">
+        <p className="tps-kicker">Step 02</p>
+        <h2 className="mt-2 text-xl font-semibold">Choose team · {cfg.name}</h2>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {teams.map((t) => (
             <button
               key={t.id}
               aria-pressed={team.id === t.id}
               onClick={() => setSelected(t.id)}
-              className={`rounded-2xl border p-4 text-left ${team.id === t.id ? "border-emerald-500 bg-emerald-950/30" : "border-zinc-800"}`}
+              className={`rounded-2xl border p-5 text-left transition ${team.id === t.id ? "border-emerald-400/50 bg-emerald-400/10 shadow-[inset_3px_0_0_rgba(82,229,163,.8)]" : "border-slate-800 bg-black/20 hover:border-slate-600"}`}
             >
               <span className="font-semibold">{t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}</span>
               <span className="mt-2 block text-sm text-zinc-400">
@@ -120,7 +128,7 @@ export function MotorsportGame() {
           ))}
         </div>
       </section>
-      <section className="rounded-2xl border border-zinc-800 p-6">
+      <section className="tps-panel tps-track-grid p-6 md:p-7">
         <h2 className="text-xl font-semibold">{team.name}</h2>
         <p className="mt-3 text-sm text-zinc-400">
           Full {cfg.rounds}-race calendar · {cfg.driversPerTeam} occupied driver
@@ -129,7 +137,7 @@ export function MotorsportGame() {
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <button
-            className="rounded-xl bg-sky-300 px-6 py-3 font-semibold text-sky-950"
+            className="rounded-xl bg-cyan-300 px-6 py-3 font-bold text-slate-950 hover:bg-cyan-200"
             onClick={() => {
               try {
                 setFlow(createNewCareer(series, team.id));
@@ -143,7 +151,7 @@ export function MotorsportGame() {
             Start season from round 1
           </button>
           <button
-            className="rounded-xl border border-zinc-700 px-5 py-3"
+            className="rounded-xl border border-slate-700 px-5 py-3 font-semibold text-zinc-300 hover:border-slate-500"
             onClick={load}
           >
             Load existing career
@@ -151,6 +159,7 @@ export function MotorsportGame() {
         </div>
         {error ? <p className="mt-4 text-amber-300">{error}</p> : null}
       </section>
+      </div>
     </main>
   );
 }
