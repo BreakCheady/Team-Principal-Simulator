@@ -8,7 +8,19 @@ type Props = {
 };
 
 function label(value: string) {
-  return value.replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    TEAM_PRINCIPAL: "Teamchef",
+    SPORTING_DIRECTOR: "Sportdirektor",
+    TECHNICAL_DIRECTOR: "Technischer Direktor",
+    RACE_ENGINEER: "Renningenieur",
+    OWNER_REPRESENTATIVE: "Eigentümervertreter",
+    SPONSOR_REPRESENTATIVE: "Sponsorvertreter",
+    CEO: "Geschäftsführung",
+    INTERNAL_INFLUENCE: "Interner Einfluss",
+    OWNER_ACCESS: "Zugang zum Eigentümer",
+    COMMERCIAL_BACKING: "Kommerzielle Unterstützung",
+  };
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
 export function PeoplePowerCentersPanel({ flow, view }: Props) {
