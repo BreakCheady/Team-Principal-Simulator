@@ -2,15 +2,16 @@
 
 import { MotorsportWorldPanel } from "@/components/political/MotorsportWorldPanel";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { CareerPanel } from "@/components/political/CareerPanel";
 import { beginCareerWeekend, createCareerFlow } from "@/game/career/career";
 import { FinancePanel } from "@/components/political/FinancePanel";
 import { ContractsPanel } from "@/components/political/ContractsPanel";
+import { InboxIssuesPanel } from "@/components/political/InboxIssuesPanel";
+import { PeoplePowerCentersPanel } from "@/components/political/PeoplePowerCentersPanel";
+import { PoliticalConflictsPanel } from "@/components/political/PoliticalConflictsPanel";
 import { getCashBalance } from "@/game/finance/finances";
 import type { IssueDefinition } from "@/game/issues/issues";
-import { calculateConflict } from "@/game/political/conflicts";
-import { getConflictDecisions } from "@/game/political/decisions";
 import type { PoliticalCoreState } from "@/game/political/types";
 import { decodeSave, encodeSave } from "@/game/save/save-game";
 import {
@@ -55,13 +56,6 @@ type HqTab =
 const SAVE_KEY = "team-principal-simulator-v11-rounds";
 const LEGACY_SAVE_KEYS = ["team-principal-simulator-v03-rounds"] as const;
 
-function format(value: number) {
-  return value.toFixed(1);
-}
-
-function label(value: string) {
-  return value.replaceAll("_", " ");
-}
 
 export function RoundEventsPanel({
   initialState,
@@ -82,26 +76,7 @@ export function RoundEventsPanel({
   const raceActive =
     !!roundFlow.career?.weekend && !roundFlow.career.weekend.committed;
   const nextRound = getNextRound(roundFlow);
-  const latest = roundFlow.history.at(-1) ?? null;
   const openIssues = getOpenIssues(roundFlow);
-
-  const activeConflicts = useMemo(
-    () =>
-      roundFlow.political.conflicts.filter(
-        (conflict) =>
-          conflict.status === "ACTIVE" || conflict.status === "ESCALATED",
-      ),
-    [roundFlow.political.conflicts],
-  );
-
-  const inboxIssues = useMemo(
-    () =>
-      [...roundFlow.issues].sort((a, b) => {
-        const priority = { OPEN: 0, WATCHING: 1, ESCALATED: 2, RESOLVED: 3 };
-        return priority[a.status] - priority[b.status] || b.round - a.round;
-      }),
-    [roundFlow.issues],
-  );
 
   function startNextRound() {
     applyContractAction((current) =>
@@ -405,373 +380,26 @@ export function RoundEventsPanel({
             onAction={financeAction}
           />
         ) : null}
-        {tab === "INBOX" ? (
-          <div className="space-y-5">
-            {roundFlow.career?.requests.some((r) =>
-              ["OPEN", "ESCALATED"].includes(r.status),
-            ) ? (
-              <button
-                type="button"
-                className="rounded-xl border border-amber-800 p-4 text-left text-sm text-amber-300"
-                onClick={() => setTab("CAREER")}
-              >
-                Actor initiatives require attention · Open Career
-              </button>
-            ) : null}
-            {latest ? (
-              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
-                  Round {latest.round} report
-                </p>
-                <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                  {latest.events.map((event) => (
-                    <div
-                      key={event.eventId}
-                      className="rounded-xl border border-zinc-800 bg-black/20 p-4"
-                    >
-                      <p className="text-xs uppercase tracking-[0.14em] text-sky-400">
-                        {label(event.type)}
-                      </p>
-                      <p className="mt-2 font-medium">{event.title}</p>
-                      <p className="mt-2 text-sm leading-6 text-zinc-500">
-                        {event.summary}
-                      </p>
-                      {(event.contractTriggers ?? []).map((trigger) => (
-                        <p
-                          key={trigger.contractId + trigger.triggerId}
-                          className="mt-2 text-xs text-emerald-300"
-                        >
-                          {
-                            roundFlow.political.characters.find(
-                              (item) => item.id === trigger.characterId,
-                            )?.name
-                          }
-                          {" · "}
-                          {label(trigger.consequence)}
-                          {trigger.consequence === "SALARY_BONUS"
-                            ? ` · €${trigger.amountMillions}m earned`
-                            : ""}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ) : (
-              <article className="rounded-2xl border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-                Start the next round to receive the first inbox items.
-              </article>
-            )}
-
-            {inboxIssues.length === 0 ? (
-              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
-                Inbox clear. No management issues require attention.
-              </article>
-            ) : (
-              inboxIssues.map((issue) => {
-                const definition = issueDefinitions.find(
-                  (item) => item.id === issue.definitionId,
-                );
-                const initiator = roundFlow.political.characters.find(
-                  (character) => character.id === issue.initiatorCharacterId,
-                );
-
-                return (
-                  <article
-                    key={issue.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-zinc-400">
-                            {issue.category}
-                          </span>
-                          <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-zinc-400">
-                            {issue.status}
-                          </span>
-                        </div>
-                        <h3 className="mt-3 text-xl font-semibold">
-                          {issue.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-zinc-500">
-                          From {initiator?.name ?? issue.initiatorCharacterId}
-                        </p>
-                      </div>
-                      <span
-                        className={
-                          issue.escalation >= 70
-                            ? "text-sm font-medium text-red-300"
-                            : issue.escalation >= 45
-                              ? "text-sm font-medium text-amber-300"
-                              : "text-sm font-medium text-emerald-300"
-                        }
-                      >
-                        Escalation {issue.escalation}
-                      </span>
-                    </div>
-
-                    <p className="mt-4 leading-7 text-zinc-300">
-                      {issue.summary}
-                    </p>
-
-                    {(issue.status === "OPEN" || issue.status === "WATCHING") &&
-                    definition ? (
-                      <div className="mt-6 grid gap-3 lg:grid-cols-3">
-                        {definition.actions.map((action) => (
-                          <button
-                            key={action.id}
-                            type="button"
-                            onClick={() => takeIssueAction(issue.id, action.id)}
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-4 text-left transition hover:border-sky-700"
-                          >
-                            <span className="block font-medium">
-                              {action.label}
-                            </span>
-                            <span className="mt-2 block text-xs leading-5 text-zinc-500">
-                              {action.description}
-                            </span>
-                            {action.consequenceHints &&
-                            action.consequenceHints.length > 0 ? (
-                              <span className="mt-3 block border-t border-zinc-800 pt-3">
-                                {action.consequenceHints.map((hint) => (
-                                  <span
-                                    key={hint}
-                                    className="mt-1 block text-[11px] leading-4 text-zinc-400 first:mt-0"
-                                  >
-                                    • {hint}
-                                  </span>
-                                ))}
-                              </span>
-                            ) : null}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {issue.selectedActionId ? (
-                      <div className="mt-5 rounded-xl border border-zinc-800 bg-black/20 p-4 text-sm">
-                        <p className="text-zinc-400">
-                          Your action: {label(issue.selectedActionId)}
-                        </p>
-                        {issue.npcActions.at(-1) ? (
-                          <p className="mt-2 text-violet-300">
-                            NPC response: {issue.npcActions.at(-1)?.label}
-                          </p>
-                        ) : null}
-                        {issue.spawnedConflictId ? (
-                          <p className="mt-2 text-red-300">
-                            Escalated into conflict: {issue.spawnedConflictId}
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })
-            )}
-          </div>
+        {tab === "INBOX" || tab === "ISSUES" ? (
+          <InboxIssuesPanel
+            flow={roundFlow}
+            issueDefinitions={issueDefinitions}
+            view={tab}
+            onIssueAction={takeIssueAction}
+            onOpenCareer={() => setTab("CAREER")}
+          />
         ) : null}
 
-        {tab === "PEOPLE" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {roundFlow.political.characters.map((character) => (
-              <article
-                key={character.id}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
-              >
-                <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
-                  {label(character.role)}
-                  {character.active === false ? " · LEFT TEAM" : ""}
-                </p>
-                <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
-                <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <dt className="text-zinc-500">Momentum</dt>
-                    <dd className="mt-1">{character.dynamic.momentum}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Fatigue</dt>
-                    <dd className="mt-1">
-                      {character.dynamic.politicalFatigue}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Instability</dt>
-                    <dd className="mt-1">{character.dynamic.instability}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Ambition</dt>
-                    <dd className="mt-1">{character.personality.ambition}</dd>
-                  </div>
-                </dl>
-              </article>
-            ))}
-          </div>
-        ) : null}
-
-        {tab === "CENTERS" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {roundFlow.political.characters
-              .filter(
-                (character) =>
-                  character.active !== false &&
-                  [
-                    "SPORTING_DIRECTOR",
-                    "CEO",
-                    "OWNER_REPRESENTATIVE",
-                    "SPONSOR_REPRESENTATIVE",
-                    "RACE_ENGINEER",
-                  ].includes(character.role),
-              )
-              .map((character) => {
-                const activeLeverage = roundFlow.political.leverages.filter(
-                  (leverage) =>
-                    leverage.ownerCharacterId === character.id &&
-                    leverage.active,
-                );
-                const liveIssues = roundFlow.issues.filter(
-                  (issue) =>
-                    issue.initiatorCharacterId === character.id &&
-                    issue.status !== "RESOLVED",
-                );
-
-                return (
-                  <article
-                    key={character.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
-                  >
-                    <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
-                      {label(character.role)}
-                      {character.active === false ? " · LEFT TEAM" : ""}
-                    </p>
-                    <h3 className="mt-2 text-xl font-semibold">
-                      {character.name}
-                    </h3>
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-zinc-500">Internal influence</p>
-                        <p className="mt-1">
-                          {character.power.internalInfluence}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-zinc-500">Owner access</p>
-                        <p className="mt-1">{character.power.ownerAccess}</p>
-                      </div>
-                      <div>
-                        <p className="text-zinc-500">Commercial backing</p>
-                        <p className="mt-1">
-                          {character.power.commercialBacking}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-zinc-500">Live issues</p>
-                        <p className="mt-1">{liveIssues.length}</p>
-                      </div>
-                    </div>
-                    {activeLeverage.length > 0 ? (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {activeLeverage.map((leverage) => (
-                          <span
-                            key={leverage.id}
-                            className="rounded-full border border-violet-900 px-2.5 py-1 text-xs text-violet-300"
-                          >
-                            {label(leverage.type)} {leverage.strength}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-          </div>
+        {tab === "PEOPLE" || tab === "CENTERS" ? (
+          <PeoplePowerCentersPanel flow={roundFlow} view={tab} />
         ) : null}
 
         {tab === "POWER" ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {activeConflicts.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                No active political conflicts.
-              </p>
-            ) : (
-              activeConflicts.map((conflict) => {
-                const calculation = calculateConflict(
-                  roundFlow.political,
-                  conflict,
-                );
-                const leaderA = roundFlow.political.characters.find(
-                  (character) =>
-                    character.id === conflict.factions[0].leaderCharacterId,
-                );
-                const leaderB = roundFlow.political.characters.find(
-                  (character) =>
-                    character.id === conflict.factions[1].leaderCharacterId,
-                );
-
-                return (
-                  <article
-                    key={conflict.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
-                  >
-                    <p className="text-xs uppercase tracking-[0.14em] text-amber-400">
-                      {label(conflict.type)}
-                    </p>
-                    <p className="mt-3 text-sm leading-6 text-zinc-300">
-                      {conflict.issue}
-                    </p>
-                    <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                      <div className="rounded-xl border border-zinc-800 p-3">
-                        <p>{leaderA?.name}</p>
-                        <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionA.strength)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-zinc-800 p-3">
-                        <p>{leaderB?.name}</p>
-                        <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionB.strength)}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="mt-4 text-xs text-red-300">
-                      Escalation {format(calculation.escalation)}
-                    </p>
-                    {conflict.id.startsWith("conflict_request_") ? (
-                      <button
-                        type="button"
-                        onClick={() => setTab("CAREER")}
-                        className="mt-3 text-sm text-sky-300"
-                      >
-                        Resolve actor demand in Career
-                      </button>
-                    ) : null}
-                    {getConflictDecisions(conflict.id).length > 0 ? (
-                      <div className="mt-5 grid gap-2">
-                        {getConflictDecisions(conflict.id).map((decision) => (
-                          <button
-                            key={decision.id}
-                            type="button"
-                            onClick={() =>
-                              takeConflictDecision(conflict.id, decision.id)
-                            }
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
-                          >
-                            <span className="font-medium">
-                              {decision.label}
-                            </span>
-                            <span className="mt-1 block text-xs leading-5 text-zinc-500">
-                              {decision.description}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })
-            )}
-          </div>
+          <PoliticalConflictsPanel
+            flow={roundFlow}
+            onConflictDecision={takeConflictDecision}
+            onOpenCareer={() => setTab("CAREER")}
+          />
         ) : null}
 
         {tab === "TECHNICAL" ? (
@@ -819,32 +447,6 @@ export function RoundEventsPanel({
           />
         ) : null}
 
-        {tab === "ISSUES" ? (
-          <div className="space-y-3">
-            {roundFlow.issues.length === 0 ? (
-              <p className="text-sm text-zinc-500">No issues recorded yet.</p>
-            ) : (
-              roundFlow.issues.map((issue) => (
-                <article
-                  key={issue.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{issue.title}</p>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        Round {issue.round} · {issue.category}
-                      </p>
-                    </div>
-                    <span className="text-xs text-zinc-400">
-                      {issue.status} · {issue.escalation}
-                    </span>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        ) : null}
       </fieldset>
 
       {roundFlow.history.length > 0 ? (
