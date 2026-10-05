@@ -401,7 +401,7 @@ export const demoState: PoliticalCoreState = {
     {
       id: "precedent_driver_priority",
       type: "DRIVER_PRIORITY",
-      rule: "Performance-based driver priority follows predefined championship criteria.",
+      rule: "Leistungsbasierte Fahrerpriorität folgt vordefinierten Meisterschaftskriterien.",
       strength: 86,
       visibility: "INTERNAL",
       createdAtRound: 6,
@@ -413,7 +413,7 @@ export const demoState: PoliticalCoreState = {
     {
       id: "precedent_technical_authority",
       type: "TECHNICAL_AUTHORITY",
-      rule: "Driver priority does not automatically grant authority over technical development.",
+      rule: "Fahrerpriorität verleiht nicht automatisch Autorität über die technische Entwicklung.",
       strength: 78,
       visibility: "INTERNAL",
       createdAtRound: 12,
@@ -429,7 +429,7 @@ export const demoState: PoliticalCoreState = {
       type: "TECHNICAL_DIRECTION",
       status: "ACTIVE",
       initiatorCharacterId: "char_moretti",
-      issue: "Moretti demands greater influence over the technical development direction.",
+      issue: "Moretti fordert größeren Einfluss auf die technische Entwicklungsrichtung.",
       stakes: 86,
       publicExposure: 22,
       factions: [

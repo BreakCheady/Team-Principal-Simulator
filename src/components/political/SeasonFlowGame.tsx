@@ -124,8 +124,8 @@ export function SeasonFlowGame({
               key={seasonStep.conflictId}
               className={
                 isCurrent
-                  ? "rounded-xl border border-amber-700 bg-amber-950/20 p-4"
-                  : "rounded-xl border border-zinc-800 bg-zinc-900/40 p-4"
+                  ? "rounded-md border border-amber-700 bg-amber-950/20 p-4"
+                  : "rounded-md border border-zinc-800 bg-zinc-900/40 p-4"
               }
             >
               <div className="flex items-center justify-between gap-3">
@@ -146,15 +146,15 @@ export function SeasonFlowGame({
 
       <section className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
         <div className="space-y-6">
-          <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <article className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-400">
                   {season.phase === "DECISION"
-                    ? "Decision required"
+                    ? "Entscheidung erforderlich"
                     : season.phase === "REVIEW"
-                      ? "Decision resolved"
-                      : "Season complete"}
+                      ? "Entscheidung getroffen"
+                      : "Saison abgeschlossen"}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
                   {conflict.type.replaceAll("_", " ")}
@@ -177,23 +177,23 @@ export function SeasonFlowGame({
                   return (
                     <div
                       key={faction.id}
-                      className="rounded-xl border border-zinc-800 bg-black/20 p-5"
+                      className="rounded-md border border-zinc-800 bg-black/20 p-5"
                     >
-                      <p className="text-sm text-zinc-500">Faction</p>
+                      <p className="text-sm text-zinc-500">Fraktion</p>
                       <h3 className="mt-1 text-xl font-medium">
                         {nameById.get(faction.leaderCharacterId)}
                       </h3>
                       <dl className="mt-5 space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Strength</dt>
+                          <dt className="text-zinc-500">Stärke</dt>
                           <dd>{format(calculated.strength)}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Success chance</dt>
+                          <dt className="text-zinc-500">Erfolgschance</dt>
                           <dd>{format(calculated.successChance)}%</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Political cost</dt>
+                          <dt className="text-zinc-500">Politische Kosten</dt>
                           <dd>{calculated.politicalCost}</dd>
                         </div>
                       </dl>
@@ -210,7 +210,7 @@ export function SeasonFlowGame({
                     key={option.id}
                     type="button"
                     onClick={() => chooseDecision(option.id)}
-                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-4 text-left transition hover:border-zinc-500 hover:bg-zinc-900"
+                    className="rounded-md border border-zinc-700 bg-zinc-950 px-4 py-4 text-left transition hover:border-zinc-500 hover:bg-zinc-900"
                   >
                     <span className="block font-medium text-zinc-100">
                       {option.label}
@@ -224,7 +224,7 @@ export function SeasonFlowGame({
             ) : null}
 
             {season.phase === "COMPLETE" ? (
-              <div className="mt-8 rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-5">
+              <div className="mt-8 rounded-md border border-emerald-900/60 bg-emerald-950/20 p-5">
                 <p className="font-medium text-emerald-300">
                   Season conflict sequence complete
                 </p>
@@ -237,7 +237,7 @@ export function SeasonFlowGame({
           </article>
 
           {season.phase === "REVIEW" && season.pendingReview ? (
-            <article className="rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-6">
+            <article className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-6">
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-400">
                 Consequences
               </p>
@@ -252,7 +252,7 @@ export function SeasonFlowGame({
                 {season.pendingReview.changes.map((change, index) => (
                   <div
                     key={`${change.subject}-${change.metric}-${index}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-black/20 p-4"
+                    className="flex items-center justify-between gap-4 rounded-md border border-zinc-800 bg-black/20 p-4"
                   >
                     <div>
                       <p className="font-medium">{change.subject}</p>
@@ -276,18 +276,18 @@ export function SeasonFlowGame({
               <button
                 type="button"
                 onClick={continueSeason}
-                className="mt-6 rounded-xl bg-zinc-100 px-5 py-3 font-medium text-zinc-950"
+                className="mt-6 rounded-md bg-zinc-100 px-5 py-3 font-medium text-zinc-950"
               >
                 {season.currentStepIndex === season.steps.length - 1
-                  ? "Finish season sequence"
-                  : "Continue to next round"}
+                  ? "Saison abschließen"
+                  : "Zur nächsten Runde"}
               </button>
             </article>
           ) : null}
         </div>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <section className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
               Political actors
             </p>
@@ -295,7 +295,7 @@ export function SeasonFlowGame({
               {season.political.characters.map((character) => (
                 <div
                   key={character.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/20 p-4"
+                  className="flex items-center justify-between rounded-md border border-zinc-800 bg-black/20 p-4"
                 >
                   <div>
                     <p className="font-medium">{character.name}</p>
@@ -312,7 +312,7 @@ export function SeasonFlowGame({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <section className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
               Season history
             </p>
@@ -325,7 +325,7 @@ export function SeasonFlowGame({
                 {season.history.map((entry) => (
                   <div
                     key={`${entry.round}-${entry.conflictId}`}
-                    className="rounded-xl border border-zinc-800 bg-black/20 p-4"
+                    className="rounded-md border border-zinc-800 bg-black/20 p-4"
                   >
                     <p className="text-xs text-zinc-500">Round {entry.round}</p>
                     <p className="mt-1 font-medium">{entry.title}</p>
@@ -338,7 +338,7 @@ export function SeasonFlowGame({
             )}
           </section>
 
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <section className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
               Precedents
             </p>
@@ -346,13 +346,13 @@ export function SeasonFlowGame({
               {season.political.precedents.map((precedent) => (
                 <div
                   key={precedent.id}
-                  className="rounded-xl border border-zinc-800 bg-black/20 p-4 text-sm"
+                  className="rounded-md border border-zinc-800 bg-black/20 p-4 text-sm"
                 >
                   <p className="font-medium">
                     {precedent.type.replaceAll("_", " ")}
                   </p>
                   <div className="mt-3 flex justify-between text-zinc-400">
-                    <span>Strength {precedent.strength}</span>
+                    <span>Stärke {precedent.strength}</span>
                     <span>
                       {precedent.applications} applied · {precedent.violations} violated
                     </span>

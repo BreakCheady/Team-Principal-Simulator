@@ -35,7 +35,7 @@ function raceCopy(source: RoundFlowState) {
     source.career.weekend.committed ||
     source.career.status !== "RUNNING"
   )
-    throw new Error("No active race weekend.");
+    throw new Error("Kein aktives Rennwochenende.");
   return structuredClone(source);
 }
 export function runPractice(source: RoundFlowState) {
@@ -77,7 +77,7 @@ export function advanceRace(
   else {
     if (w.phase === "GRID") startRace(w);
     if (w.phase !== "RACING")
-      throw new Error("Finish practice / qualifying before stepping the race.");
+      throw new Error("Beende Training und Qualifying, bevor du das Rennen fortsetzt.");
     stepRace(w);
   }
   return w.phase === "COMPLETE" ? finishCareerWeekend(next) : next;
@@ -91,7 +91,7 @@ export function commandDriver(
     w = next.career!.weekend!,
     car = w.cars.find((c) => c.id === id && c.ours);
   if (!car || car.retired || w.phase !== "RACING")
-    throw new Error("This car cannot receive race instructions.");
+    throw new Error("Dieses Fahrzeug kann keine Rennanweisungen erhalten.");
   car.mode = ModeSchema.parse(mode);
   logRace(
     w,
@@ -112,13 +112,13 @@ export function callPit(
     w = next.career!.weekend!,
     car = w.cars.find((c) => c.id === id && c.ours);
   if (!car || car.retired || w.phase !== "RACING")
-    throw new Error("This car cannot pit.");
+    throw new Error("Dieses Fahrzeug kann nicht an die Box kommen.");
   if (w.seriesId === "RALLY")
-    throw new Error("Rally crews use scheduled service parks.");
+    throw new Error("Rallye-Besatzungen nutzen die vorgesehenen Serviceparks.");
   if (w.pitClosed)
-    throw new Error("Pit lane is temporarily closed under IndyCar caution.");
+    throw new Error("Die Boxengasse ist während der IndyCar-Caution vorübergehend geschlossen.");
   if (!raceRules(w).compounds.includes(compound))
-    throw new Error("Illegal tyre compound.");
+    throw new Error("Unzulässige Reifenmischung.");
   car.plan.nextCompound = compound;
   car.plan.repair = repair;
   car.plan.changeDriver = changeDriver;
@@ -136,9 +136,9 @@ export function retireRaceCar(source: RoundFlowState, id: string) {
     w = next.career!.weekend!,
     car = w.cars.find((c) => c.id === id && c.ours);
   if (!car || car.retired || w.phase !== "RACING")
-    throw new Error("This car cannot be retired.");
+    throw new Error("Dieses Fahrzeug kann nicht zurückgezogen werden.");
   car.retired = true;
-  car.retirementReason = "Team withdraws damaged car";
+  car.retirementReason = "Team zieht beschädigtes Fahrzeug zurück";
   logRace(w, "RADIO", `${car.name} returns to the garage and retires.`, id);
   return next;
 }
@@ -161,7 +161,7 @@ export function issueTeamOrder(
     w.seriesId === "RALLY" ||
     w.flag !== "GREEN"
   )
-    throw new Error("No legal team-order opportunity.");
+    throw new Error("Keine zulässige Gelegenheit für eine Teamorder.");
   const order = liveOrder(w);
   if (
     order.indexOf(receiver) !== order.indexOf(giver) + 1 ||
@@ -169,7 +169,7 @@ export function issueTeamOrder(
     Math.abs(gapToLeader(w, giver) - gapToLeader(w, receiver)) > 5
   )
     throw new Error(
-      "Cars must be adjacent on the same lap and within five seconds.",
+      "Die Fahrzeuge müssen direkt hintereinander in derselben Runde und innerhalb von fünf Sekunden liegen.",
     );
   const obeyed =
     raceRandom(w) * 100 <
@@ -189,7 +189,7 @@ export function issueTeamOrder(
   logRace(
     w,
     "RADIO",
-    `${giver.name} ${obeyed ? "lets" : "refuses to let"} ${receiver.name} through; sporting equality will need a discussion.`,
+    `${giver.name} ${obeyed ? "lets" : "weigert sich,"} ${receiver.name} through; sporting equality will need a discussion.`,
     giverId,
   );
   return next;
@@ -202,7 +202,7 @@ export function recruitRaceCrew(
 ) {
   const next = careerCopy(source),
     w = next.career.world;
-  if (!w) throw new Error("Crew recruitment needs a world career.");
+  if (!w) throw new Error("Die Rekrutierung der Fahrerbesatzung benötigt eine Weltkarriere.");
   const team = playerTeam(w),
     crew = team.raceCrews?.find((c) => c.leadId === leadId),
     candidate = next.career.candidates.find((c) => c.id === candidateId);
@@ -212,21 +212,21 @@ export function recruitRaceCrew(
     candidate.status !== "AVAILABLE" ||
     !candidate.seat.startsWith("DRIVER")
   )
-    throw new Error("No eligible crew candidate.");
+    throw new Error("Kein geeigneter Kandidat für die Fahrerbesatzung.");
   if (!team.drivers.includes(leadId))
     throw new Error(
-      "Fill the car entry driver seat before recruiting its crew.",
+      "Besetze zuerst den Fahrerplatz des Fahrzeugs, bevor du weitere Besatzung verpflichtest.",
     );
   const rally = w.playerSeriesId === "RALLY",
     capacity = crewSizeForSeries(w.playerSeriesId) - 1;
   if (rally ? !!crew.coDriverId : crew.members.length >= capacity)
-    throw new Error("Release a crew member before filling this slot.");
+    throw new Error("Stelle zuerst ein Mitglied der Besatzung frei, bevor du diesen Platz besetzt.");
   const salary = roundMoney(candidate.salary * 1.2),
     fee = candidate.buyout + candidate.signingFee,
     start = Math.max(1, next.currentRound + 1),
     duration = next.political.finance.roundsPerSeason;
   if (getCashBalance(next.political) < fee)
-    throw new Error("Cash cannot cover the crew signing and buyout.");
+    throw new Error("Der Kassenbestand reicht nicht für Verpflichtung und Ablöse der Fahrerbesatzung.");
   const id = candidate.character.id,
     contractId = `crew_${id}_r${start}_${next.political.contracts.length}`;
   const contract = {

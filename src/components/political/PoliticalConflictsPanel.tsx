@@ -15,7 +15,15 @@ function format(value: number) {
 }
 
 function label(value: string) {
-  return value.replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    TECHNICAL_AUTHORITY: "TECHNISCHE AUTORITÄT",
+    DRIVER_STATUS: "FAHRERSTATUS",
+    MEDIA_CONTROL: "MEDIENKONTROLLE",
+    CONTRACT_AUTHORITY: "VERTRAGSAUTORITÄT",
+    ACTIVE: "AKTIV",
+    ESCALATED: "ESKALIERT",
+  };
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
 export function PoliticalConflictsPanel({
@@ -32,7 +40,7 @@ export function PoliticalConflictsPanel({
           <div className="grid gap-4 lg:grid-cols-2">
             {activeConflicts.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                No active political conflicts.
+                Keine aktiven politischen Konflikte.
               </p>
             ) : (
               activeConflicts.map((conflict) => {
@@ -52,7 +60,7 @@ export function PoliticalConflictsPanel({
                 return (
                   <article
                     key={conflict.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-amber-400">
                       {label(conflict.type)}
@@ -61,21 +69,21 @@ export function PoliticalConflictsPanel({
                       {conflict.issue}
                     </p>
                     <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                      <div className="rounded-xl border border-zinc-800 p-3">
+                      <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderA?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionA.strength)}
+                          Stärke {format(calculation.factionA.strength)}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-zinc-800 p-3">
+                      <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderB?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionB.strength)}
+                          Stärke {format(calculation.factionB.strength)}
                         </p>
                       </div>
                     </div>
                     <p className="mt-4 text-xs text-red-300">
-                      Escalation {format(calculation.escalation)}
+                      Eskalation {format(calculation.escalation)}
                     </p>
                     {conflict.id.startsWith("conflict_request_") ? (
                       <button
@@ -83,7 +91,7 @@ export function PoliticalConflictsPanel({
                         onClick={() => onOpenCareer()}
                         className="mt-3 text-sm text-sky-300"
                       >
-                        Resolve actor demand in Career
+                        Anfrage in der Karriereansicht lösen
                       </button>
                     ) : null}
                     {getConflictDecisions(conflict.id).length > 0 ? (
@@ -95,7 +103,7 @@ export function PoliticalConflictsPanel({
                             onClick={() =>
                               onConflictDecision(conflict.id, decision.id)
                             }
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
+                            className="rounded-md border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
                             <span className="font-medium">
                               {decision.label}

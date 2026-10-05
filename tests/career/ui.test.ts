@@ -26,12 +26,12 @@ describe("career HQ rendering", () => {
       );
       expect(html).toContain("<button");
       if (view === "MARKET") {
-        expect(html).toContain("Agree transfer");
-        expect(html).toContain("Contract warnings");
-        expect(html).toContain("Rival approach");
+        expect(html).toContain("Transfer zustimmen");
+        expect(html).toContain("Vertragswarnungen");
+        expect(html).toContain("Anfrage eines Rivalen");
       }
-      if (view === "RACING") expect(html).toContain("Team championship");
-      if (view === "CAREER") expect(html).toContain("Deadline R20");
+      if (view === "RACING") expect(html).toContain("Teamwertung");
+      if (view === "CAREER") expect(html).toContain("Frist R20");
     }
   });
   it("shows next season objectives and retains a readable dismissal report", () => {
@@ -39,13 +39,13 @@ describe("career HQ rendering", () => {
     let html = renderToStaticMarkup(
       createElement(CareerPanel, { flow, view: "CAREER", onAction: () => {} }),
     );
-    expect(html).toContain("Next season");
+    expect(html).toContain("Nächste Saison");
     flow.career!.status = "DISMISSED";
     html = renderToStaticMarkup(
       createElement(CareerPanel, { flow, view: "CAREER", onAction: () => {} }),
     );
-    expect(html).toContain("Your tenure has ended");
-    expect(html).not.toContain("Next season");
+    expect(html).toContain("Deine Amtszeit ist beendet");
+    expect(html).not.toContain("Nächste Saison");
   });
   it("opens the main HQ in career mode with all six systems discoverable", () => {
     const html = renderToStaticMarkup(
@@ -56,16 +56,16 @@ describe("career HQ rendering", () => {
         afterRound: 15,
       }),
     );
-    expect(html).toContain("HQ Overview");
-    expect(html).toContain("Next race weekend");
+    expect(html).toContain("Übersicht");
+    expect(html).toContain("Nächstes Rennwochenende");
     for (const text of [
-      "Career",
-      "Championship",
-      "Transfer Market",
-      "Development",
-      "Contracts",
-      "Finance",
-      "Start round 16",
+      "Karriere",
+      "Meisterschaft",
+      "Transfermarkt",
+      "Entwicklung",
+      "Verträge",
+      "Finanzen",
+      "Runde 16 starten",
     ])
       expect(html).toContain(text);
   });
@@ -81,7 +81,7 @@ describe("career HQ rendering", () => {
         onOpenCareer: () => {},
       }),
     );
-    expect(inbox).toContain("Start the next round");
+    expect(inbox).toContain("Starte die nächste Runde");
 
     const issues = renderToStaticMarkup(
       createElement(InboxIssuesPanel, {
@@ -92,17 +92,17 @@ describe("career HQ rendering", () => {
         onOpenCareer: () => {},
       }),
     );
-    expect(issues).toContain("No issues recorded yet");
+    expect(issues).toContain("Noch keine Themen erfasst.");
 
     const people = renderToStaticMarkup(
       createElement(PeoplePowerCentersPanel, { flow, view: "PEOPLE" }),
     );
-    expect(people).toContain("Momentum");
+    expect(people).toContain("Dynamik");
 
     const centers = renderToStaticMarkup(
       createElement(PeoplePowerCentersPanel, { flow, view: "CENTERS" }),
     );
-    expect(centers).toContain("Internal influence");
+    expect(centers).toContain("Interner Einfluss");
 
     const conflicts = renderToStaticMarkup(
       createElement(PoliticalConflictsPanel, {
@@ -145,27 +145,27 @@ describe("career HQ rendering", () => {
     const html = renderToStaticMarkup(
       createElement(MotorsportWorldPanel, { world }),
     );
-    expect(html).toContain("Paddock News");
-    expect(html).toContain("TEAM TREND");
-    expect(html).toContain("SIGNING");
-    expect(html).toContain("Transfer Radar");
-    expect(html).toContain("Contract Watch");
-    expect(html).toContain("View person");
-    expect(html).toContain("View team");
-    expect(html).toContain("Breaking");
+    expect(html).toContain("Paddock-Nachrichten");
+    expect(html).toContain("Teamentwicklung");
+    expect(html).toContain("Verpflichtung");
+    expect(html).toContain("Transfer-Radar");
+    expect(html).toContain("Vertragsbeobachtung");
+    expect(html).toContain("Person ansehen");
+    expect(html).toContain("Team ansehen");
+    expect(html).toContain("Eilmeldung");
     expect(html).toContain(person.name);
   });
 
   it("renders the public website and separate career entry experience", () => {
     const website = renderToStaticMarkup(createElement(Home));
-    expect(website).toContain("Win the race.");
-    expect(website).toContain("Keep the team.");
+    expect(website).toContain("Dein Team. Deine Entscheidungen.");
+    expect(website).toContain("Motorsport-Managementsimulation");
     expect(website).toContain('href="/game"');
 
     const game = renderToStaticMarkup(createElement(MotorsportGame));
-    expect(game).toContain("Choose your paddock.");
-    expect(game).toContain("Choose series");
-    expect(game).toContain("Choose team");
+    expect(game).toContain("Wähle deine Rennserie.");
+    expect(game).toContain("Rennserie wählen");
+    expect(game).toContain("Team wählen");
   });
 
 });

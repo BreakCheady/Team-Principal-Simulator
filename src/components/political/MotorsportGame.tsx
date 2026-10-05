@@ -22,10 +22,10 @@ export function MotorsportGame() {
       const raw =
         window.localStorage.getItem("team-principal-simulator-v11-rounds") ??
         window.localStorage.getItem("team-principal-simulator-v03-rounds");
-      if (!raw) throw new Error("No local save found.");
+      if (!raw) throw new Error("Kein lokaler Spielstand gefunden.");
       setFlow(decodeSave<RoundFlowState>(raw, "ROUND_FLOW").state);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load save.");
+      setError(e instanceof Error ? e.message : "Spielstand konnte nicht geladen werden.");
     }
   }
   if (flow)
@@ -39,11 +39,11 @@ export function MotorsportGame() {
               ? preview.teams.find(
                   (t) => t.id === flow.career!.world!.playerTeamId,
                 )?.name
-              : "Legacy career"}
+              : "Ältere Karriere"}
           </h1>
           </div>
           <span className="hidden rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-xs font-semibold text-zinc-500 md:block">
-            Race operations online
+            Rennbetrieb aktiv
           </span>
         </header>
         <div className="mx-auto max-w-[1600px]">
@@ -60,28 +60,27 @@ export function MotorsportGame() {
       </main>
     );
   return (
-    <main className="tps-shell min-h-screen px-4 py-8 md:px-6">
-      <div className="mx-auto max-w-[1500px] space-y-6">
-      <header className="tps-panel tps-track-grid overflow-hidden p-6 md:p-8">
-        <p className="tps-kicker">Team Principal Simulator · Career setup</p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-[-.04em] md:text-6xl">Choose your paddock.</h1>
+    <main className="tps-shell min-h-screen px-3 py-4 md:px-5">
+      <div className="mx-auto max-w-[1450px] space-y-4">
+      <header className="tps-panel-raised overflow-hidden p-5 md:p-6">
+        <p className="tps-kicker">Team Principal Simulator · Karriere erstellen</p>
+        <h1 className="mt-2 max-w-3xl text-3xl font-black tracking-tight md:text-4xl">Wähle deine Rennserie.</h1>
         <p className="mt-4 max-w-3xl text-zinc-400">
-          Choose a championship and a fictional team. Start in preseason,
-          prepare your lineup and budget, then race a complete season from round
-          1.
+          Wähle eine Rennserie und ein fiktives Team. Du startest in der Vorsaison,
+          stellst Fahrer, Personal und Budget auf und bestreitest anschließend die komplette Saison ab Runde 1.
         </p>
         <p className="mt-5 text-sm font-semibold text-cyan-300">
-          9 series · {preview.teams.length} teams ·{" "}
-          {preview.people.filter((p) => p.role === "DRIVER").length} drivers ·{" "}
-          {preview.people.filter((p) => p.role !== "DRIVER").length} staff
+          9 Rennserien · {preview.teams.length} Teams ·{" "}
+          {preview.people.filter((p) => p.role === "DRIVER").length} Fahrer ·{" "}
+          {preview.people.filter((p) => p.role !== "DRIVER").length} Mitarbeiter
         </p>
       </header>
-      <section className="tps-panel p-5 md:p-6">
+      <section className="tps-panel overflow-hidden">
         <div className="flex items-end justify-between gap-4">
-          <div><p className="tps-kicker">Step 01</p><h2 className="mt-2 text-xl font-semibold">Choose series</h2></div>
-          <span className="text-xs text-zinc-600">9 championships</span>
+          <div><p className="tps-kicker">Schritt 01</p><h2 className="mt-2 text-xl font-semibold">Rennserie wählen</h2></div>
+          <span className="text-xs text-zinc-600">9 Meisterschaften</span>
         </div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
           {SERIES.map((s) => (
             <button
               key={s.id}
@@ -95,8 +94,8 @@ export function MotorsportGame() {
             >
               <span className="font-semibold">{s.name}</span>
               <span className="mt-2 block text-sm text-zinc-400">
-                {s.teamNames.length} teams · {s.driversPerTeam} cars/team ·{" "}
-                {s.rounds} races
+                {s.teamNames.length} Teams · {s.driversPerTeam} Fahrzeuge/Team ·{" "}
+                {s.rounds} Rennen
               </span>
             </button>
           ))}
@@ -104,9 +103,9 @@ export function MotorsportGame() {
         <p className="mt-4 text-sm text-zinc-400">{cfg.description}</p>
       </section>
       <section className="tps-panel p-5 md:p-6">
-        <p className="tps-kicker">Step 02</p>
-        <h2 className="mt-2 text-xl font-semibold">Choose team · {cfg.name}</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <p className="tps-kicker">Schritt 02</p>
+        <h2 className="mt-2 text-xl font-semibold">Team wählen · {cfg.name}</h2>
+        <div className="grid gap-2 p-3 md:grid-cols-2 xl:grid-cols-3">
           {teams.map((t) => (
             <button
               key={t.id}
@@ -116,7 +115,7 @@ export function MotorsportGame() {
             >
               <span className="font-semibold">{t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}</span>
               <span className="mt-2 block text-sm text-zinc-400">
-                Pace {t.pace} · Reliability {t.reliability} · Budget €
+                Tempo {t.pace} · Zuverlässigkeit {t.reliability} · Budget €
                 {t.budget.toFixed(2)}m
               </span>
               <span className="mt-2 block text-xs text-zinc-500">
@@ -128,11 +127,11 @@ export function MotorsportGame() {
           ))}
         </div>
       </section>
-      <section className="tps-panel tps-track-grid p-6 md:p-7">
+      <section className="tps-panel-raised p-4 md:p-5">
         <h2 className="text-xl font-semibold">{team.name}</h2>
         <p className="mt-3 text-sm text-zinc-400">
-          Full {cfg.rounds}-race calendar · {cfg.driversPerTeam} occupied driver
-          seats · Technical, sporting and engineering staff · New contracts and
+          Kompletter Kalender mit {cfg.rounds} Rennen · {cfg.driversPerTeam} occupied driver
+          seats · Technical, sporting and engineering Mitarbeiter · New contracts and
           empty championship tables.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
@@ -143,18 +142,18 @@ export function MotorsportGame() {
                 setFlow(createNewCareer(series, team.id));
               } catch (e) {
                 setError(
-                  e instanceof Error ? e.message : "Could not create career.",
+                  e instanceof Error ? e.message : "Karriere konnte nicht erstellt werden.",
                 );
               }
             }}
           >
-            Start season from round 1
+            Saison ab Runde 1 starten
           </button>
           <button
             className="rounded-xl border border-slate-700 px-5 py-3 font-semibold text-zinc-300 hover:border-slate-500"
             onClick={load}
           >
-            Load existing career
+            Bestehende Karriere laden
           </button>
         </div>
         {error ? <p className="mt-4 text-amber-300">{error}</p> : null}

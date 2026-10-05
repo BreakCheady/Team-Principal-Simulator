@@ -73,7 +73,7 @@ export function RoundEventsPanel({
       : createCareerFlow(initialState, events, afterRound),
   );
   const [tab, setTab] = useState<HqTab>("HOME");
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveMessage, setSpeichernMessage] = useState<string | null>(null);
 
   const raceActive =
     !!roundFlow.career?.weekend && !roundFlow.career.weekend.committed;
@@ -85,21 +85,21 @@ export function RoundEventsPanel({
       beginCareerWeekend(current, events, issueDefinitions),
     );
     setTab("RACING");
-    setSaveMessage(null);
+    setSpeichernMessage(null);
   }
 
   function takeIssueAction(issueId: string, actionId: string) {
     setRoundFlow((current) =>
       resolveRoundIssue(current, issueId, actionId, issueDefinitions),
     );
-    setSaveMessage(null);
+    setSpeichernMessage(null);
   }
 
   function takeConflictDecision(conflictId: string, decisionId: string) {
     setRoundFlow((current) =>
       resolveRoundConflict(current, conflictId, decisionId),
     );
-    setSaveMessage(null);
+    setSpeichernMessage(null);
   }
 
   function startNegotiation(contractId: string) {
@@ -119,12 +119,12 @@ export function RoundEventsPanel({
   ) {
     try {
       setRoundFlow(action(roundFlow));
-      setSaveMessage(null);
+      setSpeichernMessage(null);
     } catch (error) {
-      setSaveMessage(
+      setSpeichernMessage(
         error instanceof Error
           ? error.message
-          : "Could not complete the action.",
+          : "Aktion konnte nicht ausgeführt werden.",
       );
     }
   }
@@ -157,7 +157,7 @@ export function RoundEventsPanel({
     setRoundFlow((current) =>
       rejectRoundContractNegotiation(current, negotiationId, issueDefinitions),
     );
-    setSaveMessage(null);
+    setSpeichernMessage(null);
   }
 
   function saveGame() {
@@ -166,10 +166,10 @@ export function RoundEventsPanel({
         SAVE_KEY,
         encodeSave<RoundFlowState>("ROUND_FLOW", roundFlow),
       );
-      setSaveMessage("Game saved locally.");
+      setSpeichernMessage("Spiel lokal gespeichert.");
     } catch (error) {
-      setSaveMessage(
-        error instanceof Error ? error.message : "Could not save game.",
+      setSpeichernMessage(
+        error instanceof Error ? error.message : "Spiel konnte nicht gespeichert werden.",
       );
     }
   }
@@ -183,17 +183,17 @@ export function RoundEventsPanel({
         );
 
       if (!raw) {
-        setSaveMessage("No local round save found.");
+        setSpeichernMessage("Kein lokaler Spielstand gefunden.");
         return;
       }
 
       const save = decodeSave<RoundFlowState>(raw, "ROUND_FLOW");
       setRoundFlow(save.state);
-      setSaveMessage("Local save loaded.");
+      setSpeichernMessage("Spielstand geladen.");
       setTab("HOME");
     } catch (error) {
-      setSaveMessage(
-        error instanceof Error ? error.message : "Could not load save.",
+      setSpeichernMessage(
+        error instanceof Error ? error.message : "Spielstand konnte nicht geladen werden.",
       );
     }
   }
@@ -205,53 +205,53 @@ export function RoundEventsPanel({
         : createCareerFlow(initialState, events, afterRound),
     );
     setTab("HOME");
-    setSaveMessage("Round flow reset.");
+    setSpeichernMessage("Saisonverlauf zurückgesetzt.");
   }
 
   const tabs: Array<{ id: HqTab; title: string }> = [
-    { id: "HOME", title: "HQ Overview" },
+    { id: "HOME", title: "Übersicht" },
     ...(roundFlow.career?.world
-      ? [{ id: "WORLD" as HqTab, title: "Motorsport World" }]
+      ? [{ id: "WORLD" as HqTab, title: "Motorsport-Welt" }]
       : []),
     {
       id: "CAREER",
       title:
-        "Career" +
+        "Karriere" +
         (roundFlow.career?.requests.filter((r) =>
           ["OPEN", "ESCALATED"].includes(r.status),
         ).length
           ? " (!)"
           : ""),
     },
-    { id: "RACING", title: "Championship" },
-    { id: "MARKET", title: "Transfer Market" },
-    { id: "DEVELOPMENT", title: "Development" },
+    { id: "RACING", title: "Meisterschaft" },
+    { id: "MARKET", title: "Transfermarkt" },
+    { id: "DEVELOPMENT", title: "Entwicklung" },
     {
       id: "INBOX",
       title:
-        "Inbox" + (openIssues.length ? " (" + openIssues.length + ")" : ""),
+        "Posteingang" + (openIssues.length ? " (" + openIssues.length + ")" : ""),
     },
-    { id: "PEOPLE", title: "People" },
-    { id: "CENTERS", title: "Power Centers" },
-    { id: "POWER", title: "Power" },
-    { id: "TECHNICAL", title: "Technical" },
-    { id: "CONTRACTS", title: "Contracts" },
-    { id: "FINANCE", title: "Finance" },
-    { id: "ISSUES", title: "Issues" },
+    { id: "PEOPLE", title: "Personal" },
+    { id: "CENTERS", title: "Machtzentren" },
+    { id: "POWER", title: "Politik" },
+    { id: "TECHNICAL", title: "Technik" },
+    { id: "CONTRACTS", title: "Verträge" },
+    { id: "FINANCE", title: "Finanzen" },
+    { id: "ISSUES", title: "Themen" },
   ];
 
   return (
-    <section className="mt-6">
-      <header className="tps-panel tps-track-grid overflow-hidden p-5 md:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-5">
+    <section className="mt-3">
+      <header className="tps-panel-raised overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-700 bg-[#0d121a] px-4 py-3">
           <div>
             <p className="tps-kicker">
-              Team HQ · live season
+              TEAMZENTRALE · LAUFENDE SAISON
             </p>
-            <h2 className="mt-2 text-3xl font-semibold">
-              Season {2025 + (roundFlow.career?.season ?? 1)} · Round{" "}
+            <h2 className="mt-1 text-xl font-black">
+              Saison {2025 + (roundFlow.career?.season ?? 1)} · Runde{" "}
               {roundFlow.currentRound === 0
-                ? "1 · Preseason"
+                ? "1 · Vorsaison"
                 : roundFlow.currentRound}
             </h2>
             <button
@@ -259,13 +259,10 @@ export function RoundEventsPanel({
               onClick={() => setTab("FINANCE")}
               className="mt-2 text-sm text-emerald-300"
             >
-              Cash €{getCashBalance(roundFlow.political).toFixed(2)}m · View
-              finances
+              Kassenbestand €{getCashBalance(roundFlow.political).toFixed(2)} Mio. · Finanzen öffnen
             </button>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">
-              Events create issues. You choose what deserves attention, NPCs
-              react, and unresolved pressure can become a full political
-              conflict.
+            <p className="mt-2 max-w-2xl text-xs leading-5 text-zinc-500">
+              Ereignisse erzeugen Handlungsdruck. Du entscheidest, was Priorität hat; ungelöste Spannungen können zu politischen Konflikten eskalieren.
             </p>
           </div>
 
@@ -276,29 +273,29 @@ export function RoundEventsPanel({
                 className="rounded-lg border border-zinc-700 px-3 py-2 text-sm"
                 onClick={onChooseCareer}
               >
-                Choose series / team
+                Serie / Team wechseln
               </button>
             ) : null}
             <button
               type="button"
               onClick={saveGame}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
-              Save
+              Speichern
             </button>
             <button
               type="button"
               onClick={loadGame}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
-              Load
+              Laden
             </button>
             <button
               type="button"
               onClick={resetRounds}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
-              Reset rounds
+              Saison zurücksetzen
             </button>
             {raceActive ? (
               <button
@@ -306,16 +303,16 @@ export function RoundEventsPanel({
                 onClick={() => setTab("RACING")}
                 className="rounded-xl bg-sky-300 px-5 py-3 font-medium text-sky-950"
               >
-                Resume race weekend
+                Rennwochenende fortsetzen
               </button>
             ) : !roundFlow.complete && nextRound !== null ? (
               <button
                 type="button"
                 onClick={startNextRound}
                 disabled={openIssues.length > 0}
-                className="rounded-xl bg-sky-300 px-5 py-3 font-medium text-sky-950 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+                className="mm-button-primary disabled:opacity-40"
               >
-                Start round {nextRound}
+                Runde {nextRound} starten
               </button>
             ) : (
               <button
@@ -324,8 +321,8 @@ export function RoundEventsPanel({
                 className="rounded-full border border-emerald-800 bg-emerald-950/30 px-4 py-2 text-sm text-emerald-300"
               >
                 {roundFlow.career?.status === "DISMISSED"
-                  ? "Tenure ended · View board report"
-                  : "Season complete · Review & next season"}
+                  ? "Amtszeit beendet · Vorstandsbericht"
+                  : "Saison beendet · Auswertung & nächste Saison"}
               </button>
             )}
           </div>
@@ -333,8 +330,8 @@ export function RoundEventsPanel({
 
         {openIssues.length > 0 ? (
           <p className="mt-4 text-sm text-amber-300">
-            Handle {openIssues.length} open inbox issue
-            {openIssues.length === 1 ? "" : "s"} before starting the next round.
+            Bearbeite {openIssues.length} offene Entscheidung
+            {openIssues.length === 1 ? "" : "s"} vor dem Start der nächsten Runde.
           </p>
         ) : null}
         {saveMessage ? (
@@ -342,8 +339,8 @@ export function RoundEventsPanel({
         ) : null}
       </header>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <nav className="tps-scrollbar flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-4 lg:block lg:h-fit lg:space-y-1 lg:overflow-visible lg:pb-0">
+      <div className="mt-3 grid gap-3 lg:grid-cols-[184px_minmax(0,1fr)]">
+        <nav className="tps-panel tps-scrollbar flex gap-1 overflow-x-auto p-2 lg:sticky lg:top-3 lg:block lg:h-fit lg:space-y-1 lg:overflow-visible">
           {tabs.map((item) => (
             <button
               key={item.id}
@@ -351,8 +348,8 @@ export function RoundEventsPanel({
               onClick={() => setTab(item.id)}
               className={
                 tab === item.id
-                  ? "whitespace-nowrap rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-left text-sm font-semibold text-cyan-200 lg:block lg:w-full"
-                  : "whitespace-nowrap rounded-xl border border-transparent px-4 py-3 text-left text-sm text-zinc-500 hover:border-slate-800 hover:bg-slate-900/60 hover:text-zinc-200 lg:block lg:w-full"
+                  ? "whitespace-nowrap rounded-md border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-left text-sm font-semibold text-cyan-200 lg:block lg:w-full"
+                  : "whitespace-nowrap rounded-md border border-transparent px-4 py-3 text-left text-sm text-zinc-500 hover:border-slate-800 hover:bg-slate-900/60 hover:text-zinc-200 lg:block lg:w-full"
               }
             >
               {item.title}
@@ -361,7 +358,7 @@ export function RoundEventsPanel({
         </nav>
 
       <fieldset
-        className="min-w-0 tps-panel p-4 md:p-6"
+        className="min-w-0 tps-panel overflow-hidden p-3 md:p-4"
         disabled={
           roundFlow.career?.status === "DISMISSED" ||
           (raceActive && tab !== "RACING")
@@ -415,7 +412,7 @@ export function RoundEventsPanel({
 
         {tab === "TECHNICAL" ? (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Technical pressure</h3>
+            <h3 className="text-xl font-semibold">Technischer Druck</h3>
             {roundFlow.issues
               .filter((issue) => issue.category === "TECHNICAL")
               .map((issue) => (
@@ -425,7 +422,7 @@ export function RoundEventsPanel({
                 >
                   <p className="font-medium">{issue.title}</p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    {issue.status} · escalation {issue.escalation}
+                    {issue.status} · Eskalation {issue.escalation}
                   </p>
                 </article>
               ))}
@@ -436,7 +433,7 @@ export function RoundEventsPanel({
                   (character) => character.id === "char_chen",
                 )?.dynamic.momentum
               }{" "}
-              · technical authority precedent:{" "}
+              · Präzedenz technische Autorität:{" "}
               {
                 roundFlow.political.precedents.find(
                   (precedent) =>

@@ -160,20 +160,20 @@ export function advanceRoundFlow(
   issueDefinitions: IssueDefinition[] = [],
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   if (state.complete) {
-    throw new Error("Round flow is already complete.");
+    throw new Error("Der Saisonverlauf ist bereits abgeschlossen.");
   }
 
   if (getOpenIssues(state).length > 0) {
-    throw new Error("Open inbox issues must be handled before the next round.");
+    throw new Error("Offene Themen im Posteingang müssen vor der nächsten Runde bearbeitet werden.");
   }
 
   const round = getNextRound(state);
   if (round === null) {
-    throw new Error("Round flow has no next round.");
+    throw new Error("Es gibt keine nächste Runde.");
   }
 
   const aged = ageWatchingIssues(
@@ -231,9 +231,9 @@ export function resolveRoundIssue(
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const issue = state.issues.find((item) => item.id === issueId);
   if (!issue) {
     throw new Error(`Issue "${issueId}" was not found.`);
@@ -295,9 +295,9 @@ export function resolveRoundConflict(
   decisionId: string,
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const conflict = state.political.conflicts.find(
     (item) => item.id === conflictId,
   );
@@ -398,9 +398,9 @@ export function exerciseRoundContractOption(
   optionId: string,
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const contract = state.political.contracts.find(
     (item) => item.id === contractId,
   );
@@ -409,7 +409,7 @@ export function exerciseRoundContractOption(
   if (!option) throw new Error(`Contract option "${optionId}" was not found.`);
   if (option.holder !== "TEAM") {
     throw new Error(
-      "Only team-held options can be exercised unilaterally by the team.",
+      "Nur Teamoptionen können einseitig vom Team gezogen werden.",
     );
   }
   const openNegotiation = state.negotiations.some(
@@ -418,7 +418,7 @@ export function exerciseRoundContractOption(
       ["OPEN", "COUNTERED"].includes(session.status),
   );
   if (openNegotiation) {
-    throw new Error("Finish renewal talks before exercising an option.");
+    throw new Error("Schließe die Vertragsgespräche ab, bevor du eine Option ziehst.");
   }
   return {
     ...state,
@@ -436,9 +436,9 @@ export function takeRoundFinanceAction(
   action: "OWNER_FUNDING" | "CUT_OPERATING_COSTS",
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const political =
     state.currentRound === 0
       ? structuredClone(state.political)
@@ -457,9 +457,9 @@ export function startRoundContractNegotiation(
   contractId: string,
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   if (
     state.career &&
     !state.career.activeActorIds.includes(
@@ -468,7 +468,7 @@ export function startRoundContractNegotiation(
     )
   ) {
     throw new Error(
-      "This actor has left the team; use the transfer market to fill the vacant seat.",
+      "Diese Person hat das Team verlassen; besetze die freie Position über den Transfermarkt.",
     );
   }
   const existingOpen = state.negotiations.find(
@@ -477,7 +477,7 @@ export function startRoundContractNegotiation(
       ["OPEN", "COUNTERED"].includes(session.status),
   );
   if (existingOpen) {
-    throw new Error("An open negotiation already exists for this contract.");
+    throw new Error("Für diesen Vertrag läuft bereits eine Verhandlung.");
   }
 
   const created = startContractNegotiation(
@@ -507,9 +507,9 @@ export function submitRoundContractOffer(
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
   if (!session)
     throw new Error(`Negotiation "${negotiationId}" was not found.`);
@@ -517,7 +517,7 @@ export function submitRoundContractOffer(
     state.career &&
     !state.career.activeActorIds.includes(session.characterId)
   )
-    throw new Error("The actor has left the team.");
+    throw new Error("Die Person hat das Team verlassen.");
 
   const offer = createNegotiationOffer(session, posture);
   const result = submitNegotiationOffer(
@@ -549,9 +549,9 @@ export function acceptRoundContractCounter(
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
   if (!session)
     throw new Error(`Negotiation "${negotiationId}" was not found.`);
@@ -559,7 +559,7 @@ export function acceptRoundContractCounter(
     state.career &&
     !state.career.activeActorIds.includes(session.characterId)
   )
-    throw new Error("The actor has left the team.");
+    throw new Error("Die Person hat das Team verlassen.");
 
   const result = acceptNegotiationCounter(
     state.political,
@@ -588,9 +588,9 @@ export function rejectRoundContractNegotiation(
   issueDefinitions: IssueDefinition[],
 ): RoundFlowState {
   if (state.career?.weekend && !state.career.weekend.committed)
-    throw new Error("Finish the current race weekend first.");
+    throw new Error("Beende zuerst das aktuelle Rennwochenende.");
   if (state.career?.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   const session = state.negotiations.find((item) => item.id === negotiationId);
   if (!session)
     throw new Error(`Negotiation "${negotiationId}" was not found.`);

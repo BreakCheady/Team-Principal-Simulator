@@ -34,15 +34,15 @@ export function startDevelopment(
   const next = careerCopy(source),
     career = next.career;
   if (career.status !== "RUNNING")
-    throw new Error("Development opens during a running season.");
+    throw new Error("Entwicklung ist während einer laufenden Saison verfügbar.");
   if (!Object.hasOwn(PROJECTS, kind))
-    throw new Error("Unknown development project.");
+    throw new Error("Unbekanntes Entwicklungsprojekt.");
   if (
     career.projects.filter((p) => p.status === "ACTIVE").length >= 2 ||
     career.projects.some((p) => p.kind === kind && p.status === "ACTIVE")
   )
     throw new Error(
-      "Two development slots are available; only one active project of each type.",
+      "Es gibt zwei Entwicklungsplätze; pro Typ kann nur ein Projekt aktiv sein.",
     );
   const base = PROJECTS[kind];
   const scale = career.world ? playerTeam(career.world).budget / 120 : 1;
@@ -52,13 +52,13 @@ export function startDevelopment(
   )?.characterId;
   if (!sponsor)
     throw new Error(
-      "Fill the responsible leadership seat before starting this project.",
+      "Besetze die verantwortliche Führungsposition, bevor du dieses Projekt startest.",
     );
   if (getCashBalance(next.political) < spec.cost)
-    throw new Error("Insufficient cash for development.");
+    throw new Error("Nicht genügend Geld für die Entwicklung.");
   const id = `project_${kind.toLowerCase()}_r${next.currentRound}`;
   if (career.projects.some((p) => p.id === id))
-    throw new Error("This project was already commissioned this round.");
+    throw new Error("Dieses Projekt wurde in dieser Runde bereits gestartet.");
   const actor = next.political.characters.find((c) => c.id === sponsor)!;
   const overload = career.projects.some((p) => p.status === "ACTIVE") ? 10 : 0;
   const risk = Math.min(
@@ -137,7 +137,7 @@ export function completeDevelopment(flow: RoundFlowState): RoundFlowState {
     }
     logCareer(
       next,
-      `${project.kind} ${success ? "delivered; sporting capacity and sponsor influence improve" : "failed; costs remain spent and technical pressure rises"}.`,
+      `${project.kind} ${success ? "abgeschlossen; sportliche Kapazität und Einfluss verbessern sich" : "gescheitert; die Kosten bleiben bestehen und der technische Druck steigt"}.`,
     );
   }
   return next;
@@ -165,13 +165,13 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
   const next = structuredClone(source),
     career = next.career!;
   if (career.races.some((r) => r.round === next.currentRound))
-    throw new Error("Race was already simulated.");
+    throw new Error("Das Rennen wurde bereits simuliert.");
   if (
     career.weekend &&
     !career.weekend.committed &&
     career.weekend.round !== next.currentRound
   )
-    throw new Error("Finish the active race before advancing its calendar.");
+    throw new Error("Beende das aktive Rennen, bevor du den Kalender fortsetzt.");
   const weekend =
     career.weekend && !career.weekend.committed
       ? career.weekend
@@ -294,7 +294,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
   const slowService = weekend.events.some(
     (e) =>
       e.kind === "PIT" &&
-      e.text.includes("slow service") &&
+      e.text.includes("langsamer Boxenservice") &&
       cars.some((c) => c.id === e.carId && c.ours),
   );
   if (slowService) {
@@ -316,7 +316,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
         contractId: null,
         optionId: null,
         contractEndRound: null,
-        summary: "Pit crew asks for support after a costly service mistake.",
+        summary: "Die Boxencrew bittet nach einem kostspieligen Fehler um Unterstützung.",
         deadline: next.currentRound + 2,
         status: "OPEN",
       });
@@ -350,7 +350,7 @@ export function simulateRace(source: RoundFlowState): RoundFlowState {
       id: `race_r${next.currentRound}`,
       round: next.currentRound,
       type: "RACE_RESULT",
-      title: `${weekend.venue}: ${results.find((r) => !r.dnf)?.name ?? "no finisher"}`,
+      title: `${weekend.venue}: ${results.find((r) => !r.dnf)?.name ?? "kein Fahrzeug im Ziel"}`,
       summary:
         results
           .filter((r) => r.team === ourTeam)

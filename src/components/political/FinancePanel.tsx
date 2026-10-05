@@ -15,7 +15,7 @@ type Props = {
 };
 
 function money(value: number) {
-  return `€${value.toFixed(2)}m`;
+  return `€${value.toFixed(2)} Mio.`;
 }
 
 export function FinancePanel({ state, round, onAction }: Props) {
@@ -36,17 +36,17 @@ export function FinancePanel({ state, round, onAction }: Props) {
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["Cash balance", money(summary.cashBalance)],
-          ["Next round cash forecast", money(summary.projectedNextRoundCash)],
+          ["Kassenbestand", money(summary.cashBalance)],
+          ["Prognose nächste Runde", money(summary.projectedNextRoundCash)],
           [
-            "Annual payroll / budget",
+            "Jährliche Gehälter / Budget",
             `${money(summary.payroll)} / ${money(finance.payrollBudgetMillionsPerSeason)}`,
           ],
-          ["Contract commitments", money(summary.commitments)],
+          ["Vertragliche Verpflichtungen", money(summary.commitments)],
         ].map(([title, value]) => (
           <article
             key={title}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4"
+            className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4"
           >
             <p className="text-xs uppercase tracking-wider text-zinc-500">
               {title}
@@ -59,23 +59,23 @@ export function FinancePanel({ state, round, onAction }: Props) {
       {summary.cashBalance <
         (8 * finance.payrollBudgetMillionsPerSeason) / 70 ||
       summary.projectedNextRoundCash < 0 ? (
-        <p className="rounded-xl border border-amber-900 bg-amber-950/20 p-4 text-sm text-amber-200">
+        <p className="rounded-md border border-amber-900 bg-amber-950/20 p-4 text-sm text-amber-200">
           {summary.cashBalance < 0
-            ? "The team has a cash deficit. Existing contractual payments continue; new deals must pass the budget check."
-            : "Cash reserves are running low. Review upcoming payments before committing to a new deal."}
+            ? "Das Team hat ein Kassendefizit. Bestehende Zahlungen laufen weiter; neue Verträge müssen die Budgetprüfung bestehen."
+            : "Die Rücklagen werden knapp. Prüfe anstehende Zahlungen, bevor du neue Verpflichtungen eingehst."}
         </p>
       ) : null}
 
-      <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-        <h3 className="text-lg font-semibold">Round cash flow</h3>
+      <article className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
+        <h3 className="text-lg font-semibold">Cashflow der Runde</h3>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {[
-            ["Sponsor income", finance.sponsorIncomeMillionsPerRound],
-            ["Owner contribution", finance.ownerIncomeMillionsPerRound],
-            ["Operating costs", finance.operatingCostMillionsPerRound],
-            ["Next round salaries", summary.nextSalary],
-            ["Guarantees due next round", summary.nextGuarantees],
-            ["Recurring net per round", summary.netPerRound],
+            ["Sponsoreneinnahmen", finance.sponsorIncomeMillionsPerRound],
+            ["Eigentümerzuschuss", finance.ownerIncomeMillionsPerRound],
+            ["Betriebskosten", finance.operatingCostMillionsPerRound],
+            ["Gehälter nächste Runde", summary.nextSalary],
+            ["Garantien nächste Runde", summary.nextGuarantees],
+            ["Laufender Saldo pro Runde", summary.netPerRound],
           ].map(([title, value]) => (
             <div key={String(title)}>
               <dt className="text-zinc-500">{title}</dt>
@@ -84,21 +84,15 @@ export function FinancePanel({ state, round, onAction }: Props) {
           ))}
         </dl>
         <p className="mt-4 text-xs leading-5 text-zinc-500">
-          Salaries are paid over {finance.roundsPerSeason} rounds per season.
-          Bonuses are paid when triggered. Remaining guaranteed pay is settled
-          when a contract expires. Potential unpaid bonuses:{" "}
-          {money(summary.possibleBonuses)}. Approved commitment limit:{" "}
-          {money(finance.commitmentBudgetMillions)}.
+          Gehälter werden über {finance.roundsPerSeason} Runden pro Saison gezahlt. Boni werden bei Auslösung fällig. Verbleibende Garantien werden beim Vertragsende ausgeglichen. Mögliche offene Boni: {money(summary.possibleBonuses)}. Freigegebene Verpflichtungsgrenze: {money(finance.commitmentBudgetMillions)}.
         </p>
       </article>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-2xl border border-zinc-800 p-5">
-          <h3 className="font-semibold">Request emergency owner funding</h3>
+        <article className="rounded-lg border border-zinc-800 p-5">
+          <h3 className="font-semibold">Notfallfinanzierung anfragen</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Receive {money(getOwnerFundingAmount(state))} once when cash falls
-            below €8m. Your reputation falls by 8, owner trust in you by 10, and
-            the owner gains 5 influence.
+            Erhalte einmalig {money(getOwnerFundingAmount(state))}, wenn der Kassenbestand unter €8 Mio. fällt. Deine Reputation sinkt um 8, das Vertrauen des Eigentümers um 10 und dessen Einfluss steigt um 5.
           </p>
           <button
             type="button"
@@ -106,22 +100,21 @@ export function FinancePanel({ state, round, onAction }: Props) {
             disabled={ownerFundingReason !== null}
             className="mt-4 rounded-lg border border-amber-800 px-4 py-2 text-sm text-amber-200 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
           >
-            Request owner funding
+            Eigentümerfinanzierung anfragen
           </button>
           {ownerFundingReason ? (
             <p className="mt-2 text-xs text-zinc-500">{ownerFundingReason}</p>
           ) : null}
         </article>
-        <article className="rounded-2xl border border-zinc-800 p-5">
-          <h3 className="font-semibold">Cut operating costs</h3>
+        <article className="rounded-lg border border-zinc-800 p-5">
+          <h3 className="font-semibold">Betriebskosten senken</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Reduce future operating costs by 20% to{" "}
+            Senke künftige Betriebskosten um 20 % auf{" "}
             {money(
               finance.operatingCostMillionsPerRound *
                 (finance.costCutsApplied ? 1 : 0.8),
             )}{" "}
-            per round. Technical leadership and race engineers gain 8
-            instability and 8 political fatigue.
+            pro Runde. Technische Leitung und Renningenieure erhalten jeweils +8 Instabilität und +8 politische Ermüdung.
           </p>
           <button
             type="button"
@@ -133,32 +126,31 @@ export function FinancePanel({ state, round, onAction }: Props) {
             className="mt-4 rounded-lg border border-sky-800 px-4 py-2 text-sm text-sky-200 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
           >
             {finance.costCutsApplied
-              ? "Cost cuts applied"
-              : "Apply operating cost cuts"}
+              ? "Kostensenkung aktiv"
+              : "Betriebskosten senken"}
           </button>
         </article>
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-        <h3 className="text-lg font-semibold">Account ledger</h3>
+      <article className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
+        <h3 className="text-lg font-semibold">Kontobuch</h3>
         <p className="mt-2 text-xs text-zinc-500">
-          Opening cash {money(finance.openingBalanceMillions)} after round{" "}
+          Eröffnungsbestand {money(finance.openingBalanceMillions)} nach Runde{" "}
           {finance.openedAfterRound}
-          {" · "}Income {money(income)} · Expenses {money(expenses)} · Settled
-          through R{finance.settledThroughRound}
+          {" · "}Einnahmen {money(income)} · Ausgaben {money(expenses)} · verbucht bis R{finance.settledThroughRound}
         </p>
         {transactions.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            The next round will book the first payments.
+            In der nächsten Runde werden die ersten Zahlungen verbucht.
           </p>
         ) : (
           <div className="mt-4 max-h-96 overflow-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs text-zinc-500">
                 <tr>
-                  <th className="p-2">Round</th>
-                  <th className="p-2">Booking</th>
-                  <th className="p-2 text-right">Amount</th>
+                  <th className="p-2">Runde</th>
+                  <th className="p-2">Buchung</th>
+                  <th className="p-2 text-right">Betrag</th>
                 </tr>
               </thead>
               <tbody>

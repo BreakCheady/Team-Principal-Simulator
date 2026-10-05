@@ -57,10 +57,10 @@ export const vanguardTechnicalDirectionDecisions: ConflictDecisionDefinition[] =
   {
     id: "support_moretti",
     conflictId: "conflict_technical_direction",
-    label: "Support Moretti",
+    label: "Moretti unterstützen",
     description:
-      "Give the star driver greater technical influence, accepting institutional cost.",
-    title: "Moretti gets greater technical influence",
+      "Gib dem Starfahrer mehr technischen Einfluss und akzeptiere die institutionellen Kosten.",
+    title: "Moretti erhält mehr technischen Einfluss",
     summary:
       "The star driver gains political momentum, but Chen's authority and the existing technical precedent are weakened.",
     outcome: "NARROW_WIN_A",
@@ -74,21 +74,21 @@ export const vanguardTechnicalDirectionDecisions: ConflictDecisionDefinition[] =
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_chen_moretti", metric: "resentment", delta: 10, subject: "Chen → Moretti" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_keller_moretti", metric: "trust", delta: -4, subject: "Keller → Moretti" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_keller_moretti", metric: "resentment", delta: 8, subject: "Keller → Moretti" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: 30, subject: "Moretti technical influence" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: -20, subject: "Chen technical authority" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: -10, subject: "Technical authority precedent" },
-      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "violations", delta: 1, subject: "Technical authority precedent" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: 30, subject: "Morettis technischer Einfluss" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: -20, subject: "Chens technische Autorität" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: -10, subject: "Präzedenz technische Autorität" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "violations", delta: 1, subject: "Präzedenz technische Autorität" },
     ],
   },
   {
     id: "offer_compromise",
     conflictId: "conflict_technical_direction",
-    label: "Offer compromise",
+    label: "Kompromiss anbieten",
     description:
       "Increase Moretti's feedback weight while Chen keeps final technical authority.",
-    title: "A controlled compromise",
+    title: "Ein kontrollierter Kompromiss",
     summary:
-      "Moretti receives more weight in development feedback, while Chen retains final technical authority. The precedent survives and both sides can claim something.",
+      "Moretti erhält mehr Gewicht beim Entwicklungsfeedback, während Chen die letzte technische Entscheidungsgewalt behält. Der Präzedenzfall bleibt bestehen und beide Seiten erhalten ein Zugeständnis.",
     outcome: "COMPROMISE",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 2, subject: "Luca Moretti" },
@@ -98,21 +98,21 @@ export const vanguardTechnicalDirectionDecisions: ConflictDecisionDefinition[] =
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_chen", metric: "resentment", delta: -5, subject: "Moretti → Chen" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_chen_moretti", metric: "trust", delta: 5, subject: "Chen → Moretti" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_chen_moretti", metric: "resentment", delta: -5, subject: "Chen → Moretti" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: 12, subject: "Moretti technical influence" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: 5, subject: "Chen technical authority" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: 4, subject: "Technical authority precedent" },
-      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "applications", delta: 1, subject: "Technical authority precedent" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: 12, subject: "Morettis technischer Einfluss" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: 5, subject: "Chens technische Autorität" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: 4, subject: "Präzedenz technische Autorität" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "applications", delta: 1, subject: "Präzedenz technische Autorität" },
     ],
   },
   {
     id: "support_chen",
     conflictId: "conflict_technical_direction",
-    label: "Support Chen",
+    label: "Chen unterstützen",
     description:
-      "Defend the technical chain of command and reinforce the existing precedent.",
+      "Verteidige die technische Befehlskette und stärke den bestehenden Präzedenzfall.",
     title: "Chen's authority is upheld",
     summary:
-      "The technical chain of command is reinforced. Moretti loses momentum and trust in Hartmann, while the institutional precedent becomes harder to challenge.",
+      "Die technische Befehlskette wird gestärkt. Moretti verliert Dynamik und Vertrauen in Hartmann, während der institutionelle Präzedenzfall schwerer angreifbar wird.",
     outcome: "NARROW_WIN_B",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -5, subject: "Luca Moretti" },
@@ -123,10 +123,10 @@ export const vanguardTechnicalDirectionDecisions: ConflictDecisionDefinition[] =
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_chen", metric: "trust", delta: -7, subject: "Moretti → Chen" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_chen", metric: "resentment", delta: 8, subject: "Moretti → Chen" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_keller_moretti", metric: "resentment", delta: -4, subject: "Keller → Moretti" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: -10, subject: "Moretti technical influence" },
-      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: 10, subject: "Chen technical authority" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: 8, subject: "Technical authority precedent" },
-      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "applications", delta: 1, subject: "Technical authority precedent" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_moretti_tech", delta: -10, subject: "Morettis technischer Einfluss" },
+      { type: "GOAL_PROGRESS_DELTA", goalId: "goal_chen_authority", delta: 10, subject: "Chens technische Autorität" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_technical_authority", delta: 8, subject: "Präzedenz technische Autorität" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_technical_authority", counter: "applications", delta: 1, subject: "Präzedenz technische Autorität" },
     ],
   },
 ];
@@ -135,11 +135,11 @@ export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
   {
     id: "back_keller",
     conflictId: "conflict_driver_status",
-    label: "Back Keller",
+    label: "Keller unterstützen",
     description: "Protect equality and reduce Moretti's privileged sporting position.",
-    title: "Keller wins a political concession",
+    title: "Keller erhält ein politisches Zugeständnis",
     summary:
-      "Keller gains momentum and the performance-based driver-priority precedent is applied against automatic star-driver privilege.",
+      "Keller gewinnt an Dynamik und der leistungsbasierte Fahrerprioritäts-Präzedenzfall wird gegen automatische Starfahrer-Sonderrechte angewandt.",
     outcome: "NARROW_WIN_A",
     effects: [
       {
@@ -159,7 +159,7 @@ export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
         precedentId: "precedent_driver_priority",
         counter: "applications",
         delta: 1,
-        subject: "Driver priority precedent",
+        subject: "Präzedenz Fahrerpriorität",
       },
     ],
   },
@@ -168,9 +168,9 @@ export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
     conflictId: "conflict_driver_status",
     label: "Protect Moretti's status",
     description: "Preserve the star driver's sporting priority despite Keller's challenge.",
-    title: "Moretti keeps the upper hand",
+    title: "Moretti behält die Oberhand",
     summary:
-      "Moretti retains sporting priority, but the objective driver-priority precedent is weakened.",
+      "Moretti behält den sportlichen Vorrang, aber der objektive Fahrerprioritäts-Präzedenzfall wird geschwächt.",
     outcome: "NARROW_WIN_B",
     effects: [
       {
@@ -189,14 +189,14 @@ export const driverPriorityDecisions: ConflictDecisionDefinition[] = [
         type: "PRECEDENT_STRENGTH_DELTA",
         precedentId: "precedent_driver_priority",
         delta: -8,
-        subject: "Driver priority precedent",
+        subject: "Präzedenz Fahrerpriorität",
       },
       {
         type: "PRECEDENT_COUNTER_DELTA",
         precedentId: "precedent_driver_priority",
         counter: "violations",
         delta: 1,
-        subject: "Driver priority precedent",
+        subject: "Präzedenz Fahrerpriorität",
       },
     ],
   },
@@ -206,12 +206,12 @@ export const mediaConflictDecisions: ConflictDecisionDefinition[] = [
   {
     id: "contain_media_story",
     conflictId: "conflict_moretti_media_pressure",
-    label: "Contain the story",
+    label: "Berichterstattung eindämmen",
     description:
-      "Agree on a controlled public line while keeping the sporting disagreement internal.",
-    title: "The media fight is contained",
+      "Vereinbare eine kontrollierte öffentliche Linie und halte den sportlichen Konflikt intern.",
+    title: "Der Medienkonflikt wird eingedämmt",
     summary:
-      "Both sides step back from public escalation. Hartmann protects authority without humiliating Moretti.",
+      "Beide Seiten ziehen sich aus der öffentlichen Eskalation zurück. Hartmann schützt seine Autorität, ohne Moretti bloßzustellen.",
     outcome: "COMPROMISE",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2, subject: "Daniel Hartmann" },
@@ -223,29 +223,29 @@ export const mediaConflictDecisions: ConflictDecisionDefinition[] = [
   {
     id: "back_moretti_publicly",
     conflictId: "conflict_moretti_media_pressure",
-    label: "Back Moretti publicly",
+    label: "Moretti öffentlich unterstützen",
     description:
-      "Accept his framing and reassure the star driver in front of the paddock.",
-    title: "Moretti wins the public argument",
+      "Übernimm seine Darstellung und stärke dem Starfahrer vor dem Paddock den Rücken.",
+    title: "Moretti gewinnt die öffentliche Auseinandersetzung",
     summary:
-      "Moretti gains momentum and loyalty, but Hartmann gives up some control over the public narrative.",
+      "Moretti gewinnt Dynamik und Loyalität, Hartmann gibt jedoch einen Teil der Kontrolle über die öffentliche Darstellung ab.",
     outcome: "NARROW_WIN_A",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 4, subject: "Luca Moretti" },
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: -2, subject: "Daniel Hartmann" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "loyalty", delta: 6, subject: "Moretti → Hartmann" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -4, subject: "Driver priority precedent" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -4, subject: "Präzedenz Fahrerpriorität" },
     ],
   },
   {
     id: "discipline_moretti_media",
     conflictId: "conflict_moretti_media_pressure",
-    label: "Discipline Moretti",
+    label: "Moretti disziplinieren",
     description:
-      "Draw a hard line: drivers do not set team policy through the press.",
-    title: "Hartmann reasserts media control",
+      "Ziehe eine klare Grenze: Fahrer bestimmen die Teamlinie nicht über die Presse.",
+    title: "Hartmann stellt die Medienkontrolle wieder her",
     summary:
-      "The team principal wins the institutional argument, but the relationship with Moretti worsens.",
+      "Der Teamchef gewinnt den institutionellen Streit, doch die Beziehung zu Moretti verschlechtert sich.",
     outcome: "NARROW_WIN_B",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -4, subject: "Luca Moretti" },
@@ -260,52 +260,52 @@ export const contractConflictDecisions: ConflictDecisionDefinition[] = [
   {
     id: "structured_contract_compromise",
     conflictId: "conflict_moretti_contract",
-    label: "Negotiate a structured compromise",
+    label: "Strukturierten Kompromiss verhandeln",
     description:
-      "Offer review points and performance-linked sporting commitments without permanent guarantees.",
-    title: "Contract talks return to structure",
+      "Biete Überprüfungspunkte und leistungsabhängige sportliche Zusagen ohne dauerhafte Garantien an.",
+    title: "Vertragsgespräche kehren in geordnete Bahnen zurück",
     summary:
-      "Moretti gets a credible path to sporting priority while Hartmann avoids surrendering permanent authority.",
+      "Moretti erhält einen glaubwürdigen Weg zu sportlichem Vorrang, während Hartmann keine dauerhafte Autorität abgibt.",
     outcome: "COMPROMISE",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2, subject: "Daniel Hartmann" },
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 1, subject: "Luca Moretti" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "trust", delta: 5, subject: "Moretti → Hartmann" },
-      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "applications", delta: 1, subject: "Driver priority precedent" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "applications", delta: 1, subject: "Präzedenz Fahrerpriorität" },
     ],
   },
   {
     id: "grant_contract_guarantees",
     conflictId: "conflict_moretti_contract",
-    label: "Grant sporting guarantees",
+    label: "Sportliche Garantien gewähren",
     description:
-      "Secure Moretti by putting stronger sporting priority into the deal.",
-    title: "Moretti wins contract leverage",
+      "Binde Moretti mit stärkeren sportlichen Prioritäten im Vertrag.",
+    title: "Moretti gewinnt Verhandlungsmacht",
     summary:
-      "The star driver gains security and power, but Keller and the objective-priority precedent take a hit.",
+      "Der Starfahrer gewinnt Sicherheit und Macht, während Keller und der objektive Prioritäts-Präzedenzfall geschwächt werden.",
     outcome: "NARROW_WIN_A",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 4, subject: "Luca Moretti" },
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_keller", delta: -3, subject: "Noah Keller" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -10, subject: "Driver priority precedent" },
-      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "violations", delta: 1, subject: "Driver priority precedent" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: -10, subject: "Präzedenz Fahrerpriorität" },
+      { type: "PRECEDENT_COUNTER_DELTA", precedentId: "precedent_driver_priority", counter: "violations", delta: 1, subject: "Präzedenz Fahrerpriorität" },
     ],
   },
   {
     id: "hold_contract_line",
     conflictId: "conflict_moretti_contract",
-    label: "Hold the line",
+    label: "Position halten",
     description:
-      "Refuse permanent sporting guarantees and make Moretti decide whether he will really leave.",
-    title: "Hartmann protects contract authority",
+      "Lehne dauerhafte sportliche Garantien ab und zwinge Moretti zu entscheiden, ob er wirklich gehen will.",
+    title: "Hartmann schützt die Vertragsautorität",
     summary:
-      "The team keeps the rules-based position, but Moretti leaves the dispute angrier and less trusting.",
+      "Das Team hält an der regelbasierten Position fest, doch Moretti geht verärgerter und mit weniger Vertrauen aus dem Konflikt.",
     outcome: "NARROW_WIN_B",
     effects: [
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: -3, subject: "Luca Moretti" },
       { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 3, subject: "Daniel Hartmann" },
       { type: "RELATIONSHIP_DELTA", relationshipId: "rel_moretti_hartmann", metric: "resentment", delta: 8, subject: "Moretti → Hartmann" },
-      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: 5, subject: "Driver priority precedent" },
+      { type: "PRECEDENT_STRENGTH_DELTA", precedentId: "precedent_driver_priority", delta: 5, subject: "Präzedenz Fahrerpriorität" },
     ],
   },
 ];

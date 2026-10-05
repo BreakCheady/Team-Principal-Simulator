@@ -23,12 +23,12 @@ import type { Seat } from "./state";
 export function careerCopy(
   source: RoundFlowState,
 ): RoundFlowState & { career: NonNullable<RoundFlowState["career"]> } {
-  if (!source.career) throw new Error("Career mode is not enabled.");
+  if (!source.career) throw new Error("Der Karrieremodus ist nicht aktiviert.");
   if (source.career.status === "DISMISSED")
-    throw new Error("Your tenure has ended.");
+    throw new Error("Deine Amtszeit ist beendet.");
   if (source.career.weekend && !source.career.weekend.committed)
     throw new Error(
-      "Finish the current race weekend before changing team management.",
+      "Beende das aktuelle Rennwochenende, bevor du die Teamführung änderst.",
     );
   return structuredClone(source) as RoundFlowState & {
     career: NonNullable<RoundFlowState["career"]>;
@@ -81,7 +81,7 @@ export function leaveTeam(
       releaseCost + guarantee > getCashBalance(next.political) + income
     )
       throw new Error(
-        "Cash cannot cover the release payment and remaining guaranteed pay.",
+        "Der Kassenbestand reicht nicht für Ablöse und verbleibende Garantien.",
       );
     contract.status = "TERMINATED";
     if (guarantee > 0) {
@@ -94,7 +94,7 @@ export function leaveTeam(
         category: "GUARANTEE_SETTLEMENT",
         amountMillions: guarantee,
         contractId: contract.id,
-        description: "Guaranteed pay on departure",
+        description: "Garantierte Zahlung bei Abgang",
       });
     }
     next.political = syncContractCareerState(
@@ -207,13 +207,13 @@ export function releaseContract(
     !isReleaseClauseInForce(contract, clause, next.currentRound) ||
     clause.beneficiary === "CHARACTER"
   )
-    throw new Error("No active team release right exists.");
+    throw new Error("Es gibt kein aktives Ausstiegsrecht des Teams.");
   return leaveTeam(
     next,
     contract.characterId,
     0,
     clause.amountMillions,
-    "Team exercises the release clause",
+    "Team nutzt die Ausstiegsklausel",
   );
 }
 
@@ -229,7 +229,7 @@ export function respondTransferOffer(
     offer.status !== "OPEN" ||
     next.currentRound > offer.expiresRound
   )
-    throw new Error("Transfer offer is no longer open.");
+    throw new Error("Das Transferangebot ist nicht mehr offen.");
   const actor = next.political.characters.find(
     (c) => c.id === offer.characterId,
   )!;
@@ -243,7 +243,7 @@ export function respondTransferOffer(
           r.fromCharacterId === actor.id && r.toCharacterId === principal.id,
       )?.trust ?? 50;
     if (actor.career.transferInterest + actor.personality.ambition - trust < 70)
-      throw new Error("The actor does not consent to this transfer.");
+      throw new Error("Die betroffene Person stimmt diesem Transfer nicht zu.");
     next = leaveTeam(
       next,
       actor.id,
@@ -286,7 +286,7 @@ export function signCandidate(
     next.currentRound < candidate.availableFrom ||
     next.currentRound > candidate.availableUntil
   )
-    throw new Error("Candidate is unavailable.");
+    throw new Error("Die Person ist nicht verfügbar.");
   const target = next.career.seats.find((s) => s.seat === seat);
   const driverMatch =
     candidate.seat.startsWith("DRIVER") && seat.startsWith("DRIVER");
@@ -295,7 +295,7 @@ export function signCandidate(
     target.characterId ||
     (!driverMatch && candidate.seat !== seat)
   )
-    throw new Error("An appropriate vacant seat is required.");
+    throw new Error("Eine passende freie Position ist erforderlich.");
   if (
     !Number.isFinite(salary) ||
     salary < candidate.salary ||
@@ -311,8 +311,8 @@ export function signCandidate(
   )
     throw new Error(
       next.career.world
-        ? "Offer must meet the salary demand and span one or two valid series seasons (maximum 52 races)."
-        : "Offer must meet salary demand and run for 12–48 rounds.",
+        ? "Das Angebot muss die Gehaltsforderung erfüllen und über eine oder zwei gültige Saisons laufen (maximal 52 Rennen)."
+        : "Das Angebot muss die Gehaltsforderung erfüllen und 12–48 Runden laufen.",
     );
   const owner = next.political.characters.find(
     (c) => c.role === "TEAM_PRINCIPAL",
@@ -322,7 +322,7 @@ export function signCandidate(
     candidate.character.personality.compromiseWillingness -
     candidate.character.personality.ambition;
   if (acceptance < 10 && salary < candidate.salary * 1.2)
-    throw new Error("Candidate wants a 20% premium to join this leadership.");
+    throw new Error("Die Person verlangt 20 % Aufschlag für einen Wechsel zu dieser Teamführung.");
   if (next.currentRound > 0)
     next.political = settleTeamFinancesThroughRound(
       next.political,
@@ -330,7 +330,7 @@ export function signCandidate(
     );
   const fee = candidate.signingFee + candidate.buyout;
   if (getCashBalance(next.political) < fee)
-    throw new Error("Insufficient cash for signing fee and buyout.");
+    throw new Error("Nicht genügend Geld für Handgeld und Ablöse.");
   const id = candidate.character.id;
   if (!next.political.characters.some((c) => c.id === id))
     next.political.characters.push(structuredClone(candidate.character));
@@ -483,7 +483,7 @@ export function agreeMutualOption(
         s.contractId === contractId && ["OPEN", "COUNTERED"].includes(s.status),
     )
   )
-    throw new Error("Finish renewal talks before exercising an option.");
+    throw new Error("Schließe die Vertragsgespräche ab, bevor du eine Option ziehst.");
   const contract = next.political.contracts.find((c) => c.id === contractId)!;
   const option = contract?.options.find((o) => o.id === optionId);
   if (
@@ -491,7 +491,7 @@ export function agreeMutualOption(
     option.holder !== "MUTUAL" ||
     !next.career.activeActorIds.includes(contract.characterId)
   )
-    throw new Error("No mutual option exists.");
+    throw new Error("Es gibt keine gemeinsame Option.");
   const actor = next.political.characters.find(
     (c) => c.id === contract.characterId,
   )!;
@@ -509,7 +509,7 @@ export function agreeMutualOption(
       actor.dynamic.instability <
     60
   )
-    throw new Error("The actor refuses consent to this mutual extension.");
+    throw new Error("Die Person lehnt die gemeinsame Verlängerung ab.");
   if (next.currentRound > 0)
     next.political = settleTeamFinancesThroughRound(
       next.political,
@@ -566,12 +566,12 @@ export function terminateEmployment(
     source.currentRound,
   );
   if (!source.career?.activeActorIds.includes(characterId) || !contract)
-    throw new Error("No active employment contract exists.");
+    throw new Error("Es gibt keinen aktiven Arbeitsvertrag.");
   return leaveTeam(
     source,
     characterId,
     0,
     0,
-    "Employment terminated; outstanding guaranteed salary paid",
+    "Arbeitsverhältnis beendet; ausstehende Gehaltsgarantie gezahlt",
   );
 }

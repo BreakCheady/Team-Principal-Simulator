@@ -393,23 +393,23 @@ export const SERIES: SeriesDefinition[] = specs.map(
         : standard,
     description:
       id === "WEC"
-        ? "FIA WEC 2026: Hypercar and LMGT3 share eight endurance races, with class championships, Hyperpole and three-driver crews. Fictional teams and drivers."
+        ? "FIA WEC: Hypercar und LMGT3 bestreiten gemeinsam acht Langstreckenrennen mit Klassenwertungen, Hyperpole und Drei-Fahrer-Besatzungen. Teams und Fahrer sind fiktiv."
         : id === "RALLY"
-          ? "Gravel, tarmac and snow rallies with terrain-dependent performance."
+          ? "Rallyes auf Schotter, Asphalt und Schnee mit untergrundabhängiger Leistung."
           : id === "INDYCAR"
-            ? "Road courses, street races and ovals; three-car team model."
+            ? "Permanente Rennstrecken, Stadtkurse und Ovale; Teams treten mit drei Fahrzeugen an."
             : id === "F4"
-              ? "Regional-style junior championship with three races per meeting."
+              ? "Regionale Nachwuchsmeisterschaft mit drei Rennen pro Veranstaltung."
               : id === "F2" || id === "F3"
-                ? "Junior formula championship with sprint and feature races."
+                ? "Formel-Nachwuchsmeisterschaft mit Sprint- und Hauptrennen."
                 : category === "GT"
-                  ? "Customer GT championship with rotating driver crews and shared car entries."
-                  : "Top-tier open-wheel championship with two cars per team.",
+                  ? "Kundensport-GT-Meisterschaft mit wechselnden Fahrerbesatzungen und gemeinsam genutzten Fahrzeugen."
+                  : "Höchste Monoposto-Klasse mit zwei Fahrzeugen pro Team.",
   }),
 );
 export function getSeries(id: SeriesId): SeriesDefinition {
   const s = SERIES.find((s) => s.id === id);
-  if (!s) throw new Error("Unknown racing series.");
+  if (!s) throw new Error("Unbekannte Rennserie.");
   return s;
 }
 export function pointsForEvent(series: SeriesDefinition, index: number) {

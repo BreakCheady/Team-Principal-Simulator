@@ -8,7 +8,19 @@ type Props = {
 };
 
 function label(value: string) {
-  return value.replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    TEAM_PRINCIPAL: "Teamchef",
+    SPORTING_DIRECTOR: "Sportdirektor",
+    TECHNICAL_DIRECTOR: "Technischer Direktor",
+    RACE_ENGINEER: "Renningenieur",
+    OWNER_REPRESENTATIVE: "Eigentümervertreter",
+    SPONSOR_REPRESENTATIVE: "Sponsorvertreter",
+    CEO: "Geschäftsführung",
+    INTERNAL_INFLUENCE: "Interner Einfluss",
+    OWNER_ACCESS: "Zugang zum Eigentümer",
+    COMMERCIAL_BACKING: "Kommerzielle Unterstützung",
+  };
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
 export function PeoplePowerCentersPanel({ flow, view }: Props) {
@@ -18,26 +30,26 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
             {flow.political.characters.map((character) => (
               <article
                 key={character.id}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
               >
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
                   {label(character.role)}
-                  {character.active === false ? " · LEFT TEAM" : ""}
+                  {character.active === false ? " · TEAM VERLASSEN" : ""}
                 </p>
                 <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-zinc-500">Momentum</dt>
+                    <dt className="text-zinc-500">Dynamik</dt>
                     <dd className="mt-1">{character.dynamic.momentum}</dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Fatigue</dt>
+                    <dt className="text-zinc-500">Politische Ermüdung</dt>
                     <dd className="mt-1">
                       {character.dynamic.politicalFatigue}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Instability</dt>
+                    <dt className="text-zinc-500">Instabilität</dt>
                     <dd className="mt-1">{character.dynamic.instability}</dd>
                   </div>
                   <div>
@@ -81,34 +93,34 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                 return (
                   <article
                     key={character.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
                       {label(character.role)}
-                      {character.active === false ? " · LEFT TEAM" : ""}
+                      {character.active === false ? " · TEAM VERLASSEN" : ""}
                     </p>
                     <h3 className="mt-2 text-xl font-semibold">
                       {character.name}
                     </h3>
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="text-zinc-500">Internal influence</p>
+                        <p className="text-zinc-500">Interner Einfluss</p>
                         <p className="mt-1">
                           {character.power.internalInfluence}
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Owner access</p>
+                        <p className="text-zinc-500">Zugang zum Eigentümer</p>
                         <p className="mt-1">{character.power.ownerAccess}</p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Commercial backing</p>
+                        <p className="text-zinc-500">Kommerzielle Unterstützung</p>
                         <p className="mt-1">
                           {character.power.commercialBacking}
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Live issues</p>
+                        <p className="text-zinc-500">Aktive Themen</p>
                         <p className="mt-1">{liveIssues.length}</p>
                       </div>
                     </div>

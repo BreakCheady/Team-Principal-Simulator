@@ -15,13 +15,13 @@ export function roundMoney(value: number): number {
 
 function requireRound(round: number): void {
   if (!Number.isInteger(round) || round < 1)
-    throw new RangeError("round must be a positive integer.");
+    throw new RangeError("Runde muss eine positive ganze Zahl sein.");
 }
 
 function validated(state: PoliticalCoreState): PoliticalCoreState {
   const result = validatePoliticalCoreState(state);
   if (!result.success)
-    throw new Error("Finance operation produced an invalid game state.");
+    throw new Error("Die Finanzaktion hat einen ungültigen Spielzustand erzeugt.");
   return result.data;
 }
 
@@ -63,7 +63,7 @@ function appendTransaction(
       existing.contractId !== transaction.contractId
     ) {
       throw new Error(
-        "A finance transaction ID was reused with different terms.",
+        "Eine Finanztransaktions-ID wurde mit abweichenden Bedingungen erneut verwendet.",
       );
     }
     return false;
@@ -93,7 +93,7 @@ export function bookPerformanceBonus(
   const contract = nextState.contracts.find((item) => item.id === contractId);
   if (!contract) throw new Error(`Contract "${contractId}" was not found.`);
   if (!Number.isFinite(amountMillions) || amountMillions < 0)
-    throw new RangeError("Invalid bonus amount.");
+    throw new RangeError("Ungültiger Bonusbetrag.");
   if (round <= nextState.finance.openedAfterRound) return nextState;
   appendTransaction(nextState, {
     id: `bonus_${contractId}_${triggerId}`,
@@ -114,7 +114,7 @@ export function settleTeamFinancesThroughRound(
   const nextState = structuredClone(sourceState);
   const finance = nextState.finance;
   if (round < finance.settledThroughRound)
-    throw new Error("Finance settlement cannot move backwards.");
+    throw new Error("Die Finanzabrechnung kann nicht rückwärts laufen.");
   for (
     let current = finance.settledThroughRound + 1;
     current <= round;
@@ -124,17 +124,17 @@ export function settleTeamFinancesThroughRound(
       [
         "SPONSOR_INCOME",
         finance.sponsorIncomeMillionsPerRound,
-        "Sponsor instalment",
+        "Sponsorenzahlung",
       ],
       [
         "OWNER_INCOME",
         finance.ownerIncomeMillionsPerRound,
-        "Owner operating contribution",
+        "Betriebszuschuss des Eigentümers",
       ],
       [
         "OPERATING_COST",
         finance.operatingCostMillionsPerRound,
-        "Team operating costs",
+        "Betriebskosten des Teams",
       ],
     ] as const) {
       appendTransaction(nextState, {
@@ -327,7 +327,7 @@ export function assessContractBudget(
   round: number,
 ) {
   if (!Number.isInteger(round) || round < 0)
-    throw new RangeError("Invalid budget round.");
+    throw new RangeError("Ungültige Budgetrunde.");
   if (
     ![
       terms.salaryMillionsPerSeason,
@@ -337,7 +337,7 @@ export function assessContractBudget(
     !Number.isInteger(terms.endRound) ||
     terms.endRound < round
   ) {
-    throw new RangeError("Invalid financial contract terms.");
+    throw new RangeError("Ungültige finanzielle Vertragsbedingungen.");
   }
   const projected = structuredClone(state);
   const contract = projected.contracts.find((item) => item.id === contractId);
@@ -365,10 +365,10 @@ export function assessContractBudget(
     state.finance.commitmentBudgetMillions + 0.000001
   ) {
     reason =
-      "Guaranteed pay, future salaries and potential bonuses exceed the approved contract commitment budget.";
+      "Garantierte Zahlungen, künftige Gehälter und mögliche Boni überschreiten das freigegebene Vertragsbudget.";
   } else if (summary.projectedNextRoundCash < 0) {
     reason =
-      "This deal would leave insufficient cash for the next round. Request owner funding or reduce operating costs.";
+      "Dieser Vertrag würde zu wenig Liquidität für die nächste Runde lassen. Fordere Eigentümerfinanzierung an oder senke die Betriebskosten.";
   }
   return { affordable: reason === null, reason, ...summary };
 }
@@ -394,7 +394,7 @@ export function getOwnerFundingBlockReason(
   state: PoliticalCoreState,
 ): string | null {
   if (state.finance.ownerFundingUsed)
-    return "Emergency owner funding has already been used.";
+    return "Die Notfallfinanzierung des Eigentümers wurde bereits genutzt.";
   if (
     getCashBalance(state) >=
     (LOW_CASH_THRESHOLD_MILLIONS *
@@ -407,7 +407,7 @@ export function getOwnerFundingBlockReason(
       ["CEO", "OWNER_REPRESENTATIVE"].includes(item.role),
     )
   )
-    return "No owner representative is available.";
+    return "Kein Vertreter des Eigentümers ist verfügbar.";
   return null;
 }
 
@@ -425,7 +425,7 @@ export function requestOwnerFunding(
     round,
     category: "OWNER_FUNDING",
     amountMillions: getOwnerFundingAmount(nextState),
-    description: "Emergency owner funding",
+    description: "Notfallfinanzierung des Eigentümers",
   });
   const owner = nextState.characters.find((item) =>
     ["CEO", "OWNER_REPRESENTATIVE"].includes(item.role),
@@ -456,9 +456,9 @@ export function cutOperatingCosts(
   sourceState: PoliticalCoreState,
 ): PoliticalCoreState {
   if (sourceState.finance.costCutsApplied)
-    throw new Error("Operating cost cuts have already been applied.");
+    throw new Error("Die Betriebskostensenkung wurde bereits umgesetzt.");
   if (sourceState.finance.operatingCostMillionsPerRound === 0)
-    throw new Error("There are no operating costs to cut.");
+    throw new Error("Es gibt keine Betriebskosten, die gesenkt werden können.");
   const nextState = structuredClone(sourceState);
   nextState.finance.costCutsApplied = true;
   nextState.finance.operatingCostMillionsPerRound = roundMoney(

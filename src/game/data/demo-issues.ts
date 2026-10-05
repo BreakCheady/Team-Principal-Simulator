@@ -4,9 +4,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_upgrade_fallout",
     sourceEventId: "event_upgrade_failure",
-    title: "Technical fallout after failed upgrade",
+    title: "Technische Folgen nach dem gescheiterten Upgrade",
     summary:
-      "Chen is under pressure and Moretti is openly frustrated. You can contain the disagreement before it becomes another authority battle.",
+      "Chen steht unter Druck und Moretti zeigt offen seine Unzufriedenheit. Du kannst den Konflikt eindämmen, bevor daraus ein weiterer Machtkampf wird.",
     category: "TECHNICAL",
     initiatorCharacterId: "char_moretti",
     baseEscalation: 42,
@@ -14,9 +14,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "back_technical_process",
-        label: "Back the technical process",
+        label: "Den technischen Prozess stützen",
         description:
-          "Publicly protect Chen's authority while acknowledging the failed package.",
+          "Schütze Chens Autorität öffentlich und erkenne gleichzeitig das gescheiterte Paket an.",
         escalationDelta: -8,
         effects: [
           {
@@ -35,9 +35,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "mediate_technical_review",
-        label: "Hold a private technical review",
+        label: "Interne Technikbesprechung ansetzen",
         description:
-          "Give Moretti a hearing while preserving Chen's final authority.",
+          "Höre Moretti an, ohne Chens letzte Entscheidungsgewalt anzutasten.",
         escalationDelta: -14,
         effects: [
           {
@@ -58,9 +58,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "ignore_upgrade_fallout",
-        label: "Let engineering handle it",
+        label: "Technikabteilung entscheiden lassen",
         description:
-          "Take no political action and hope the frustration fades with the next result.",
+          "Greife politisch nicht ein und hoffe, dass die Frustration mit dem nächsten Ergebnis nachlässt.",
         escalationDelta: 9,
         effects: [
           {
@@ -75,9 +75,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_media_pressure",
     sourceEventId: "event_moretti_media_campaign",
-    title: "Moretti challenges the team in public",
+    title: "Moretti greift das Team öffentlich an",
     summary:
-      "The story is now moving through the paddock. A measured response could contain it; silence may let Moretti define the narrative.",
+      "Die Geschichte verbreitet sich im Paddock. Eine besonnene Reaktion kann sie eindämmen; Schweigen könnte Moretti die Deutungshoheit überlassen.",
     category: "MEDIA",
     initiatorCharacterId: "char_moretti",
     baseEscalation: 55,
@@ -85,9 +85,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "private_media_meeting",
-        label: "Call Moretti in privately",
+        label: "Moretti zu einem vertraulichen Gespräch bitten",
         description:
-          "Offer a direct conversation and ask him to stop escalating the dispute through the media.",
+          "Biete ein direktes Gespräch an und fordere ihn auf, den Konflikt nicht weiter über die Medien zu verschärfen.",
         escalationDelta: -20,
         effects: [
           {
@@ -113,9 +113,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "public_media_rebuttal",
-        label: "Publicly rebut the criticism",
+        label: "Kritik öffentlich zurückweisen",
         description:
-          "Defend the team publicly and challenge Moretti's version of events.",
+          "Verteidige das Team öffentlich und widersprich Morettis Darstellung.",
         escalationDelta: 10,
         effects: [
           {
@@ -134,9 +134,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "ignore_media_story",
-        label: "Say nothing",
+        label: "Nicht reagieren",
         description:
-          "Avoid feeding the story, but give Moretti's camp space to control the narrative.",
+          "Vermeide zusätzliche Aufmerksamkeit, gib Morettis Umfeld damit aber Raum, die Darstellung zu bestimmen.",
         escalationDelta: 8,
         effects: [
           {
@@ -186,9 +186,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_contract_demands",
     sourceEventId: "event_moretti_contract_talks",
-    title: "Moretti ties his contract to sporting guarantees",
+    title: "Moretti knüpft seinen Vertrag an sportliche Garantien",
     summary:
-      "The renewal discussion is no longer only financial. Moretti wants sporting assurances and his transfer leverage is credible.",
+      "Die Verlängerung ist nicht mehr nur eine finanzielle Frage. Moretti fordert sportliche Zusagen und seine Wechselposition ist glaubwürdig.",
     category: "CONTRACT",
     initiatorCharacterId: "char_moretti",
     baseEscalation: 60,
@@ -196,9 +196,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "structured_contract_talks",
-        label: "Open structured negotiations",
+        label: "Strukturierte Verhandlungen eröffnen",
         description:
-          "Discuss sporting expectations without granting a permanent number-one guarantee.",
+          "Besprich sportliche Erwartungen, ohne dauerhaft eine Nummer-eins-Garantie zu geben.",
         escalationDelta: -14,
         effects: [
           {
@@ -217,9 +217,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "offer_sporting_guarantees",
-        label: "Offer limited sporting guarantees",
+        label: "Begrenzte sportliche Garantien anbieten",
         description:
-          "Reduce contract tension at the cost of strengthening Moretti's political position.",
+          "Senke die Vertragsspannung, stärkst damit aber Morettis politische Position.",
         escalationDelta: -22,
         effects: [
           {
@@ -243,9 +243,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "refuse_contract_pressure",
-        label: "Refuse to negotiate under pressure",
+        label: "Verhandlungen unter Druck ablehnen",
         description:
-          "Protect team authority and force Moretti's camp to decide whether the threat is real.",
+          "Schütze die Autorität des Teams und zwinge Morettis Umfeld zu zeigen, ob die Drohung ernst gemeint ist.",
         escalationDelta: 12,
         effects: [
           {
@@ -302,9 +302,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_varga_sporting_control",
     sourceEventId: "event_varga_strategy_review",
-    title: "Who controls race-day sporting decisions?",
+    title: "Wer kontrolliert die sportlichen Entscheidungen am Renntag?",
     summary:
-      "Varga wants a clear mandate. Repeated intervention may protect short-term results but weakens the sporting chain of command.",
+      "Varga verlangt ein klares Mandat. Wiederholte Eingriffe können kurzfristig Ergebnisse schützen, schwächen aber die sportliche Befehlskette.",
     category: "SPORTING",
     initiatorCharacterId: "char_varga",
     baseEscalation: 48,
@@ -312,9 +312,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "clarify_varga_mandate",
-        label: "Clarify Varga's mandate",
+        label: "Vargas Mandat klarstellen",
         description:
-          "Give Varga defined race-day authority while retaining emergency escalation to the team principal.",
+          "Gib Varga klar definierte Autorität am Renntag, behalte aber eine Eskalation zum Teamchef für Notfälle bei.",
         escalationDelta: -14,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "trust", delta: 6 },
@@ -323,9 +323,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "keep_personal_sporting_control",
-        label: "Keep personal control",
+        label: "Persönliche Kontrolle behalten",
         description:
-          "Reserve the right to overrule strategy directly when championship stakes are high.",
+          "Behalte dir vor, die Strategie bei wichtigen Meisterschaftssituationen direkt zu überstimmen.",
         escalationDelta: 8,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2 },
@@ -335,9 +335,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "back_varga_publicly",
-        label: "Back Varga publicly",
+        label: "Varga öffentlich unterstützen",
         description:
-          "Make the sporting director visibly accountable for race operations, including unpopular calls.",
+          "Mache die Sportdirektorin sichtbar für den Rennbetrieb verantwortlich, auch für unpopuläre Entscheidungen.",
         escalationDelta: -8,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_varga", delta: 3 },
@@ -349,9 +349,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_laurent_owner_review",
     sourceEventId: "event_laurent_owner_review",
-    title: "Ownership wants clearer accountability",
+    title: "Eigentümerseite verlangt klarere Verantwortlichkeiten",
     summary:
-      "Laurent wants fewer surprises reaching the board. The question is whether oversight becomes governance or direct intervention.",
+      "Laurent will weniger Überraschungen im Vorstand. Die Frage ist, ob Kontrolle zu klarer Führung oder direkter Einmischung wird.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 52,
@@ -359,9 +359,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "define_owner_boundaries",
-        label: "Define formal owner boundaries",
+        label: "Formale Grenzen für die Eigentümerseite festlegen",
         description:
-          "Agree on reporting and escalation rules without giving ownership operational sign-off.",
+          "Vereinbare Berichts- und Eskalationsregeln, ohne der Eigentümerseite operative Freigaberechte zu geben.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
@@ -370,9 +370,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "accept_owner_signoff",
-        label: "Accept owner sign-off",
+        label: "Freigabe durch Eigentümer akzeptieren",
         description:
-          "Let Laurent approve major sporting and personnel exceptions before they are executed.",
+          "Lass Laurent größere sportliche und personelle Ausnahmen vor der Umsetzung genehmigen.",
         escalationDelta: -17,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "loyalty", delta: 6 },
@@ -382,9 +382,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "resist_owner_intervention",
-        label: "Resist operational intervention",
+        label: "Operative Einmischung abwehren",
         description:
-          "Protect team-principal authority and accept a more difficult board relationship.",
+          "Schütze die Autorität des Teamchefs und akzeptiere dafür ein schwierigeres Verhältnis zum Vorstand.",
         escalationDelta: 11,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "resentment", delta: 9 },
@@ -396,9 +396,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_salazar_sponsor_activation",
     sourceEventId: "event_salazar_activation_push",
-    title: "Sponsor wants Moretti at the centre of the campaign",
+    title: "Sponsor will Moretti ins Zentrum der Kampagne stellen",
     summary:
-      "Salazar sees commercial value in Moretti's star status. Committing now could reshape sporting expectations inside the team.",
+      "Salazar sieht kommerziellen Wert in Morettis Starstatus. Eine Zusage könnte die sportlichen Erwartungen innerhalb des Teams verändern.",
     category: "SPONSOR",
     initiatorCharacterId: "char_salazar",
     baseEscalation: 50,
@@ -406,9 +406,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "negotiate_sponsor_scope",
-        label: "Negotiate campaign scope",
+        label: "Umfang der Kampagne verhandeln",
         description:
-          "Give the sponsor access to Moretti without tying commercial prominence to sporting priority.",
+          "Gib dem Sponsor Zugang zu Moretti, ohne kommerzielle Präsenz mit sportlichem Vorrang zu verknüpfen.",
         escalationDelta: -10,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
@@ -417,9 +417,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "make_moretti_campaign_face",
-        label: "Make Moretti the campaign face",
+        label: "Moretti zum Gesicht der Kampagne machen",
         description:
-          "Maximise sponsor value now and accept that the paddock will read it as another sign of star-driver privilege.",
+          "Maximiere den Sponsorwert und akzeptiere, dass der Paddock dies als weiteres Zeichen für Sonderrechte des Starfahrers deutet.",
         escalationDelta: -15,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 3 },
@@ -430,9 +430,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "reject_sponsor_pressure",
-        label: "Reject sponsor pressure",
+        label: "Sponsorendruck zurückweisen",
         description:
-          "Keep sporting status separate from commercial demands even if the sponsor feels ignored.",
+          "Halte sportlichen Status und kommerzielle Forderungen getrennt, auch wenn sich der Sponsor übergangen fühlt.",
         escalationDelta: 10,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 8 },
@@ -445,9 +445,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   {
     id: "issue_bellini_staff_protection",
     sourceEventId: "event_bellini_staff_fracture",
-    title: "Race staff want protection from paddock politics",
+    title: "Rennpersonal verlangt Schutz vor Paddock-Politik",
     summary:
-      "Bellini says engineers are becoming political proxies. The response will shape whether staff loyalty follows structure or personalities.",
+      "Bellini warnt, dass Ingenieure zu politischen Stellvertretern werden. Deine Reaktion entscheidet, ob Loyalität künftig Strukturen oder Personen folgt.",
     category: "STAFF",
     initiatorCharacterId: "char_bellini",
     baseEscalation: 46,
@@ -455,9 +455,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "protect_staff_boundary",
-        label: "Protect the staff boundary",
+        label: "Grenzen für das Personal schützen",
         description:
-          "Tell drivers and management that engineers cannot be used as political intermediaries.",
+          "Stelle gegenüber Fahrern und Management klar, dass Ingenieure nicht als politische Vermittler benutzt werden dürfen.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 6 },
@@ -466,9 +466,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "allow_driver_engineer_bloc",
-        label: "Let Bellini stay close to Moretti",
+        label: "Bellini weiter eng mit Moretti arbeiten lassen",
         description:
-          "Preserve the successful driver-engineer relationship even if it creates an informal political bloc.",
+          "Erhalte die erfolgreiche Fahrer-Ingenieur-Beziehung, auch wenn dadurch ein informeller politischer Block entsteht.",
         escalationDelta: -7,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_moretti", metric: "loyalty", delta: 5 },
@@ -478,9 +478,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "order_staff_neutrality",
-        label: "Order staff to stay neutral",
+        label: "Personal zur Neutralität verpflichten",
         description:
-          "Use formal authority to shut down political involvement without addressing why staff feel exposed.",
+          "Nutze formale Autorität, um politische Beteiligung zu unterbinden, ohne die Ursachen der Unsicherheit zu lösen.",
         escalationDelta: 9,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 8 },
@@ -491,9 +491,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_owner_governance_chain",
-    title: "Laurent questions Hartmann's concentration of control",
+    title: "Laurent hinterfragt Hartmanns Machtkonzentration",
     summary:
-      "Varga's complaint reaches the CEO. Laurent now wants to know whether too many operational decisions depend on Hartmann personally.",
+      "Vargas Beschwerde erreicht die Geschäftsführung. Laurent will wissen, ob zu viele operative Entscheidungen persönlich von Hartmann abhängen.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 44,
@@ -501,8 +501,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "owner_governance_review",
-        label: "Accept a governance review",
-        description: "Formalise decision rights before ownership imposes its own structure.",
+        label: "Überprüfung der Führungsstruktur akzeptieren",
+        description: "Formalisiere Entscheidungsrechte, bevor die Eigentümerseite eine eigene Struktur vorgibt.",
         escalationDelta: -11,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
@@ -510,8 +510,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "centralize_under_ceo",
-        label: "Centralise exceptions under the CEO",
-        description: "Trade autonomy for board confidence by escalating key exceptions to Laurent.",
+        label: "Ausnahmen bei der Geschäftsführung bündeln",
+        description: "Tausche Autonomie gegen Vertrauen des Vorstands, indem wichtige Ausnahmen an Laurent eskaliert werden.",
         escalationDelta: -15,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: -2 },
@@ -523,9 +523,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_sporting_autonomy_chain",
-    title: "Varga pushes back on owner sign-off",
+    title: "Varga wehrt sich gegen Eigentümerfreigaben",
     summary:
-      "The sporting director argues that board approval on operational exceptions makes accountability impossible on race weekends.",
+      "Die Sportdirektorin argumentiert, dass Vorstandsfreigaben bei operativen Ausnahmen klare Verantwortung am Rennwochenende unmöglich machen.",
     category: "SPORTING",
     initiatorCharacterId: "char_varga",
     baseEscalation: 47,
@@ -533,8 +533,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "protect_operational_autonomy",
-        label: "Protect operational autonomy",
-        description: "Keep owner reporting but return race-day authority to the sporting chain.",
+        label: "Operative Autonomie schützen",
+        description: "Behalte die Berichterstattung an die Eigentümerseite bei, gib die Renntag-Autorität aber an die sportliche Linie zurück.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
@@ -543,8 +543,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "keep_owner_override",
-        label: "Keep the owner override",
-        description: "Prioritise governance confidence over sporting autonomy.",
+        label: "Eingriffsrecht des Eigentümers beibehalten",
+        description: "Priorisiere Vertrauen in die Führungsstruktur gegenüber sportlicher Autonomie.",
         escalationDelta: 8,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_varga", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 }
@@ -554,9 +554,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_staff_star_treatment",
-    title: "Staff see commercial privilege becoming sporting privilege",
+    title: "Personal sieht kommerzielle Sonderrechte als sportliche Sonderrechte",
     summary:
-      "Bellini warns that the sponsor campaign is being interpreted inside the garage as another signal that Moretti sits above normal team rules.",
+      "Bellini warnt, dass die Sponsor-Kampagne in der Garage als weiteres Signal verstanden wird, dass für Moretti andere Regeln gelten.",
     category: "STAFF",
     initiatorCharacterId: "char_bellini",
     baseEscalation: 43,
@@ -564,8 +564,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "separate_commercial_and_sporting",
-        label: "Separate commercial and sporting status",
-        description: "Keep Moretti visible commercially while explicitly reaffirming equal sporting rules.",
+        label: "Kommerziellen und sportlichen Status trennen",
+        description: "Halte Moretti kommerziell sichtbar, bekräftige aber ausdrücklich gleiche sportliche Regeln.",
         escalationDelta: -13,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
@@ -574,8 +574,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "accept_star_treatment",
-        label: "Accept star treatment",
-        description: "Treat commercial and sporting hierarchy as part of the same star-driver strategy.",
+        label: "Starbehandlung akzeptieren",
+        description: "Behandle kommerzielle und sportliche Hierarchie als Teil derselben Starfahrer-Strategie.",
         escalationDelta: 9,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
@@ -586,9 +586,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_owner_commercial_chain",
-    title: "Laurent worries about sponsor confidence",
+    title: "Laurent sorgt sich um das Vertrauen des Sponsors",
     summary:
-      "After Hartmann rejects sponsor pressure, Laurent asks whether the team can afford a governance principle that creates commercial risk.",
+      "Nachdem Hartmann den Sponsorendruck zurückweist, fragt Laurent, ob sich das Team ein Führungsprinzip leisten kann, das kommerzielle Risiken erzeugt.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 45,
@@ -596,8 +596,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "back_hartmann_commercially",
-        label: "Ask Laurent to back the boundary",
-        description: "Make ownership absorb the sponsor relationship while Hartmann protects sporting independence.",
+        label: "Laurent um Rückendeckung bitten",
+        description: "Lass die Eigentümerseite die Sponsorbeziehung auffangen, während Hartmann die sportliche Unabhängigkeit schützt.",
         escalationDelta: -9,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
@@ -606,8 +606,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "reopen_sponsor_concession",
-        label: "Reopen a sponsor concession",
-        description: "Reduce commercial risk by giving Salazar a narrower victory.",
+        label: "Sponsorenzugeständnis erneut prüfen",
+        description: "Reduziere das kommerzielle Risiko mit einem begrenzten Zugeständnis an Salazar.",
         escalationDelta: -13,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: -5 }
@@ -617,9 +617,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_chen_staff_authority_chain",
-    title: "Chen challenges the Moretti-Bellini bloc",
+    title: "Chen stellt den Moretti-Bellini-Block infrage",
     summary:
-      "Chen sees the driver-engineer relationship becoming an alternative power structure inside the technical organisation.",
+      "Chen sieht in der Fahrer-Ingenieur-Beziehung eine alternative Machtstruktur innerhalb der Technikabteilung.",
     category: "TECHNICAL",
     initiatorCharacterId: "char_chen",
     baseEscalation: 51,
@@ -627,8 +627,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "formalize_engineer_reporting",
-        label: "Formalise Bellini's reporting line",
-        description: "Protect the driver relationship but make technical accountability explicit under Chen.",
+        label: "Bellinis Berichtslinie formalisieren",
+        description: "Schütze die Fahrerbeziehung, stelle aber die technische Verantwortung unter Chen klar.",
         escalationDelta: -12,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_chen_technical", delta: 3 },
@@ -637,8 +637,8 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "protect_driver_engineer_independence",
-        label: "Protect driver-engineer independence",
-        description: "Keep Bellini close to Moretti even if Chen reads it as a challenge to technical authority.",
+        label: "Unabhängigkeit von Fahrer und Ingenieur schützen",
+        description: "Halte Bellini eng bei Moretti, auch wenn Chen dies als Angriff auf seine technische Autorität versteht.",
         escalationDelta: 10,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_moretti", delta: 2 },
@@ -649,9 +649,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_negotiation_stall",
-    title: "Contract talks have stalled",
+    title: "Vertragsgespräche stecken fest",
     summary:
-      "A failed renewal process is now becoming a wider management problem. Ownership wants clarity before uncertainty spreads through the paddock.",
+      "Die gescheiterte Verlängerung wird zu einem größeren Managementproblem. Die Eigentümerseite verlangt Klarheit, bevor sich die Unsicherheit im Paddock ausbreitet.",
     category: "CONTRACT",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 54,
@@ -659,9 +659,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "reopen_contract_channel",
-        label: "Reopen the channel",
+        label: "Gesprächskanal wieder öffnen",
         description:
-          "Give the negotiation another route without immediately improving the financial package.",
+          "Eröffne einen neuen Verhandlungsweg, ohne das finanzielle Paket sofort zu verbessern.",
         escalationDelta: -10,
         effects: [
           {
@@ -675,9 +675,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "hold_contract_line_publicly",
-        label: "Hold the line",
+        label: "Position halten",
         description:
-          "Signal that no individual can force the team into a deal, accepting higher exit risk.",
+          "Signalisiere, dass niemand das Team zu einem Vertrag zwingen kann, und akzeptiere ein höheres Abgangsrisiko.",
         escalationDelta: 9,
         effects: [
           {
@@ -692,9 +692,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_release_precedent",
-    title: "A new release clause changes the contract precedent",
+    title: "Eine neue Ausstiegsklausel verändert den Vertragsstandard",
     summary:
-      "The renewal is signed, but ownership now worries that giving senior figures an easier exit route will shape every future negotiation.",
+      "Die Verlängerung ist unterschrieben, aber die Eigentümerseite fürchtet, dass ein leichterer Ausstieg für Führungspersonen künftige Verhandlungen prägt.",
     category: "CONTRACT",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 40,
@@ -702,9 +702,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "treat_release_as_exception",
-        label: "Define it as a one-off exception",
+        label: "Als einmalige Ausnahme festhalten",
         description:
-          "Document the clause as a specific retention concession rather than a new team standard.",
+          "Dokumentiere die Klausel als gezieltes Zugeständnis zur Bindung und nicht als neuen Teamstandard.",
         escalationDelta: -12,
         effects: [
           {
@@ -718,9 +718,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "accept_release_precedent",
-        label: "Accept the new precedent",
+        label: "Neuen Standard akzeptieren",
         description:
-          "Use flexible exit clauses as a deliberate retention tool, even if future negotiations become harder.",
+          "Nutze flexible Ausstiegsklauseln bewusst zur Bindung, auch wenn künftige Verhandlungen schwieriger werden.",
         escalationDelta: 4,
         effects: [
           {
@@ -734,9 +734,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_owner_contract_risk",
-    title: "Ownership questions the risk of losing key personnel",
+    title: "Eigentümerseite hinterfragt das Risiko, Schlüsselpersonal zu verlieren",
     summary:
-      "The hard contract line protects authority, but Laurent now wants a plan for the sporting and commercial cost of a possible departure.",
+      "Die harte Vertragslinie schützt Autorität, doch Laurent verlangt einen Plan für die sportlichen und kommerziellen Folgen eines möglichen Abgangs.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 46,
@@ -744,9 +744,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "prepare_replacement_plan",
-        label: "Prepare a replacement plan",
+        label: "Nachfolgeplan vorbereiten",
         description:
-          "Reduce dependency by planning alternatives rather than weakening the negotiating position.",
+          "Reduziere Abhängigkeit durch Alternativen, statt die Verhandlungsposition zu schwächen.",
         escalationDelta: -11,
         effects: [
           {
@@ -760,9 +760,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "authorize_better_contract_terms",
-        label: "Authorize better terms",
+        label: "Bessere Konditionen freigeben",
         description:
-          "Give Hartmann more financial room for the next negotiating round.",
+          "Gib Hartmann mehr finanziellen Spielraum für die nächste Verhandlungsrunde.",
         escalationDelta: -14,
         effects: [
           {
@@ -776,9 +776,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_failed_owner_reaction",
-    title: "Ownership demands a retention contingency",
+    title: "Eigentümerseite verlangt einen Plan zur Personalbindung",
     summary:
-      "Failed contract talks expose the risk of losing a key figure. Laurent wants a replacement and succession plan before the uncertainty spreads.",
+      "Gescheiterte Vertragsgespräche zeigen das Risiko, eine Schlüsselfigur zu verlieren. Laurent verlangt einen Ersatz- und Nachfolgeplan, bevor sich die Unsicherheit ausbreitet.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 50,
@@ -786,9 +786,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "build_retention_contingency",
-        label: "Build a contingency plan",
+        label: "Notfallplan erstellen",
         description:
-          "Prepare replacement options and define the sporting cost of losing the negotiating party.",
+          "Bereite Ersatzoptionen vor und beziffere die sportlichen Kosten eines Abgangs.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
@@ -802,9 +802,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "ask_owner_for_more_budget",
-        label: "Ask for more budget",
+        label: "Mehr Budget anfordern",
         description:
-          "Reopen the financial ceiling and accept greater owner involvement in the next negotiating round.",
+          "Öffne die finanzielle Obergrenze erneut und akzeptiere stärkere Einbindung der Eigentümerseite.",
         escalationDelta: -8,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 },
@@ -819,9 +819,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "reject_owner_retention_pressure",
-        label: "Reject the retention panic",
+        label: "Panik um Personalbindung zurückweisen",
         description:
-          "Keep the board out of the negotiation and insist that the team can absorb a departure if necessary.",
+          "Halte den Vorstand aus der Verhandlung heraus und bestehe darauf, dass das Team einen Abgang verkraften kann.",
         escalationDelta: 8,
         effects: [
           { type: "CHARACTER_MOMENTUM_DELTA", characterId: "char_hartmann", delta: 2 },
@@ -833,9 +833,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_failed_sponsor_reaction",
-    title: "Sponsor confidence drops after failed talks",
+    title: "Sponsorvertrauen sinkt nach gescheiterten Gesprächen",
     summary:
-      "Salazar worries that losing a high-profile figure will weaken future campaigns and wants commercial reassurance.",
+      "Salazar fürchtet, dass der Verlust einer prominenten Person künftige Kampagnen schwächt, und verlangt kommerzielle Sicherheit.",
     category: "SPONSOR",
     initiatorCharacterId: "char_salazar",
     baseEscalation: 48,
@@ -843,9 +843,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "reassure_sponsor_continuity",
-        label: "Reassure sponsor continuity",
+        label: "Kontinuität gegenüber dem Sponsor zusichern",
         description:
-          "Commit to a replacement marketing plan without promising a richer contract.",
+          "Sage einen alternativen Marketingplan zu, ohne einen besseren Vertrag zu versprechen.",
         escalationDelta: -11,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
@@ -859,9 +859,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "use_sponsor_to_reopen_talks",
-        label: "Use sponsor pressure to reopen talks",
+        label: "Sponsorendruck nutzen, um Gespräche neu zu öffnen",
         description:
-          "Invite Salazar into the retention effort, giving commercial interests more influence over the negotiation.",
+          "Binde Salazar in die Bindungsbemühungen ein und gib kommerziellen Interessen damit mehr Einfluss auf die Verhandlung.",
         escalationDelta: -6,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 6 },
@@ -876,9 +876,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "firewall_sponsor_from_contracts",
-        label: "Keep contracts separate from sponsorship",
+        label: "Verträge und Sponsoring trennen",
         description:
-          "Draw a hard boundary between commercial value and employment negotiations.",
+          "Ziehe eine klare Grenze zwischen kommerziellem Wert und Vertragsverhandlungen.",
         escalationDelta: 5,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 },
@@ -890,9 +890,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_failed_staff_reaction",
-    title: "Staff read the failed talks as instability",
+    title: "Personal deutet gescheiterte Gespräche als Instabilität",
     summary:
-      "Bellini says the garage now expects wider personnel changes and wants clarity before uncertainty affects day-to-day work.",
+      "Bellini sagt, dass die Garage nun größere Personalveränderungen erwartet, und fordert Klarheit, bevor die Unsicherheit den Alltag beeinflusst.",
     category: "STAFF",
     initiatorCharacterId: "char_bellini",
     baseEscalation: 44,
@@ -900,9 +900,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "brief_staff_on_continuity",
-        label: "Brief the staff",
+        label: "Personal informieren",
         description:
-          "Explain the succession plan and protect the garage from contract speculation.",
+          "Erkläre den Nachfolgeplan und schütze die Garage vor Vertragsspekulationen.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 5 },
@@ -916,9 +916,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "keep_failed_talks_private",
-        label: "Keep the details private",
+        label: "Details vertraulich halten",
         description:
-          "Limit information internally and accept that staff may fill the gaps themselves.",
+          "Begrenze interne Informationen und akzeptiere, dass das Personal die Lücken selbst füllt.",
         escalationDelta: 7,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 }
@@ -932,9 +932,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "give_staff_continuity_voice",
-        label: "Give staff a continuity voice",
+        label: "Personal an der Kontinuitätsplanung beteiligen",
         description:
-          "Bring Bellini into succession planning so the garage has representation in the transition.",
+          "Binde Bellini in die Nachfolgeplanung ein, damit die Garage im Übergang vertreten ist.",
         escalationDelta: -8,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 5 },
@@ -946,9 +946,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_hard_owner_reaction",
-    title: "Ownership backs the discipline but questions the risk",
+    title: "Eigentümerseite unterstützt die Disziplin, hinterfragt aber das Risiko",
     summary:
-      "A hard renewal protects cost control and authority, but Laurent wants to know whether Hartmann has pushed too close to losing a key asset.",
+      "Eine harte Verlängerung schützt Kostenkontrolle und Autorität, doch Laurent will wissen, ob Hartmann zu nah am Verlust einer Schlüsselfigur war.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 38,
@@ -956,9 +956,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "defend_hard_contract_policy",
-        label: "Defend the hard line",
+        label: "Harte Linie verteidigen",
         description:
-          "Frame the deal as proof that the team can retain talent without surrendering financial discipline.",
+          "Stelle den Vertrag als Beweis dar, dass das Team Talent halten kann, ohne finanzielle Disziplin aufzugeben.",
         escalationDelta: -9,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "respect", delta: 5 }
@@ -971,9 +971,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "add_owner_review_gate",
-        label: "Add owner review for future hard offers",
+        label: "Eigentümerprüfung bei künftigen harten Angeboten einführen",
         description:
-          "Keep the policy but give Laurent earlier oversight when a key renewal becomes confrontational.",
+          "Behalte die Linie bei, gib Laurent aber früheren Einblick, wenn eine wichtige Verlängerung konfrontativ wird.",
         escalationDelta: -13,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 4 }
@@ -987,9 +987,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "offer_owner_risk_reporting",
-        label: "Offer risk reporting, not veto power",
+        label: "Risikoberichte statt Vetorecht anbieten",
         description:
-          "Give Laurent earlier information and scenario planning without granting formal approval rights.",
+          "Gib Laurent frühere Informationen und Szenarioplanung, ohne formale Freigaberechte einzuräumen.",
         escalationDelta: -7,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
@@ -1001,9 +1001,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_hard_sponsor_reaction",
-    title: "Sponsor worries the hard deal damages the relationship",
+    title: "Sponsor fürchtet Beziehungsschäden durch den harten Vertrag",
     summary:
-      "Salazar sees the renewal as financially disciplined but fears the negotiating tone has weakened the star relationship behind future campaigns.",
+      "Salazar hält die Verlängerung finanziell für diszipliniert, fürchtet aber, dass der Verhandlungston die Starbeziehung für künftige Kampagnen beschädigt hat.",
     category: "SPONSOR",
     initiatorCharacterId: "char_salazar",
     baseEscalation: 46,
@@ -1011,9 +1011,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "separate_sponsor_relationship",
-        label: "Repair the commercial relationship",
+        label: "Kommerzielle Beziehung reparieren",
         description:
-          "Give the sponsor direct reassurance that a hard contract process does not mean reduced commercial commitment.",
+          "Versichere dem Sponsor direkt, dass ein harter Vertragsprozess kein geringeres kommerzielles Engagement bedeutet.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 5 }
@@ -1026,9 +1026,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "tell_sponsor_to_stay_out",
-        label: "Keep the sponsor out",
+        label: "Sponsor heraushalten",
         description:
-          "Protect contract authority and accept a colder commercial relationship.",
+          "Schütze die Vertragsautorität und akzeptiere eine kühlere kommerzielle Beziehung.",
         escalationDelta: 8,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "resentment", delta: 7 },
@@ -1043,9 +1043,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "trade_activation_access",
-        label: "Trade activation access for support",
+        label: "Aktivierungszugang gegen Unterstützung tauschen",
         description:
-          "Give Salazar more commercial access in return for staying out of future contract negotiations.",
+          "Gib Salazar mehr kommerziellen Zugang, wenn er sich aus künftigen Vertragsverhandlungen heraushält.",
         escalationDelta: -8,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 },
@@ -1057,9 +1057,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_hard_staff_reaction",
-    title: "Staff see a tougher contract culture",
+    title: "Personal erkennt eine härtere Vertragskultur",
     summary:
-      "Bellini says the hard renewal has been noticed across the team and could change how staff read their own security and bargaining position.",
+      "Bellini sagt, die harte Verlängerung sei im ganzen Team bemerkt worden und könne die Wahrnehmung von Sicherheit und Verhandlungsmacht verändern.",
     category: "STAFF",
     initiatorCharacterId: "char_bellini",
     baseEscalation: 42,
@@ -1067,9 +1067,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "explain_contract_discipline",
-        label: "Explain the policy",
+        label: "Vorgehen erklären",
         description:
-          "Make clear that the hard line was specific to leverage and does not mean blanket pressure on staff.",
+          "Stelle klar, dass die harte Linie aus der konkreten Verhandlungsmacht entstand und keinen allgemeinen Druck auf das Personal bedeutet.",
         escalationDelta: -11,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
@@ -1082,9 +1082,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "embrace_tough_contract_culture",
-        label: "Embrace the tougher culture",
+        label: "Härtere Kultur annehmen",
         description:
-          "Signal that future deals will also be hard-nosed, increasing authority but lowering staff comfort.",
+          "Signalisiere, dass künftige Verträge ebenfalls hart geführt werden, was Autorität stärkt, aber das Sicherheitsgefühl des Personals senkt.",
         escalationDelta: 7,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
@@ -1099,9 +1099,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "create_staff_contract_charter",
-        label: "Create a staff contract charter",
+        label: "Vertragsleitlinien für Personal schaffen",
         description:
-          "Set minimum process standards for future staff renewals without promising richer deals.",
+          "Lege Mindeststandards für künftige Personalverlängerungen fest, ohne bessere Konditionen zu versprechen.",
         escalationDelta: -7,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "loyalty", delta: 4 },
@@ -1113,9 +1113,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_generous_owner_reaction",
-    title: "Ownership questions the cost precedent",
+    title: "Eigentümerseite hinterfragt den Kostenstandard",
     summary:
-      "The generous renewal secures continuity, but Laurent worries that the package has reset expectations for every senior contract.",
+      "Die großzügige Verlängerung sichert Kontinuität, doch Laurent fürchtet, dass das Paket die Erwartungen für alle Führungsverträge neu setzt.",
     category: "OWNER",
     initiatorCharacterId: "char_laurent",
     baseEscalation: 47,
@@ -1123,9 +1123,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "ringfence_generous_deal",
-        label: "Ring-fence the deal",
+        label: "Vertrag als Ausnahme abgrenzen",
         description:
-          "Document the package as an exceptional retention decision rather than a new salary benchmark.",
+          "Dokumentiere das Paket als außergewöhnliche Bindungsentscheidung und nicht als neuen Gehaltsmaßstab.",
         escalationDelta: -12,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
@@ -1138,9 +1138,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "accept_higher_retention_costs",
-        label: "Accept higher retention costs",
+        label: "Höhere Kosten zur Personalbindung akzeptieren",
         description:
-          "Treat generous renewals as the price of stability, giving ownership more reason to monitor future deals.",
+          "Betrachte großzügige Verlängerungen als Preis für Stabilität und gib der Eigentümerseite damit mehr Grund, künftige Verträge zu überwachen.",
         escalationDelta: 5,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_laurent_owner", delta: 5 }
@@ -1154,9 +1154,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "tie_generosity_to_performance",
-        label: "Tie future generosity to performance",
+        label: "Künftige Großzügigkeit an Leistung koppeln",
         description:
-          "Keep this deal intact but require stronger performance triggers on future premium renewals.",
+          "Lass diesen Vertrag unverändert, verlange aber stärkere Leistungsbedingungen bei künftigen Premiumverlängerungen.",
         escalationDelta: -7,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_laurent", toCharacterId: "char_hartmann", metric: "respect", delta: 4 },
@@ -1168,9 +1168,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_generous_sponsor_reaction",
-    title: "Sponsor sees an opportunity in the generous renewal",
+    title: "Sponsor sieht Chance in der großzügigen Verlängerung",
     summary:
-      "Salazar views the richer deal as proof of long-term commitment and wants the renewed figure tied more closely to commercial activation.",
+      "Salazar sieht den besseren Vertrag als Beleg langfristiger Bindung und will die verlängerte Person stärker an kommerzielle Aktivitäten knüpfen.",
     category: "SPONSOR",
     initiatorCharacterId: "char_salazar",
     baseEscalation: 36,
@@ -1178,9 +1178,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "limit_sponsor_linkage",
-        label: "Limit commercial linkage",
+        label: "Kommerzielle Verknüpfung begrenzen",
         description:
-          "Use the stability commercially without turning contract generosity into sponsor influence over sporting status.",
+          "Nutze die Stabilität kommerziell, ohne Vertragsgroßzügigkeit in Sponsoreneinfluss auf den sportlichen Status umzuwandeln.",
         escalationDelta: -10,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 3 },
@@ -1194,9 +1194,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "expand_sponsor_access",
-        label: "Expand sponsor access",
+        label: "Sponsorzugang ausweiten",
         description:
-          "Monetise the new stability by giving Salazar more access and activation rights.",
+          "Nutze die neue Stabilität wirtschaftlich, indem Salazar mehr Zugang und Aktivierungsrechte erhält.",
         escalationDelta: -13,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_salazar_sponsor", delta: 5 },
@@ -1211,9 +1211,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "sell_campaign_rights_only",
-        label: "Sell campaign rights, not influence",
+        label: "Kampagnenrechte verkaufen, keinen Einfluss",
         description:
-          "Offer more content and appearances while explicitly excluding sponsor input on sporting status.",
+          "Biete mehr Inhalte und Auftritte, schließe Sponsoreneinfluss auf den sportlichen Status aber ausdrücklich aus.",
         escalationDelta: -8,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_salazar", toCharacterId: "char_hartmann", metric: "trust", delta: 4 },
@@ -1225,9 +1225,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
   },
   {
     id: "issue_contract_generous_staff_reaction",
-    title: "Staff question the new pay hierarchy",
+    title: "Personal hinterfragt die neue Gehaltshierarchie",
     summary:
-      "Bellini says a visibly generous renewal has changed expectations inside the garage about who is valued and how strongly.",
+      "Bellini sagt, die sichtbar großzügige Verlängerung habe in der Garage die Erwartungen daran verändert, wer wie stark wertgeschätzt wird.",
     category: "STAFF",
     initiatorCharacterId: "char_bellini",
     baseEscalation: 45,
@@ -1235,9 +1235,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     actions: [
       {
         id: "explain_retention_value",
-        label: "Explain the retention case",
+        label: "Bindungsentscheidung erklären",
         description:
-          "Present the package as a role-specific retention decision and reinforce the wider staff structure.",
+          "Stelle das Paket als rollenspezifische Bindungsentscheidung dar und stärke die übrige Personalstruktur.",
         escalationDelta: -11,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "trust", delta: 4 }
@@ -1250,9 +1250,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
       },
       {
         id: "open_staff_reward_review",
-        label: "Open a wider reward review",
+        label: "Breitere Vergütungsprüfung eröffnen",
         description:
-          "Reduce resentment by reviewing staff rewards, at the cost of giving the staff bloc more bargaining leverage.",
+          "Senke Unmut durch eine Prüfung der Personalvergütung, gib dem Personalblock dadurch aber mehr Verhandlungsmacht.",
         escalationDelta: -14,
         effects: [
           { type: "LEVERAGE_STRENGTH_DELTA", leverageId: "lev_bellini_staff", delta: 5 },
@@ -1267,9 +1267,9 @@ export const demoIssueDefinitions: IssueDefinition[] = [
     ,
       {
         id: "freeze_wider_pay_comparisons",
-        label: "Freeze wider pay comparisons",
+        label: "Breitere Gehaltsvergleiche blockieren",
         description:
-          "Treat the renewal as unrelated to staff compensation and refuse to reopen the wider reward structure.",
+          "Behandle die Verlängerung unabhängig von der Personalvergütung und lehne eine erneute Öffnung der Vergütungsstruktur ab.",
         escalationDelta: 6,
         effects: [
           { type: "RELATIONSHIP_DELTA", fromCharacterId: "char_bellini", toCharacterId: "char_hartmann", metric: "resentment", delta: 6 },
