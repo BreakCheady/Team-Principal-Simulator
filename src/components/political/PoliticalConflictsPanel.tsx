@@ -1,12 +1,12 @@
 "use client";
 
 import { calculateConflict } from "@/game/political/conflicts";
-import { getConflictDecisions } from "@/game/political/decisions";
+import { getConflictEntscheidungs } from "@/game/political/decisions";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  onConflictDecision: (conflictId: string, decisionId: string) => void;
+  onConflictEntscheidung: (conflictId: string, decisionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -20,7 +20,7 @@ function label(value: string) {
 
 export function PoliticalConflictsPanel({
   flow,
-  onConflictDecision,
+  onConflictEntscheidung,
   onOpenCareer,
 }: Props) {
   const activeConflicts = flow.political.conflicts.filter(
@@ -52,7 +52,7 @@ export function PoliticalConflictsPanel({
                 return (
                   <article
                     key={conflict.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-amber-400">
                       {label(conflict.type)}
@@ -61,13 +61,13 @@ export function PoliticalConflictsPanel({
                       {conflict.issue}
                     </p>
                     <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                      <div className="rounded-xl border border-zinc-800 p-3">
+                      <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderA?.name}</p>
                         <p className="mt-1 text-zinc-500">
                           Strength {format(calculation.factionA.strength)}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-zinc-800 p-3">
+                      <div className="rounded-md border border-zinc-800 p-3">
                         <p>{leaderB?.name}</p>
                         <p className="mt-1 text-zinc-500">
                           Strength {format(calculation.factionB.strength)}
@@ -86,16 +86,16 @@ export function PoliticalConflictsPanel({
                         Resolve actor demand in Career
                       </button>
                     ) : null}
-                    {getConflictDecisions(conflict.id).length > 0 ? (
+                    {getConflictEntscheidungs(conflict.id).length > 0 ? (
                       <div className="mt-5 grid gap-2">
-                        {getConflictDecisions(conflict.id).map((decision) => (
+                        {getConflictEntscheidungs(conflict.id).map((decision) => (
                           <button
                             key={decision.id}
                             type="button"
                             onClick={() =>
-                              onConflictDecision(conflict.id, decision.id)
+                              onConflictEntscheidung(conflict.id, decision.id)
                             }
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
+                            className="rounded-md border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
                             <span className="font-medium">
                               {decision.label}
