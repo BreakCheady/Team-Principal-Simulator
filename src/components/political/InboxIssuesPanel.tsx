@@ -1,13 +1,13 @@
 "use client";
 
-import type { ThemaDefinition } from "@/game/issues/issues";
+import type { IssueDefinition } from "@/game/issues/issues";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  issueDefinitions: ThemaDefinition[];
+  issueDefinitions: IssueDefinition[];
   view: "INBOX" | "ISSUES";
-  onThemaAktion: (issueId: string, actionId: string) => void;
+  onIssueAction: (issueId: string, actionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -15,16 +15,16 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function InboxThemasPanel({
+export function InboxIssuesPanel({
   flow,
   issueDefinitions,
   view,
-  onThemaAktion,
+  onIssueAction,
   onOpenCareer,
 }: Props) {
   const latest = flow.history.at(-1) ?? null;
-  const inboxThemas = [...flow.issues].sort((a, b) => {
-    const priority = { OFFEN: 0, BEOBACHTUNG: 1, ESKALIERT: 2, ERLEDIGT: 3 };
+  const inboxIssues = [...flow.issues].sort((a, b) => {
+    const priority = { OPEN: 0, WATCHING: 1, ESCALATED: 2, RESOLVED: 3 };
     return priority[a.status] - priority[b.status] || b.round - a.round;
   });
 
@@ -60,7 +60,7 @@ export function InboxThemasPanel({
   return (
           <div className="space-y-5">
             {flow.career?.requests.some((r) =>
-              ["OFFEN", "ESKALIERT"].includes(r.status),
+              ["OPEN", "ESCALATED"].includes(r.status),
             ) ? (
               <button
                 type="button"
@@ -101,7 +101,7 @@ export function InboxThemasPanel({
                           {" · "}
                           {label(trigger.consequence)}
                           {trigger.consequence === "SALARY_BONUS"
-                            ? ` · €${trigger.amountMillions}m earned`
+                            ? ` · €${trigger.amountMillions}m verdient`
                             : ""}
                         </p>
                       ))}
@@ -111,16 +111,16 @@ export function InboxThemasPanel({
               </article>
             ) : (
               <article className="rounded-lg border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-                Start the next round to receive the first inbox items.
+                Starte die nächste Runde, um die ersten Nachrichten zu erhalten.
               </article>
             )}
 
-            {inboxThemas.length === 0 ? (
+            {inboxIssues.length === 0 ? (
               <article className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
-                Inbox clear. No management issues require attention.
+                Posteingang leer. Aktuell erfordert kein Management-Thema deine Aufmerksamkeit.
               </article>
             ) : (
-              inboxThemas.map((issue) => {
+              inboxIssues.map((issue) => {
                 const definition = issueDefinitions.find(
                   (item) => item.id === issue.definitionId,
                 );
@@ -147,7 +147,7 @@ export function InboxThemasPanel({
                           {issue.title}
                         </h3>
                         <p className="mt-1 text-sm text-zinc-500">
-                          From {initiator?.name ?? issue.initiatorCharacterId}
+                          Von {initiator?.name ?? issue.initiatorCharacterId}
                         </p>
                       </div>
                       <span
@@ -159,7 +159,7 @@ export function InboxThemasPanel({
                               : "text-sm font-medium text-emerald-300"
                         }
                       >
-                        Escalation {issue.escalation}
+                        Eskalation {issue.escalation}
                       </span>
                     </div>
 
@@ -167,14 +167,14 @@ export function InboxThemasPanel({
                       {issue.summary}
                     </p>
 
-                    {(issue.status === "OFFEN" || issue.status === "BEOBACHTUNG") &&
+                    {(issue.status === "OPEN" || issue.status === "WATCHING") &&
                     definition ? (
                       <div className="mt-6 grid gap-3 lg:grid-cols-3">
                         {definition.actions.map((action) => (
                           <button
                             key={action.id}
                             type="button"
-                            onClick={() => onThemaAktion(issue.id, action.id)}
+                            onClick={() => onIssueAction(issue.id, action.id)}
                             className="rounded-md border border-zinc-700 bg-zinc-950 p-4 text-left transition hover:border-sky-700"
                           >
                             <span className="block font-medium">
@@ -201,19 +201,19 @@ export function InboxThemasPanel({
                       </div>
                     ) : null}
 
-                    {issue.selectedAktionId ? (
+                    {issue.selectedActionId ? (
                       <div className="mt-5 rounded-md border border-zinc-800 bg-black/20 p-4 text-sm">
                         <p className="text-zinc-400">
-                          Your action: {label(issue.selectedAktionId)}
+                          Deine Entscheidung: {label(issue.selectedActionId)}
                         </p>
-                        {issue.npcAktions.at(-1) ? (
+                        {issue.npcActions.at(-1) ? (
                           <p className="mt-2 text-violet-300">
-                            NPC response: {issue.npcAktions.at(-1)?.label}
+                            Reaktion: {issue.npcActions.at(-1)?.label}
                           </p>
                         ) : null}
                         {issue.spawnedConflictId ? (
                           <p className="mt-2 text-red-300">
-                            Escalated into conflict: {issue.spawnedConflictId}
+                            Zum Konflikt eskaliert: {issue.spawnedConflictId}
                           </p>
                         ) : null}
                       </div>
