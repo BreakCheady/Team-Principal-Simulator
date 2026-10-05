@@ -136,7 +136,7 @@ export function getRaceRules(
   if (series === "F4")
     return {
       ...base,
-      name: "Italian F4 2026 · standard grid",
+      name: "Italienische F4 · Standard-Startaufstellung",
       qualifying: "TWO",
       specCar: true,
       minutes: 30,
@@ -146,7 +146,7 @@ export function getRaceRules(
   if (series === "GT3")
     return {
       ...base,
-      name: "GT World Challenge Europe 2026 · unified sprint / endurance A",
+      name: "GT World Challenge Europe · Sprint / Langstrecke",
       qualifying: kind === "ENDURANCE" ? "CREW" : "SINGLE",
       minutes: kind === "ENDURANCE" ? 180 : 60,
       compounds: ["SLICK", "WET"],
@@ -169,7 +169,7 @@ export function getRaceRules(
     return {
       ...base,
       id: "GT4_EU_2024",
-      name: "GT4 Europe · published 2024 sporting profile",
+      name: "GT4 Europe · sportliches Reglement",
       minutes: 60,
       compounds: ["SLICK", "WET"],
       crewSize: 2,
@@ -188,7 +188,7 @@ export function getRaceRules(
     return {
       ...base,
       id: "WEC_2026",
-      name: "FIA WEC 2026 · Hypercar / LMGT3",
+      name: "FIA WEC · Hypercar / LMGT3",
       qualifying: "HYPERPOLE",
       minutes: hours * 60,
       compounds: ["SLICK", "WET"],
@@ -237,7 +237,7 @@ export function getRaceRules(
     };
   return {
     ...base,
-    name: "WRC 2026 · stage-time rally",
+    name: "WRC · Rallye nach Etappenzeit",
     format: "RALLY",
     qualifying: "SHAKEDOWN",
     minutes: 240,
