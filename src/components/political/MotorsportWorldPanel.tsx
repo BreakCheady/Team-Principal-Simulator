@@ -39,8 +39,8 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
       )
       .sort(
         (a, b) =>
-          Number(a.contractEndSaison > world.season) -
-            Number(b.contractEndSaison > world.season) ||
+          Number(a.contractEndSeason > world.season) -
+            Number(b.contractEndSeason > world.season) ||
           b.potential - a.potential ||
           b.skill - a.skill ||
           a.name.localeCompare(b.name),
@@ -53,7 +53,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           item.role === "DRIVER" &&
           world.teams.find((team) => team.id === item.teamId)?.seriesId ===
             series &&
-          item.contractEndSaison <= world.season,
+          item.contractEndSeason <= world.season,
       )
       .sort((a, b) => b.skill - a.skill)
       .slice(0, 5);
@@ -418,9 +418,9 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               <th>Rolle</th>
               <th>Alter</th>
               <th>Nation</th>
-              <th>Stärke / potential</th>
+              <th>Stärke / Potenzial</th>
               <th>Arbeitgeber</th>
-              <th>Salary / Saison</th>
+              <th>Gehalt / Saison</th>
             </tr>
           </thead>
           <tbody>
