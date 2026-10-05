@@ -6,7 +6,7 @@ import { SERIES, getSeries } from "@/game/world/series";
 export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
   const [series, setSeries] = useState(world.playerSeriesId),
     [query, setQuery] = useState(""),
-    [role, setRolle] = useState("ALL"),
+    [role, setRole] = useState("ALL"),
     [page, setPage] = useState(0),
     [selectedPersonId, setSelectedPersonId] = useState<string | null>(null),
     [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -76,10 +76,10 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                     {selectedPerson.role.replaceAll("_", " ")} · {selectedPerson.age} · {selectedPerson.nationality}
                   </p>
                   <p className="mt-2 text-sm text-zinc-400">
-                    Stärke {selectedPerson.skill} · Potenzial {selectedPerson.potential} · Ehrgeiz {selectedPerson.ambition} · Vertrag bis S{selectedPerson.contractEndSeason}
+                    Skill {selectedPerson.skill} · Potential {selectedPerson.potential} · Ambition {selectedPerson.ambition} · Contract through S{selectedPerson.contractEndSeason}
                   </p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    Arbeitgeber: {team(selectedPerson.teamId)} · Gehalt €{selectedPerson.salary.toFixed(3)}m / Saison
+                    Employer: {team(selectedPerson.teamId)} · Salary €{selectedPerson.salary.toFixed(3)}m / season
                   </p>
                 </>
               ) : null}
@@ -87,13 +87,13 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 <>
                   <h3 className="mt-1 text-xl font-semibold">{selectedTeam.name}</h3>
                   <p className="mt-2 text-sm text-zinc-300">
-                    {selectedTeam.seriesId}{selectedTeam.classId ? ` · ${selectedTeam.classId}` : ""} · Ruf {selectedTeam.reputation}
+                    {selectedTeam.seriesId}{selectedTeam.classId ? ` · ${selectedTeam.classId}` : ""} · Reputation {selectedTeam.reputation}
                   </p>
                   <p className="mt-2 text-sm text-zinc-400">
-                    Tempo {selectedTeam.pace} · Zuverlässigkeit {selectedTeam.reliability} · Budget €{selectedTeam.budget.toFixed(2)}m
+                    Pace {selectedTeam.pace} · Reliability {selectedTeam.reliability} · Budget €{selectedTeam.budget.toFixed(2)}m
                   </p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    Fahrer: {selectedTeam.drivers.map(person).join(", ")}
+                    Drivers: {selectedTeam.drivers.map(person).join(", ")}
                   </p>
                 </>
               ) : null}
@@ -105,7 +105,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 setSelectedTeamId(null);
               }}
             >
-              Schließen
+              Close
             </button>
           </div>
         </article>
@@ -113,9 +113,10 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
 
 
       <p className="text-sm text-zinc-400">
-        {world.teams.length} fiktive Teams ·{" "}
-        {world.people.filter((p) => p.role === "DRIVER").length} Fahrer ·{" "}
-        {world.people.filter((p) => p.role !== "DRIVER").length} Mitarbeiter · Neun Meisterschaften entwickeln sich parallel zu deiner Karriere.
+        {world.teams.length} fictional teams ·{" "}
+        {world.people.filter((p) => p.role === "DRIVER").length} drivers ·{" "}
+        {world.people.filter((p) => p.role !== "DRIVER").length} staff · Nine
+        championships progress alongside your career.
       </p>
       <div className="flex flex-wrap gap-2">
         {SERIES.map((s) => (
@@ -137,16 +138,16 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <div>
             <h4 className="font-semibold">Paddock-Nachrichten</h4>
             <p className="mt-1 text-xs text-zinc-500">
-              Transfers, Vertragsenden, Nachwuchsaufstiege und Teamtrends.
+              Transfers, contract expiries, talent promotions and team momentum.
             </p>
           </div>
           <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400">
-            Saison {world.season}
+            Season {world.season}
           </span>
         </div>
         {activity.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            Noch keine Weltaktivität für {series} erfasst.
+            No world activity recorded for {series} yet.
           </p>
         ) : (
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -158,14 +159,14 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 <div className="flex flex-wrap items-center gap-2">
                   {activityIndex < 3 && item.type !== "TEAM_TREND" ? (
                     <span className="rounded-full border border-rose-900 bg-rose-950/40 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-300">
-                      Eilmeldung
+                      Breaking
                     </span>
                   ) : null}
                   <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] uppercase tracking-wide text-sky-300">
                     {item.type.replaceAll("_", " ")}
                   </span>
                   <span className="text-[11px] text-zinc-500">
-                    Saison {item.season}
+                    Season {item.season}
                   </span>
                 </div>
                 <p className="mt-2 font-medium">{item.headline}</p>
@@ -181,7 +182,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                         setSelectedTeamId(null);
                       }}
                     >
-                      Person ansehen
+                      View person
                     </button>
                   ) : null}
                   {item.toTeamId ? (
@@ -192,7 +193,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                         setSelectedPersonId(null);
                       }}
                     >
-                      Team ansehen
+                      View team
                     </button>
                   ) : null}
                 </div>
@@ -220,7 +221,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               >
                 <span className="font-medium">{target.name}</span>
                 <span className="mt-1 block text-xs text-zinc-500">
-                  {target.seriesId} · Stärke {target.skill} · Potenzial {target.potential} · contract S{target.contractEndSeason}
+                  {target.seriesId} · Skill {target.skill} · Potential {target.potential} · contract S{target.contractEndSeason}
                 </span>
               </button>
             ))}
@@ -229,7 +230,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
         <article className="rounded-xl border border-zinc-800 p-5">
           <h4 className="font-semibold">Vertragsbeobachtung</h4>
           <p className="mt-1 text-xs text-zinc-500">
-            Fahrer in {series} mit auslaufenden oder bereits abgelaufenen Verträgen.
+            Drivers in {series} whose deals are at or beyond their final season.
           </p>
           <div className="mt-3 space-y-2">
             {contractWatch.length ? contractWatch.map((target) => (
@@ -243,11 +244,11 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               >
                 <span className="text-sm font-medium">{target.name}</span>
                 <span className="block text-xs text-amber-300">
-                  Vertragswarnung · endet S{target.contractEndSeason}
+                  Contract warning · ends S{target.contractEndSeason}
                 </span>
               </button>
             )) : (
-              <p className="text-sm text-zinc-500">Kein unmittelbarer Vertragsdruck.</p>
+              <p className="text-sm text-zinc-500">No immediate expiry pressure.</p>
             )}
           </div>
         </article>
@@ -255,7 +256,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
 
       <article className="rounded-xl border border-zinc-800 p-5">
         <h4 className="font-semibold">
-          {cfg.name} · {table.completedRounds}/{cfg.rounds} Rennen
+          {cfg.name} · {table.completedRounds}/{cfg.rounds} races
         </h4>
         <p className="mt-2 text-sm text-zinc-400">{cfg.description}</p>
         <p className="mt-2 text-xs text-zinc-500">
@@ -268,9 +269,9 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <table className="mt-3 w-full text-left text-sm">
             <thead>
               <tr>
-                <th>Pos.</th>
+                <th>Pos</th>
                 <th>Team</th>
-                <th>Punkte</th>
+                <th>Points</th>
               </tr>
             </thead>
             <tbody>
@@ -306,9 +307,9 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
             <table className="mt-3 w-full text-left text-sm">
               <thead>
                 <tr>
-                  <th>Pos.</th>
+                  <th>Pos</th>
                   <th>Driver</th>
-                  <th>Punkte</th>
+                  <th>Points</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,23 +359,23 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 }}
               >
                 {t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}
-                {t.id === world.playerTeamId ? " · Dein Team" : ""}
+                {t.id === world.playerTeamId ? " · Your team" : ""}
               </button>
               <p className="mt-2 text-xs text-zinc-400">
-                Teamchef: {person(t.principalId)} · Tempo {t.pace} · Reliability{" "}
-                {t.reliability} · Jahresbudget €{t.budget.toFixed(2)}m
+                Principal: {person(t.principalId)} · Pace {t.pace} · Reliability{" "}
+                {t.reliability} · Annual budget €{t.budget.toFixed(2)}m
               </p>
               <p className="mt-2 text-sm">
-                Fahrer: {t.drivers.map(person).join(", ") || "Unbesetzt"}
+                Drivers: {t.drivers.map(person).join(", ") || "Vacant"}
               </p>
               <p className="mt-2 text-xs text-zinc-500">
-                Personal: {t.staff.map(person).join(", ")}
+                Staff: {t.staff.map(person).join(", ")}
               </p>
             </article>
           ))}
       </div>
       <h4 className="text-lg font-semibold">
-        Personendatenbank · {people.length}
+        People database · {people.length}
       </h4>
       <div className="flex flex-wrap gap-3">
         <input
@@ -392,7 +393,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           className="bg-zinc-900 p-3"
           value={role}
           onChange={(e) => {
-            setRolle(e.target.value);
+            setRole(e.target.value);
             setPage(0);
           }}
         >
@@ -415,12 +416,12 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Rolle</th>
-              <th>Alter</th>
+              <th>Role</th>
+              <th>Age</th>
               <th>Nation</th>
-              <th>Stärke / Potenzial</th>
-              <th>Arbeitgeber</th>
-              <th>Gehalt / Saison</th>
+              <th>Skill / potential</th>
+              <th>Employer</th>
+              <th>Salary / season</th>
             </tr>
           </thead>
           <tbody>
@@ -446,7 +447,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           onClick={() => setPage(index - 1)}
           className="rounded border border-zinc-700 px-3 py-2 disabled:opacity-40"
         >
-          Zurück
+          Previous
         </button>
         <span className="py-2">
           {index + 1}/{pages}
@@ -456,7 +457,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           onClick={() => setPage(index + 1)}
           className="rounded border border-zinc-700 px-3 py-2 disabled:opacity-40"
         >
-          Weiter
+          Next
         </button>
       </div>
     </div>
