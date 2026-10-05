@@ -12,19 +12,19 @@ import { playerTeam } from "@/game/world/world";
 import { getRaceRules, crewSizeForSeries } from "@/game/racing/rules";
 import { raceRules, liveOrder, gapToLeader } from "@/game/racing/engine";
 import {
-  runTRegening,
+  runPractice,
   runQualifying,
   updateRaceSetup,
   updateRacePlan,
   advanceRace,
-  commandFahrer,
+  commandDriver,
   callPit,
   retireRaceCar,
   issueTeamOrder,
   recruitRaceCrew,
 } from "@/game/racing/actions";
 import { terminateEmployment } from "@/game/career/market";
-import { setRaceStrategie } from "@/game/career/career";
+import { setRaceStrategy } from "@/game/career/career";
 import { WecStandings } from "./WecStandings";
 import { teamTable } from "@/game/career/sport";
 type Props = {
@@ -73,7 +73,7 @@ function CarControls({
         {car.name} · {car.retired ? "Ausgeschieden" : `P${car.position}`}{w.seriesId === "WEC" ? ` · ${car.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"} P${liveOrder(w).filter((c) => c.classId === car.classId).findIndex((c) => c.id === car.id) + 1}` : ""}
       </h4>
       <p className="mt-2 text-sm text-zinc-400">
-        {car.crew[car.activeFahrer].name} · {reifenName(car.compound)} · Verschleiß{" "}
+        {car.crew[car.activeDriver].name} · {reifenName(car.compound)} · Verschleiß{" "}
         {car.wear.toFixed(0)}% · Sprit {car.fuel.toFixed(1)} Runden · Schaden {car.damage.toFixed(0)}%
       </p>
       {!racing && !closed ? (
@@ -151,14 +151,14 @@ function CarControls({
             className="ml-2 w-20 bg-zinc-950 p-2"
             type="number"
             min="1"
-            max={w.totalRundes}
-            value={car.plan.pitRunde}
+            max={w.totalLaps}
+            value={car.plan.pitLap}
             disabled={closed}
             onChange={(e) => {
               const n = Number(e.target.value);
-              if (n >= 1 && n <= w.totalRundes)
+              if (n >= 1 && n <= w.totalLaps)
                 onAction((s) =>
-                  updateRacePlan(s, car.id, { ...car.plan, pitRunde: n }),
+                  updateRacePlan(s, car.id, { ...car.plan, pitLap: n }),
                 );
             }}
           />
@@ -187,7 +187,7 @@ function CarControls({
           [
             ["automatic", "Automatische Strategie / Wetterreaktion"],
             ["repair", "Schäden reparieren"],
-            ["changeFahrer", "Fahrer bei erlaubten Stopps wechseln"],
+            ["changeDriver", "Fahrer bei erlaubten Stopps wechseln"],
           ] as const
         ).map(([key, title]) => (
           <label key={key}>
@@ -195,7 +195,7 @@ function CarControls({
               type="checkbox"
               checked={car.plan[key]}
               disabled={
-                closed || (key === "changeFahrer" && !rules.changeFahrer)
+                closed || (key === "changeDriver" && !rules.changeDriver)
               }
               onChange={(e) =>
                 onAction((s) =>
@@ -218,7 +218,7 @@ function CarControls({
               aria-pressed={car.mode === mode}
               key={mode}
               disabled={car.retired}
-              onClick={() => onAction((s) => commandFahrer(s, car.id, mode))}
+              onClick={() => onAction((s) => commandDriver(s, car.id, mode))}
             >
               {modusName(mode)}
             </button>
@@ -233,7 +233,7 @@ function CarControls({
                   car.id,
                   car.plan.nextCompound,
                   car.plan.repair,
-                  car.plan.changeFahrer,
+                  car.plan.changeDriver,
                 ),
               )
             }
@@ -252,13 +252,13 @@ function CarControls({
       <p className="mt-3 text-xs text-zinc-500">
         {rules.refuel ? "Nachtanken erlaubt." : "Nachtanken im Rennen verboten."}{" "}
         {rules.twoCompounds
-          ? `Trockenreifen-Regel: ${rules.alternateSets ? `${rules.alternateSets} alternative Sätze + Primärreifen; jeweils mindestens 2 Runden inklusive Rennbetrieb` : "zwei unterschiedliche Spezifikationen"}.`
+          ? `Trockenreifen-Regel: ${rules.alternateSets ? `${rules.alternateSets} alternate sets + primary; each ≥2 laps, including green running` : "zwei unterschiedliche Spezifikationen"}.`
           : ""}{" "}
         {rules.pitWindow
           ? "Pflichtfenster für Fahrerwechsel: Minute 25–35, vorbehaltlich einer Verschiebung durch die Rennleitung."
           : ""}{" "}
         {rules.mandatoryStop && !rules.pitWindow
-          ? `${rules.requiredStopps} Pflichtstopp(s), frühestens nach Runde ${rules.minStopRunde}.`
+          ? `${rules.requiredStops} Pflichtstopp(s), frühestens nach Runde ${rules.minStopLap}.`
           : ""}
       </p>
       <p className="mt-2 text-xs text-zinc-400">
@@ -294,11 +294,11 @@ function CrewManager({ flow, onAction }: Props) {
         {team.raceCrews.map((crew) => {
           const ids = [
               ...crew.members,
-              ...(crew.coFahrerId ? [crew.coFahrerId] : []),
+              ...(crew.coDriverId ? [crew.coDriverId] : []),
             ],
             vacancy =
               world.playerSeriesId === "RALLY"
-                ? !crew.coFahrerId
+                ? !crew.coDriverId
                 : crew.members.length <
                   crewSizeForSeries(world.playerSeriesId) - 1;
           const candidateId = selected[crew.leadId] ?? candidates[0]?.id;
@@ -358,7 +358,7 @@ function CrewManager({ flow, onAction }: Props) {
                       )
                     }
                   >
-                    Verpflichten crew member
+                    Recruit crew member
                   </button>
                 </div>
               ) : null}
@@ -377,7 +377,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
       2,
       ...summary.snapshots.flatMap((s) => s.rows.map((r) => r.position)),
     ),
-    maxRunde = Math.max(1, summary.laps);
+    maxLap = Math.max(1, summary.laps);
   return (
     <article className={card}>
       <h4 className="font-semibold">Race debrief · {summary.venue}</h4>
@@ -408,7 +408,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
                 const r = s.rows.find((r) => r.id === id);
                 return r
                   ? [
-                      `${35 + (s.lap / maxRunde) * 590},${20 + ((r.position - 1) / (maxPosition - 1)) * 130}`,
+                      `${35 + (s.lap / maxLap) * 590},${20 + ((r.position - 1) / (maxPosition - 1)) * 130}`,
                     ]
                   : [];
               })
@@ -448,7 +448,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
             <div key={e.id}>
               <p className="text-sm font-medium">
                 {e.crew[0]?.name} · grid P{e.grid} · {e.stops} stops ·{" "}
-                {e.finishPunkte} race + {e.bonusPunkte} bonus points ·{" "}
+                {e.finishPoints} race + {e.bonusPoints} bonus points ·{" "}
                 {e.dsq ? "DSQ" : (e.reason ?? time(e.time))}
               </p>
               <p className="mt-1 text-xs text-zinc-400">
@@ -527,8 +527,8 @@ export function RacePanel({ flow, onAction }: Props) {
                 {w!.venue} · {w!.session} · {w!.phase}
               </h4>
               <p>
-                {w!.seriesId === "RALLY" ? "Stage" : "Runde"} {w!.lap}/
-                {w!.totalRundes} · {time(w!.clockSeconds)} · {w!.flag}
+                {w!.seriesId === "RALLY" ? "Stage" : "Lap"} {w!.lap}/
+                {w!.totalLaps} · {time(w!.clockSeconds)} · {w!.flag}
                 {w!.pitClosed ? " · BOXENGASSE GESCHLOSSEN" : ""}
               </p>
             </div>
@@ -539,7 +539,7 @@ export function RacePanel({ flow, onAction }: Props) {
               {w!.forecast
                 .filter((f) => f.lap > w!.lap)
                 .slice(0, 2)
-                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% Regen`)
+                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% rain`)
                 .join(" · ") || "Keine weitere Wetteränderung angekündigt"}
             </p>
             {w!.decision ? (
@@ -551,9 +551,9 @@ export function RacePanel({ flow, onAction }: Props) {
               <button
                 className={button}
                 disabled={w!.phase !== "PRACTICE" || w!.practiceRuns >= 3}
-                onClick={() => onAction(runTRegening)}
+                onClick={() => onAction(runPractice)}
               >
-                TRegening run {w!.practiceRuns}/3
+                Practice run {w!.practiceRuns}/3
               </button>
               <button
                 className={button}
@@ -649,14 +649,14 @@ export function RacePanel({ flow, onAction }: Props) {
                     >
                       <td className="py-2">{i + 1}</td>
                       <td>
-                        {car.crew[car.activeFahrer].name}
+                        {car.crew[car.activeDriver].name}
                         <span className="block text-xs text-zinc-500">
                           {car.team} ·{" "}
                           {car.classId === "MAIN" ? "Hauptklasse" : car.classId === "HYPERCAR" ? "Hypercar" : car.classId}
                         </span>
                       </td>
                       <td>+{gapToLeader(w!, car).toFixed(1)}s</td>
-                      <td>{car.completedRundes}</td>
+                      <td>{car.completedLaps}</td>
                       <td>
                         {car.compound} {car.wear.toFixed(0)}%
                       </td>
@@ -729,7 +729,7 @@ export function RacePanel({ flow, onAction }: Props) {
               <button
                 className={button + (c.strategy === mode ? " bg-sky-950" : "")}
                 key={mode}
-                onClick={() => onAction((s) => setRaceStrategie(s, mode))}
+                onClick={() => onAction((s) => setRaceStrategy(s, mode))}
               >
                 {mode}
               </button>
@@ -774,7 +774,7 @@ export function RacePanel({ flow, onAction }: Props) {
                 <tr>
                   <th>Pos</th>
                   <th>Fahrer</th>
-                  <th>Punkte</th>
+                  <th>Points</th>
                   <th>Siege</th>
                 </tr>
               </thead>
@@ -824,9 +824,9 @@ export function RacePanel({ flow, onAction }: Props) {
               <thead>
                 <tr>
                   <th>Pos</th>
-                  <th>Fahrer / entry</th>
+                  <th>Fahrer / Fahrzeug</th>
                   <th>Team</th>
-                  <th>Punkte</th>
+                  <th>Points</th>
                   <th>Status</th>
                 </tr>
               </thead>
