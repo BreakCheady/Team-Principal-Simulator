@@ -2,29 +2,29 @@
 import { useEffect, useState } from "react";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import type {
-  RennenCar,
-  RennenWeekend,
-  RennenSummary,
+  RaceCar,
+  RaceWeekend,
+  RaceSummary,
   Compound,
 } from "@/game/racing/schema";
 import { getSeries } from "@/game/world/series";
 import { playerTeam } from "@/game/world/world";
-import { getRennenRules, crewSizeForSeries } from "@/game/racing/rules";
+import { getRaceRules, crewSizeForSeries } from "@/game/racing/rules";
 import { raceRules, liveOrder, gapToLeader } from "@/game/racing/engine";
 import {
   runTraining,
   runQualifying,
-  updateRennenSetup,
-  updateRennenPlan,
+  updateRaceSetup,
+  updateRacePlan,
   advanceRennen,
   commandFahrer,
   callBox,
-  retireRennenCar,
+  retireRaceCar,
   issueTeamOrder,
-  recruitRennenCrew,
+  recruitRaceCrew,
 } from "@/game/racing/actions";
 import { terminateEmployment } from "@/game/career/market";
-import { setRennenStrategie } from "@/game/career/career";
+import { setRaceStrategy } from "@/game/career/career";
 import { WecWertung } from "./WecWertung";
 import { teamTable } from "@/game/career/sport";
 type Props = {
@@ -41,8 +41,8 @@ function CarControls({
   w,
   onAction,
 }: {
-  car: RennenCar;
-  w: RennenWeekend;
+  car: RaceCar;
+  w: RaceWeekend;
   onAction: Props["onAction"];
 }) {
   const rules = raceRules(w),
@@ -72,7 +72,7 @@ function CarControls({
                 disabled={!["PRACTICE", "QUALIFYING"].includes(w.phase)}
                 onChange={(e) =>
                   onAction((s) =>
-                    updateRennenSetup(s, car.id, {
+                    updateRaceSetup(s, car.id, {
                       ...car.setup,
                       [axis]: Number(e.target.value),
                     }),
@@ -93,7 +93,7 @@ function CarControls({
             disabled={racing || closed}
             onChange={(e) =>
               onAction((s) =>
-                updateRennenPlan(s, car.id, {
+                updateRacePlan(s, car.id, {
                   ...car.plan,
                   startCompound: e.target.value as Compound,
                 }),
@@ -114,7 +114,7 @@ function CarControls({
             disabled={closed}
             onChange={(e) =>
               onAction((s) =>
-                updateRennenPlan(s, car.id, {
+                updateRacePlan(s, car.id, {
                   ...car.plan,
                   nextCompound: e.target.value as Compound,
                 }),
@@ -140,7 +140,7 @@ function CarControls({
               const n = Number(e.target.value);
               if (n >= 1 && n <= w.totalLaps)
                 onAction((s) =>
-                  updateRennenPlan(s, car.id, { ...car.plan, pitLap: n }),
+                  updateRacePlan(s, car.id, { ...car.plan, pitLap: n }),
                 );
             }}
           />
@@ -157,7 +157,7 @@ function CarControls({
             disabled={closed || (racing && !rules.refuel)}
             onChange={(e) =>
               onAction((s) =>
-                updateRennenPlan(s, car.id, {
+                updateRacePlan(s, car.id, {
                   ...car.plan,
                   fuelTarget: Number(e.target.value) / 100,
                 }),
@@ -181,7 +181,7 @@ function CarControls({
               }
               onChange={(e) =>
                 onAction((s) =>
-                  updateRennenPlan(s, car.id, {
+                  updateRacePlan(s, car.id, {
                     ...car.plan,
                     [key]: e.target.checked,
                   }),
@@ -225,7 +225,7 @@ function CarControls({
           <button
             className={button}
             disabled={car.retired}
-            onClick={() => onAction((s) => retireRennenCar(s, car.id))}
+            onClick={() => onAction((s) => retireRaceCar(s, car.id))}
           >
             Retire car
           </button>
@@ -277,11 +277,11 @@ function CrewManager({ flow, onAction }: Props) {
         {team.raceCrews.map((crew) => {
           const ids = [
               ...crew.members,
-              ...(crew.coFahrerId ? [crew.coFahrerId] : []),
+              ...(crew.coDriverId ? [crew.coDriverId] : []),
             ],
             vacancy =
               world.playerSeriesId === "RALLY"
-                ? !crew.coFahrerId
+                ? !crew.coDriverId
                 : crew.members.length <
                   crewSizeForSeries(world.playerSeriesId) - 1;
           const candidateId = selected[crew.leadId] ?? candidates[0]?.id;
@@ -337,7 +337,7 @@ function CrewManager({ flow, onAction }: Props) {
                     }
                     onClick={() =>
                       onAction((s) =>
-                        recruitRennenCrew(s, candidateId, crew.leadId),
+                        recruitRaceCrew(s, candidateId, crew.leadId),
                       )
                     }
                   >
@@ -352,7 +352,7 @@ function CrewManager({ flow, onAction }: Props) {
     </article>
   );
 }
-function RennenReport({ summary }: { summary: RennenSummary }) {
+function RaceReport({ summary }: { summary: RaceSummary }) {
   const [frame, setFrame] = useState(0),
     snap = summary.snapshots[Math.min(frame, summary.snapshots.length - 1)],
     ids = summary.snapshots[0]?.rows.map((r) => r.id) ?? [],
@@ -463,7 +463,7 @@ function RennenReport({ summary }: { summary: RennenSummary }) {
     </article>
   );
 }
-export function RennenPanel({ flow, onAction }: Props) {
+export function RacePanel({ flow, onAction }: Props) {
   const [playing, setPlaying] = useState(false),
     [reportRound, setReportRound] = useState<number | null>(null),
     c = flow.career!,
@@ -480,7 +480,7 @@ export function RennenPanel({ flow, onAction }: Props) {
   const cfg = getSeries(c.world?.playerSeriesId ?? "F1"),
     rules = active
       ? raceRules(w!)
-      : getRennenRules(
+      : getRaceRules(
           cfg.id,
           Math.max(0, flow.currentRound - c.seasonStart + 1),
           cfg.calendar[
@@ -712,7 +712,7 @@ export function RennenPanel({ flow, onAction }: Props) {
               <button
                 className={button + (c.strategy === mode ? " bg-sky-950" : "")}
                 key={mode}
-                onClick={() => onAction((s) => setRennenStrategie(s, mode))}
+                onClick={() => onAction((s) => setRaceStrategy(s, mode))}
               >
                 {mode}
               </button>
@@ -720,7 +720,7 @@ export function RennenPanel({ flow, onAction }: Props) {
           </div>
           <p className="text-xs text-zinc-500">
             Attack trades tyre life and incident risk for pace; conserve saves
-            tyres and fuel. Rennen instructions can differ by car.
+            tyres and fuel. Rennanweisungen can differ by car.
           </p>
           <CrewManager flow={flow} onAction={onAction} />
         </>
@@ -800,7 +800,7 @@ export function RennenPanel({ flow, onAction }: Props) {
                 ))}
             </select>
           </label>
-          <RennenReport key={report.round} summary={report.summary} />
+          <RaceReport key={report.round} summary={report.summary} />
           <article className={card}>
             <h4>Classification · R{report.round}</h4>
             <table className="mt-3 w-full text-left text-sm">
