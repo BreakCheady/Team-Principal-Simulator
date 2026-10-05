@@ -1,12 +1,12 @@
 "use client";
 
-import { calculateKonflikt } from "@/game/political/conflicts";
-import { getKonfliktEntscheidungs } from "@/game/political/decisions";
+import { calculateConflict } from "@/game/political/conflicts";
+import { getConflictDecisions } from "@/game/political/decisions";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  onKonfliktEntscheidung: (conflictId: string, decisionId: string) => void;
+  onConflictDecision: (conflictId: string, decisionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -18,25 +18,25 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function PoliticalKonfliktsPanel({
+export function PoliticalConflictsPanel({
   flow,
-  onKonfliktEntscheidung,
+  onConflictDecision,
   onOpenCareer,
 }: Props) {
-  const activeKonflikts = flow.political.conflicts.filter(
+  const activeConflicts = flow.political.conflicts.filter(
     (conflict) =>
       conflict.status === "ACTIVE" || conflict.status === "ESCALATED",
   );
 
   return (
           <div className="grid gap-4 lg:grid-cols-2">
-            {activeKonflikts.length === 0 ? (
+            {activeConflicts.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                Keine aktiven politischen Konflikte.
+                No active political conflicts.
               </p>
             ) : (
-              activeKonflikts.map((conflict) => {
-                const calculation = calculateKonflikt(
+              activeConflicts.map((conflict) => {
+                const calculation = calculateConflict(
                   flow.political,
                   conflict,
                 );
@@ -83,17 +83,17 @@ export function PoliticalKonfliktsPanel({
                         onClick={() => onOpenCareer()}
                         className="mt-3 text-sm text-sky-300"
                       >
-                        Forderung in Karriere bearbeiten
+                        Resolve actor demand in Career
                       </button>
                     ) : null}
-                    {getKonfliktEntscheidungs(conflict.id).length > 0 ? (
+                    {getConflictDecisions(conflict.id).length > 0 ? (
                       <div className="mt-5 grid gap-2">
-                        {getKonfliktEntscheidungs(conflict.id).map((decision) => (
+                        {getConflictDecisions(conflict.id).map((decision) => (
                           <button
                             key={decision.id}
                             type="button"
                             onClick={() =>
-                              onKonfliktEntscheidung(conflict.id, decision.id)
+                              onConflictDecision(conflict.id, decision.id)
                             }
                             className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
