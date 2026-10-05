@@ -400,33 +400,33 @@ export function createWeekend(flow: WeekendSource): RaceWeekend {
 }
 export function setSetup(w: RaceWeekend, id: string, setup: RaceCar["setup"]) {
   if (!["PRACTICE", "QUALIFYING"].includes(w.phase))
-    throw new Error("Setup is locked after qualifying (parc fermé).");
+    throw new Error("Das Setup ist nach dem Qualifying gesperrt (Parc fermé).");
   const car = w.cars.find((c) => c.id === id && c.ours);
-  if (!car) throw new Error("Unknown player car.");
+  if (!car) throw new Error("Unbekanntes Spielerfahrzeug.");
   car.setup = SetupSchema.parse(setup);
 }
 export function setPlan(w: RaceWeekend, id: string, plan: RaceCar["plan"]) {
   const car = w.cars.find((c) => c.id === id && c.ours);
-  if (!car) throw new Error("Unknown player car.");
-  if (w.phase === "COMPLETE") throw new Error("Race already finished.");
+  if (!car) throw new Error("Unbekanntes Spielerfahrzeug.");
+  if (w.phase === "COMPLETE") throw new Error("Das Rennen ist bereits beendet.");
   const parsed = PlanSchema.parse(plan),
     rules = raceRules(w);
   if (
     !rules.compounds.includes(parsed.startCompound) ||
     !rules.compounds.includes(parsed.nextCompound)
   )
-    throw new Error("Tyre compound is not legal in this series.");
+    throw new Error("Diese Reifenmischung ist in der Serie nicht zulässig.");
   if (parsed.pitLap > w.totalLaps)
-    throw new Error("Pit lap is outside the race.");
+    throw new Error("Die geplante Boxenrunde liegt außerhalb des Rennens.");
   if (w.phase === "RACING" && parsed.startCompound !== car.plan.startCompound)
-    throw new Error("Starting tyres are already fitted.");
+    throw new Error("Die Startreifen sind bereits montiert.");
   if (
     w.phase === "RACING" &&
     !rules.refuel &&
     parsed.fuelTarget !== car.plan.fuelTarget
   )
     throw new Error(
-      "Race refuelling is forbidden; the starting fuel load is fixed.",
+      "Nachtanken im Rennen ist verboten; die Start-Spritmenge ist festgelegt.",
     );
   car.plan = parsed;
 }
@@ -440,7 +440,7 @@ function setupFit(w: RaceWeekend, car: RaceCar) {
 }
 export function practice(w: RaceWeekend) {
   if (w.phase !== "PRACTICE" || w.practiceRuns >= 3)
-    throw new Error("Practice session is closed.");
+    throw new Error("Das Training ist beendet.");
   w.practiceRuns++;
   const engineers = w.cars.filter((c) => c.ours);
   w.knowledge = clamp(
@@ -482,7 +482,7 @@ function setF4Grid(w: RaceWeekend) {
 }
 export function qualify(w: RaceWeekend) {
   if (!["PRACTICE", "QUALIFYING"].includes(w.phase))
-    throw new Error("Qualifying is closed.");
+    throw new Error("Das Qualifying ist beendet.");
   if (!w.practiceRuns) practice(w);
   const rules = raceRules(w),
     main = w.cars.filter((c) => c.classId !== "TRAFFIC");
@@ -695,7 +695,7 @@ function lapTime(w: RaceWeekend, car: RaceCar) {
 }
 export function startRace(w: RaceWeekend) {
   if (w.phase !== "GRID")
-    throw new Error("Complete qualifying before starting.");
+    throw new Error("Beende das Qualifying vor dem Rennstart.");
   const rules = raceRules(w);
   w.phase = "RACING";
   w.lap = 0;
@@ -749,7 +749,7 @@ export function startRace(w: RaceWeekend) {
   logRace(
     w,
     "START",
-    `${rules.rollingStart ? "Rolling" : "Standing"} start. ${w.session === "RALLY" ? "18 timed stages; service after stages 3, 6, 9, 12 and 15" : `${w.totalLaps} planned laps`}.`,
+    `${rules.rollingStart ? "Rolling" : "Standing"} start. ${w.session === "RALLY" ? "18 gezeitete Etappen; Service nach den Etappen 3, 6, 9, 12 und 15" : `${w.totalLaps} planned laps`}.`,
   );
   snapshot(w);
 }
@@ -991,7 +991,7 @@ function incident(w: RaceWeekend, car: RaceCar, seconds: number) {
   const risk = ((100 - car.reliability) * 0.000022 * seconds) / 90;
   if (raceRandom(w) < risk) {
     car.retired = true;
-    car.retirementReason = "Mechanical failure";
+    car.retirementReason = "Technischer Defekt";
     logRace(
       w,
       "INCIDENT",
@@ -1003,7 +1003,7 @@ function incident(w: RaceWeekend, car: RaceCar, seconds: number) {
         w,
         rules.neutralisation,
         2,
-        "Race control neutralises the circuit for recovery.",
+        "Die Rennleitung neutralisiert die Strecke für Bergungsarbeiten.",
       );
     return 0;
   }
@@ -1028,7 +1028,7 @@ function incident(w: RaceWeekend, car: RaceCar, seconds: number) {
     logRace(
       w,
       "INCIDENT",
-      `${car.name}: ${car.retired ? "crash and retirement" : rules.format === "RALLY" ? "stage error / puncture" : "off-track excursion"}${car.retired ? "" : `, +${loss.toFixed(1)}s`}.`,
+      `${car.name}: ${car.retired ? "Unfall und Ausfall" : rules.format === "RALLY" ? "Etappenfehler / Reifenschaden" : "Ausritt neben die Strecke"}${car.retired ? "" : `, +${loss.toFixed(1)}s`}.`,
       car.id,
       loss,
     );
@@ -1148,7 +1148,7 @@ function completeCarLap(w: RaceWeekend, car: RaceCar) {
   }
   if (car.fuel <= 0 && !rules.refuel) {
     car.retired = true;
-    car.retirementReason = "Out of fuel";
+    car.retirementReason = "Kein Sprit mehr";
     logRace(w, "INCIDENT", `${car.name} runs out of fuel.`, car.id);
     return;
   }
@@ -1157,7 +1157,7 @@ function completeCarLap(w: RaceWeekend, car: RaceCar) {
   if (shouldPit(w, car, rules)) delay += doPit(w, car, rules);
   else if (rules.refuel && car.fuel <= 0) {
     car.retired = true;
-    car.retirementReason = "Out of fuel";
+    car.retirementReason = "Kein Sprit mehr";
     logRace(w, "INCIDENT", `${car.name} runs out of fuel.`, car.id);
     return;
   }
@@ -1197,7 +1197,7 @@ function rallyService(w: RaceWeekend) {
     "Service park: choose tyres, repairs and the next stage's risk level.";
 }
 export function stepRace(w: RaceWeekend) {
-  if (w.phase !== "RACING") throw new Error("Race is not running.");
+  if (w.phase !== "RACING") throw new Error("Das Rennen läuft nicht.");
   w.decision = null;
   const rules = raceRules(w);
   if (w.flagRemaining > 0) {
@@ -1205,7 +1205,7 @@ export function stepRace(w: RaceWeekend) {
     if (w.flagRemaining === 0) {
       w.flag = "GREEN";
       w.pitClosed = false;
-      logRace(w, "CONTROL", "Green flag. Racing resumes.");
+      logRace(w, "CONTROL", "Grüne Flagge. Das Rennen wird fortgesetzt.");
     } else if (w.seriesId === "INDYCAR") w.pitClosed = false;
   }
   const change = w.weatherChanges.find(
@@ -1217,10 +1217,10 @@ export function stepRace(w: RaceWeekend) {
       w,
       "WEATHER",
       w.rain
-        ? "Rain is arriving; track grip is changing."
-        : "Rain stops; a drying line is forming.",
+        ? "Regen setzt ein; der Grip verändert sich."
+        : "Der Regen hört auf; eine trockene Linie bildet sich.",
     );
-    w.decision = "Weather changed: review tyres and the forecast.";
+    w.decision = "Wetteränderung: Reifen und Vorhersage prüfen.";
   }
   w.wetness = clamp(
     w.wetness + (w.rain ? w.rain * 0.08 : -(4 + w.baseLap / 60)),
@@ -1231,7 +1231,7 @@ export function stepRace(w: RaceWeekend) {
       w,
       "RED",
       1,
-      "Red flag: standing water. Race paused for six minutes.",
+      "Rote Flagge: stehendes Wasser. Das Rennen ist für sechs Minuten unterbrochen.",
     );
     for (const car of w.cars.filter((c) => !c.retired)) {
       car.nextLapAt += 360;
@@ -1338,7 +1338,7 @@ export function stepRace(w: RaceWeekend) {
         c.ours && !c.retired && (c.wear > 70 || c.fuel < 4 || c.damage > 10),
     )
   )
-    w.decision = "Pit wall: tyres, fuel or damage need attention.";
+    w.decision = "Boxenmauer: Reifen, Sprit oder Schäden benötigen Aufmerksamkeit.";
 }
 export function tyreCompliance(car: RaceCar, rules: RaceRules) {
   if (!rules.twoCompounds || car.wetUsed) return true;
@@ -1384,7 +1384,7 @@ function finishSession(w: RaceWeekend) {
         );
       } else {
         car.dsq = true;
-        car.retirementReason = "Dry tyre specification requirement not met";
+        car.retirementReason = "Vorgabe für Trockenreifen nicht erfüllt";
         logRace(
           w,
           "PENALTY",
@@ -1399,7 +1399,7 @@ function finishSession(w: RaceWeekend) {
       car.mandatoryStops < rules.requiredStops
     ) {
       car.dsq = true;
-      car.retirementReason = "Mandatory pit stop / driver change missing";
+      car.retirementReason = "Pflichtboxenstopp / Fahrerwechsel fehlt";
       logRace(
         w,
         "PENALTY",
@@ -1427,7 +1427,7 @@ function finishSession(w: RaceWeekend) {
       car.crew.length < rules.crewSize
     ) {
       car.dsq = true;
-      car.retirementReason = "Incomplete driver crew";
+      car.retirementReason = "Unvollständige Fahrerbesatzung";
     }
   }
   if (w.seriesId === "WEC") for (const car of main) {
@@ -1439,7 +1439,7 @@ function finishSession(w: RaceWeekend) {
     const timeFailure = car.classId === "LMGT3" && !car.retired && mandatoryDrivers.some((d) => d.drivingSeconds < required * 60);
     if (invalidCrew || timeFailure) {
       car.dsq = true;
-      car.retirementReason = invalidCrew ? "WEC driver rating requirements not met" : "LMGT3 minimum driving time not met";
+      car.retirementReason = invalidCrew ? "WEC-Vorgaben für Fahrerbewertungen nicht erfüllt" : "LMGT3-Mindestfahrzeit nicht erfüllt";
       logRace(w, "PENALTY", `${car.name}: ${car.retirementReason}.`, car.id);
     }
   }
@@ -1489,7 +1489,7 @@ function finishSession(w: RaceWeekend) {
   logRace(
     w,
     "FINISH",
-    `${w.session} finished. ${rows.find((c) => !c.retired && !c.dsq)?.name ?? "No finisher"}.`,
+    `${w.session} finished. ${rows.find((c) => !c.retired && !c.dsq)?.name ?? "Kein Fahrzeug im Ziel"}.`,
   );
   snapshot(w);
   if (w.session === "SPRINT" && w.sprintPending) {
@@ -1501,7 +1501,7 @@ function finishSession(w: RaceWeekend) {
     w.totalLaps = Math.ceil(mainRules.distanceKm! / w.lengthKm);
     w.durationSeconds = mainRules.minutes * 60;
     w.decision =
-      "Sprint complete. Prepare Grand Prix qualifying; sprint points remain recorded.";
+      "Sprint beendet. Bereite das Grand-Prix-Qualifying vor; Sprintpunkte bleiben erhalten.";
   } else w.phase = "COMPLETE";
 }
 export function runWeekend(w: RaceWeekend, stopAtDecision = false) {
@@ -1517,7 +1517,7 @@ export function runWeekend(w: RaceWeekend, stopAtDecision = false) {
     } else stepRace(w);
     if (stopAtDecision && w.decision && w.phase === "RACING") return;
   }
-  if (guard >= 4000) throw new Error("Race exceeded its simulation limit.");
+  if (guard >= 4000) throw new Error("Das Rennen hat das Simulationslimit überschritten.");
 }
 export function summarize(w: RaceWeekend, budget: number): RaceSummary {
   const rules = raceRules(w),
@@ -1569,7 +1569,7 @@ export function summarize(w: RaceWeekend, budget: number): RaceSummary {
           (d.drivingSeconds > 0 &&
             d.drivingSeconds >= rules.minDriverMinutes * 60),
       })),
-      explanation: `Setup ${Math.round(car.setupFit)}%; pit loss ${car.pitLoss.toFixed(1)}s; traffic ${car.battleLoss.toFixed(1)}s; errors ${car.mistakeLoss.toFixed(1)}s; penalties ${car.penaltySeconds.toFixed(1)}s. ${car.retirementReason ?? "Reached the finish"}.`,
+      explanation: `Setup ${Math.round(car.setupFit)}%; pit loss ${car.pitLoss.toFixed(1)}s; traffic ${car.battleLoss.toFixed(1)}s; errors ${car.mistakeLoss.toFixed(1)}s; penalties ${car.penaltySeconds.toFixed(1)}s. ${car.retirementReason ?? "Ziel erreicht"}.`,
       repairCost: car.ours
         ? Number(
             (budget * (car.retired ? 0.002 : 0.00004 * car.damage)).toFixed(6),
