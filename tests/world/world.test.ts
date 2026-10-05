@@ -331,5 +331,67 @@ describe("motorsport world", () => {
     expect(restored.version).toBe(11);
     expect(restored.state).toEqual(state);
   });
+  it("runs a deterministic AI silly season with contract expiry, promotions and changing team resources", () => {
+    const first = createNewCareer("F1");
+    const second = createNewCareer("F1");
+    const before = first.career!.world!;
+    const initialAssignments = new Map(
+      before.people.map((person) => [person.id, person.teamId]),
+    );
+    const initialBudgets = new Map(
+      before.teams.map((team) => [team.id, team.budget]),
+    );
+
+    let a = first;
+    let b = second;
+    while (!a.complete) a = advanceCareerFlow(a, []);
+    while (!b.complete) b = advanceCareerFlow(b, []);
+    a = startNextSeason(a);
+    b = startNextSeason(b);
+
+    const world = a.career!.world!;
+    expect(world).toEqual(b.career!.world!);
+
+    const aiPeople = world.people.filter(
+      (person) => person.teamId && person.teamId !== world.playerTeamId,
+    );
+    expect(
+      aiPeople.some(
+        (person) => initialAssignments.get(person.id) !== person.teamId,
+      ),
+    ).toBe(true);
+
+    expect(
+      world.teams
+        .filter((team) => team.id !== world.playerTeamId)
+        .some((team) => initialBudgets.get(team.id) !== team.budget),
+    ).toBe(true);
+
+    for (const team of world.teams.filter((team) => team.id !== world.playerTeamId)) {
+      const cfg = getSeries(team.seriesId);
+      expect(team.drivers).toHaveLength(cfg.driversPerTeam);
+      expect(
+        ["TECHNICAL_DIRECTOR", "SPORTING_DIRECTOR", "RACE_ENGINEER"].every(
+          (role) =>
+            team.staff.some(
+              (id) => world.people.find((person) => person.id === id)?.role === role,
+            ),
+        ),
+      ).toBe(true);
+    }
+
+    expect(
+      world.people.some(
+        (person) =>
+          person.role === "DRIVER" &&
+          person.age <= 25 &&
+          initialAssignments.get(person.id) !== person.teamId &&
+          person.teamId !== null,
+      ),
+    ).toBe(true);
+    expect(validateWorld(world)).toEqual(world);
+    valid(a);
+  }, 120000);
+
 });
 
