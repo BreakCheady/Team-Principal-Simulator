@@ -1,50 +1,50 @@
 "use client";
 
 import {
-  createVerhandlungOffer,
-  type VertragVerhandlungOffer,
+  createNegotiationOffer,
+  type ContractNegotiationOffer,
 } from "@/game/contracts/negotiations";
 import {
   canExerciseTeamOption,
   isReleaseClauseInForce,
 } from "@/game/contracts/contracts";
-import { assessVertragBudget } from "@/game/finance/finances";
+import { assessContractBudget } from "@/game/finance/finances";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  startVerhandlung: (contractId: string) => void;
+  startNegotiation: (contractId: string) => void;
   exerciseTeamOption: (contractId: string, optionId: string) => void;
-  submitVertragOffer: (
+  submitContractOffer: (
     negotiationId: string,
     posture: "FIRM" | "BALANCED" | "GENEROUS",
   ) => void;
   acceptCounterOffer: (negotiationId: string) => void;
-  walkAwayFromVerhandlung: (negotiationId: string) => void;
+  walkAwayFromNegotiation: (negotiationId: string) => void;
 };
 
 function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function VertragsPanel({
+export function ContractsPanel({
   flow,
-  startVerhandlung,
+  startNegotiation,
   exerciseTeamOption,
-  submitVertragOffer,
+  submitContractOffer,
   acceptCounterOffer,
-  walkAwayFromVerhandlung,
+  walkAwayFromNegotiation,
 }: Props) {
-  function offerBudget(contractId: string, offer: VertragVerhandlungOffer) {
+  function offerBudget(contractId: string, offer: ContractNegotiationOffer) {
     const contract = flow.political.contracts.find(
       (item) => item.id === contractId,
     )!;
-    return assessVertragBudget(
+    return assessContractBudget(
       flow.political,
       contractId,
       {
         salaryMillionsPerSeason: offer.salaryMillionsPerSeason,
-        guaranteedGehaltMillions: offer.guaranteedGehaltMillions,
+        guaranteedSalaryMillions: offer.guaranteedSalaryMillions,
         endRound:
           Math.max(contract.endRound, flow.currentRound) +
           offer.extensionRounds,
@@ -86,13 +86,13 @@ export function VertragsPanel({
                     flow.currentRound,
                   ),
                 );
-                const openVerhandlung = flow.negotiations.some(
+                const openNegotiation = flow.negotiations.some(
                   (session) =>
                     session.contractId === contract.id &&
-                    ["OFFEN", "COUNTERED"].includes(session.status),
+                    ["OPEN", "COUNTERED"].includes(session.status),
                 );
-                const pendingTriggers = contract.performanceTriggers.filter(
-                  (trigger) => !trigger.triggered,
+                const offenTriggers = contract.performanceTriggers.filter(
+                  (trigger) => !trigger.ausgelöst,
                 );
 
                 return (
@@ -111,20 +111,20 @@ export function VertragsPanel({
                         </h4>
                       </div>
                       <span className="text-sm text-emerald-300">
-                        €{contract.salaryMillionsPerSeason}m / season
+                        €{contract.salaryMillionsPerSeason}m / Saison
                       </span>
                     </div>
 
                     <p className="mt-3 text-sm text-zinc-400">
-                      Guaranteed €{contract.guaranteedGehaltMillions}m · bonuses
+                      Garantiert €{contract.guaranteedSalaryMillions}m · bonuses
                       earned €{contract.earnedBonusesMillions}m
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
-                      Gehalt paid €{contract.salaryPaidMillions.toFixed(2)}m ·
-                      remaining guaranteed pay €
+                      Gezahltes Gehalt €{contract.salaryPaidMillions.toFixed(2)}m ·
+                      verbleibende Garantie €
                       {Math.max(
                         0,
-                        contract.guaranteedGehaltMillions -
+                        contract.guaranteedSalaryMillions -
                           contract.salaryPaidMillions,
                       ).toFixed(2)}
                       m
@@ -133,7 +133,7 @@ export function VertragsPanel({
                     {contract.options.length > 0 ? (
                       <div className="mt-4">
                         <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                          Optionen
+                          Options
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.options.map((option) => {
@@ -143,7 +143,7 @@ export function VertragsPanel({
                               flow.currentRound,
                             );
                             const budget = eligible
-                              ? assessVertragBudget(
+                              ? assessContractBudget(
                                   flow.political,
                                   contract.id,
                                   {
@@ -153,10 +153,10 @@ export function VertragsPanel({
                                         option.salaryMultiplier
                                       ).toFixed(2),
                                     ),
-                                    guaranteedGehaltMillions:
-                                      contract.guaranteedGehaltMillions,
+                                    guaranteedSalaryMillions:
+                                      contract.guaranteedSalaryMillions,
                                     endRound:
-                                      contract.endRunde +
+                                      contract.endRound +
                                       option.extensionRounds,
                                   },
                                   flow.currentRound,
@@ -168,22 +168,22 @@ export function VertragsPanel({
                                 className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"
                               >
                                 {option.holder} · +{option.extensionRounds}{" "}
-                                rounds · window R{option.exerciseFromRound}–R
+                                Runden · Frist R{option.exerciseFromRound}–R
                                 {option.exerciseUntilRound} ·
                                 {option.exercised
-                                  ? " ausgeübt"
+                                  ? " exercised"
                                   : option.available
-                                    ? " verfügbar"
-                                    : " gesperrt"}
+                                    ? " available"
+                                    : " locked"}
                                 <p className="mt-1">
-                                  Gehalt on exercise: €
+                                  Gehalt nach Ausübung: €
                                   {(
                                     contract.salaryMillionsPerSeason *
                                     (option.exercised
                                       ? 1
                                       : option.salaryMultiplier)
                                   ).toFixed(2)}
-                                  m / season
+                                  m / Saison
                                 </p>
                                 {option.holder === "TEAM" &&
                                 !option.exercised ? (
@@ -198,12 +198,12 @@ export function VertragsPanel({
                                       }
                                       disabled={
                                         !eligible ||
-                                        openVerhandlung ||
+                                        openNegotiation ||
                                         !budget?.affordable
                                       }
                                       className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
                                     >
-                                      Exercise team option
+                                      Teamoption ziehen
                                     </button>
                                     {budget?.reason ? (
                                       <p className="mt-2 text-xs text-amber-300">
@@ -220,7 +220,7 @@ export function VertragsPanel({
                                       : "Diese Option liegt bei der Person."}
                                   </p>
                                 ) : null}
-                                {openVerhandlung &&
+                                {openNegotiation &&
                                 option.holder === "TEAM" &&
                                 !option.exercised ? (
                                   <p className="mt-2">
@@ -238,7 +238,7 @@ export function VertragsPanel({
                     {contract.releaseClauses.length > 0 ? (
                       <div className="mt-4">
                         <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">
-                          Ausstiegsklausels
+                          Ausstiegsklauseln
                         </p>
                         <div className="mt-2 space-y-2">
                           {contract.releaseClauses.map((clause) => (
@@ -254,10 +254,10 @@ export function VertragsPanel({
                                 clause,
                                 flow.currentRound,
                               )
-                                ? " gültig"
+                                ? " in force"
                                 : clause.active
-                                  ? " außerhalb der gültigen Laufzeit oder Frist"
-                                  : " gesperrt"}
+                                  ? " outside active term or window"
+                                  : " locked"}
                             </div>
                           ))}
                         </div>
@@ -278,13 +278,13 @@ export function VertragsPanel({
                               {label(trigger.metric)}{" "}
                               {trigger.comparator === "AT_LEAST" ? "≥" : "≤"}{" "}
                               {trigger.threshold} → {label(trigger.consequence)}{" "}
-                              · {trigger.triggered ? "triggered" : "pending"}
+                              · {trigger.ausgelöst ? "ausgelöst" : "offen"}
                             </div>
                           ))}
                         </div>
-                        {pendingTriggers.length === 0 ? (
+                        {offenTriggers.length === 0 ? (
                           <p className="mt-2 text-xs text-emerald-400">
-                            All performance triggers resolved.
+                            Alle Leistungsbedingungen sind abgeschlossen.
                           </p>
                         ) : null}
                       </div>
@@ -292,7 +292,7 @@ export function VertragsPanel({
 
                     {activeClauses.length > 0 ? (
                       <p className="mt-4 text-xs text-amber-300">
-                        {activeClauses.length} active release clause
+                        {activeClauses.length} aktive Ausstiegsklausel
                         {activeClauses.length === 1 ? "" : "s"}
                       </p>
                     ) : null}
@@ -309,7 +309,7 @@ export function VertragsPanel({
                         ) ? (
                           <button
                             type="button"
-                            onClick={() => startVerhandlung(contract.id)}
+                            onClick={() => startNegotiation(contract.id)}
                             className="rounded-lg border border-emerald-800 px-3 py-2 text-sm text-emerald-300 hover:border-emerald-600"
                           >
                             Start renewal talks
@@ -343,17 +343,17 @@ export function VertragsPanel({
                                   negotiation.characterDemand
                                     .salaryMillionsPerSeason
                                 }
-                                m / season · guaranteed €
+                                m / Saison · guaranteed €
                                 {
                                   negotiation.characterDemand
-                                    .guaranteedGehaltMillions
+                                    .guaranteedSalaryMillions
                                 }
                                 m · +
                                 {negotiation.characterDemand.extensionRounds}{" "}
                                 rounds
                               </p>
                               <p className="mt-1">
-                                Ausstiegsklausel{" "}
+                                Release clause{" "}
                                 {negotiation.characterDemand
                                   .releaseClauseMillions === null
                                   ? "none"
@@ -379,17 +379,17 @@ export function VertragsPanel({
                                     negotiation.counterOffer
                                       .salaryMillionsPerSeason
                                   }
-                                  m / season · guaranteed €
+                                  m / Saison · guaranteed €
                                   {
                                     negotiation.counterOffer
-                                      .guaranteedGehaltMillions
+                                      .guaranteedSalaryMillions
                                   }
                                   m · +
                                   {negotiation.counterOffer.extensionRounds}{" "}
                                   rounds
                                 </p>
                                 <p className="mt-1">
-                                  Ausstiegsklausel{" "}
+                                  Release clause{" "}
                                   {negotiation.counterOffer
                                     .releaseClauseMillions === null
                                     ? "none"
@@ -438,7 +438,7 @@ export function VertragsPanel({
                             <div className="grid gap-2 sm:grid-cols-3">
                               {(["FIRM", "BALANCED", "GENEROUS"] as const).map(
                                 (posture) => {
-                                  const offer = createVerhandlungOffer(
+                                  const offer = createNegotiationOffer(
                                     negotiation,
                                     posture,
                                   );
@@ -451,7 +451,7 @@ export function VertragsPanel({
                                       <button
                                         type="button"
                                         onClick={() =>
-                                          submitVertragOffer(
+                                          submitContractOffer(
                                             negotiation.id,
                                             posture,
                                           )
@@ -470,7 +470,7 @@ export function VertragsPanel({
                                         {offer.salaryMillionsPerSeason.toFixed(
                                           2,
                                         )}
-                                        m / season · payroll after offer €
+                                        m / Saison · payroll after offer €
                                         {budget.payroll.toFixed(2)}m
                                       </p>
                                       {budget.reason ? (
@@ -487,7 +487,7 @@ export function VertragsPanel({
                             <button
                               type="button"
                               onClick={() =>
-                                walkAwayFromVerhandlung(negotiation.id)
+                                walkAwayFromNegotiation(negotiation.id)
                               }
                               className="text-xs text-red-300 hover:text-red-200"
                             >
