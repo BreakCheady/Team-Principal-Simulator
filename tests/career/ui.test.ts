@@ -23,7 +23,11 @@ describe("career HQ rendering", () => {
         createElement(CareerPanel, { flow, view, onAction: () => {} }),
       );
       expect(html).toContain("<button");
-      if (view === "MARKET") expect(html).toContain("Agree transfer");
+      if (view === "MARKET") {
+        expect(html).toContain("Agree transfer");
+        expect(html).toContain("Contract warnings");
+        expect(html).toContain("Rival approach");
+      }
       if (view === "RACING") expect(html).toContain("Team championship");
       if (view === "CAREER") expect(html).toContain("Deadline R20");
     }
@@ -140,6 +144,11 @@ describe("career HQ rendering", () => {
     expect(html).toContain("Paddock News");
     expect(html).toContain("TEAM TREND");
     expect(html).toContain("SIGNING");
+    expect(html).toContain("Transfer Radar");
+    expect(html).toContain("Contract Watch");
+    expect(html).toContain("View person");
+    expect(html).toContain("View team");
+    expect(html).toContain("Breaking");
     expect(html).toContain(person.name);
   });
 
