@@ -167,6 +167,7 @@ export function createWorld(
     teams: [],
     series: [],
     history: [],
+    activity: [],
   };
   let number = 0;
   const person = (
