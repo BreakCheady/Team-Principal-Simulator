@@ -2,30 +2,30 @@
 import { useEffect, useState } from "react";
 import type { RoundFlowState } from "@/game/season/round-flow";
 import type {
-  RaceCar,
-  RaceWeekend,
-  RaceSummary,
+  RennenCar,
+  RennenWeekend,
+  RennenSummary,
   Compound,
 } from "@/game/racing/schema";
 import { getSeries } from "@/game/world/series";
 import { playerTeam } from "@/game/world/world";
-import { getRaceRules, crewSizeForSeries } from "@/game/racing/rules";
+import { getRennenRules, crewSizeForSeries } from "@/game/racing/rules";
 import { raceRules, liveOrder, gapToLeader } from "@/game/racing/engine";
 import {
-  runPractice,
+  runTraining,
   runQualifying,
-  updateRaceSetup,
-  updateRacePlan,
-  advanceRace,
-  commandDriver,
-  callPit,
-  retireRaceCar,
+  updateRennenSetup,
+  updateRennenPlan,
+  advanceRennen,
+  commandFahrer,
+  callBox,
+  retireRennenCar,
   issueTeamOrder,
-  recruitRaceCrew,
+  recruitRennenCrew,
 } from "@/game/racing/actions";
 import { terminateEmployment } from "@/game/career/market";
-import { setRaceStrategy } from "@/game/career/career";
-import { WecStandings } from "./WecStandings";
+import { setRennenStrategie } from "@/game/career/career";
+import { WecWertung } from "./WecWertung";
 import { teamTable } from "@/game/career/sport";
 type Props = {
   flow: RoundFlowState;
@@ -41,8 +41,8 @@ function CarControls({
   w,
   onAction,
 }: {
-  car: RaceCar;
-  w: RaceWeekend;
+  car: RennenCar;
+  w: RennenWeekend;
   onAction: Props["onAction"];
 }) {
   const rules = raceRules(w),
@@ -51,16 +51,16 @@ function CarControls({
   return (
     <article className={card}>
       <h4 className="font-semibold">
-        {car.name} · {car.retired ? "Retired" : `P${car.position}`}{w.seriesId === "WEC" ? ` · ${car.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"} P${liveOrder(w).filter((c) => c.classId === car.classId).findIndex((c) => c.id === car.id) + 1}` : ""}
+        {car.name} · {car.retired ? "Ausgeschieden" : `P${car.position}`}{w.seriesId === "WEC" ? ` · ${car.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"} P${liveOrder(w).filter((c) => c.classId === car.classId).findIndex((c) => c.id === car.id) + 1}` : ""}
       </h4>
       <p className="mt-2 text-sm text-zinc-400">
-        {car.crew[car.activeDriver].name} · {car.compound} · wear{" "}
+        {car.crew[car.activeFahrer].name} · {car.compound} · wear{" "}
         {car.wear.toFixed(0)}% · fuel {car.fuel.toFixed(1)} lap equivalents ·
         damage {car.damage.toFixed(0)}%
       </p>
       {!racing && !closed ? (
         <div className="mt-4 grid gap-3">
-          {(["downforce", "suspension", "cooling"] as const).map((axis) => (
+          {(["Abtrieb", "Fahrwerk", "Kühlung"] as const).map((axis) => (
             <label className="flex items-center gap-3 text-sm" key={axis}>
               {axis} {car.setup[axis]}
               <input
@@ -72,7 +72,7 @@ function CarControls({
                 disabled={!["PRACTICE", "QUALIFYING"].includes(w.phase)}
                 onChange={(e) =>
                   onAction((s) =>
-                    updateRaceSetup(s, car.id, {
+                    updateRennenSetup(s, car.id, {
                       ...car.setup,
                       [axis]: Number(e.target.value),
                     }),
@@ -87,13 +87,13 @@ function CarControls({
         <label>
           Starting tyres{" "}
           <select
-            aria-label={`${car.name} starting tyres`}
+            aria-label={`${car.name} Startreifen`}
             className="ml-2 bg-zinc-950 p-2"
             value={car.plan.startCompound}
             disabled={racing || closed}
             onChange={(e) =>
               onAction((s) =>
-                updateRacePlan(s, car.id, {
+                updateRennenPlan(s, car.id, {
                   ...car.plan,
                   startCompound: e.target.value as Compound,
                 }),
@@ -108,13 +108,13 @@ function CarControls({
         <label>
           Next tyres{" "}
           <select
-            aria-label={`${car.name} next tyres`}
+            aria-label={`${car.name} Nächste Reifen`}
             className="ml-2 bg-zinc-950 p-2"
             value={car.plan.nextCompound}
             disabled={closed}
             onChange={(e) =>
               onAction((s) =>
-                updateRacePlan(s, car.id, {
+                updateRennenPlan(s, car.id, {
                   ...car.plan,
                   nextCompound: e.target.value as Compound,
                 }),
@@ -127,9 +127,9 @@ function CarControls({
           </select>
         </label>
         <label>
-          Planned pit lap{" "}
+          Planned Boxenrunde{" "}
           <input
-            aria-label={`${car.name} pit lap`}
+            aria-label={`${car.name} Boxenrunde`}
             className="ml-2 w-20 bg-zinc-950 p-2"
             type="number"
             min="1"
@@ -140,16 +140,16 @@ function CarControls({
               const n = Number(e.target.value);
               if (n >= 1 && n <= w.totalLaps)
                 onAction((s) =>
-                  updateRacePlan(s, car.id, { ...car.plan, pitLap: n }),
+                  updateRennenPlan(s, car.id, { ...car.plan, pitLap: n }),
                 );
             }}
           />
         </label>
         <label>
-          {racing && rules.refuel ? "Next fuel fill" : "Fuel load"}{" "}
+          {racing && rules.refuel ? "Nächste Tankmenge" : "Kraftstoffmenge"}{" "}
           {Math.round(car.plan.fuelTarget * 100)}%{" "}
           <input
-            aria-label={`${car.name} fuel load`}
+            aria-label={`${car.name} Kraftstoffmenge`}
             type="range"
             min="50"
             max="100"
@@ -157,7 +157,7 @@ function CarControls({
             disabled={closed || (racing && !rules.refuel)}
             onChange={(e) =>
               onAction((s) =>
-                updateRacePlan(s, car.id, {
+                updateRennenPlan(s, car.id, {
                   ...car.plan,
                   fuelTarget: Number(e.target.value) / 100,
                 }),
@@ -167,9 +167,9 @@ function CarControls({
         </label>
         {(
           [
-            ["automatic", "Automatic strategy / weather response"],
-            ["repair", "Repair damage"],
-            ["changeDriver", "Change driver at eligible stops"],
+            ["automatic", "Automatische Strategie / Wetterreaktion"],
+            ["repair", "Schäden reparieren"],
+            ["changeFahrer", "Fahrer bei zulässigen Stopps wechseln"],
           ] as const
         ).map(([key, title]) => (
           <label key={key}>
@@ -177,11 +177,11 @@ function CarControls({
               type="checkbox"
               checked={car.plan[key]}
               disabled={
-                closed || (key === "changeDriver" && !rules.changeDriver)
+                closed || (key === "changeFahrer" && !rules.changeFahrer)
               }
               onChange={(e) =>
                 onAction((s) =>
-                  updateRacePlan(s, car.id, {
+                  updateRennenPlan(s, car.id, {
                     ...car.plan,
                     [key]: e.target.checked,
                   }),
@@ -200,7 +200,7 @@ function CarControls({
               aria-pressed={car.mode === mode}
               key={mode}
               disabled={car.retired}
-              onClick={() => onAction((s) => commandDriver(s, car.id, mode))}
+              onClick={() => onAction((s) => commandFahrer(s, car.id, mode))}
             >
               {mode}
             </button>
@@ -210,12 +210,12 @@ function CarControls({
             disabled={car.retired || w.pitClosed || w.seriesId === "RALLY"}
             onClick={() =>
               onAction((s) =>
-                callPit(
+                callBox(
                   s,
                   car.id,
                   car.plan.nextCompound,
                   car.plan.repair,
-                  car.plan.changeDriver,
+                  car.plan.changeFahrer,
                 ),
               )
             }
@@ -225,22 +225,22 @@ function CarControls({
           <button
             className={button}
             disabled={car.retired}
-            onClick={() => onAction((s) => retireRaceCar(s, car.id))}
+            onClick={() => onAction((s) => retireRennenCar(s, car.id))}
           >
             Retire car
           </button>
         </div>
       ) : null}
       <p className="mt-3 text-xs text-zinc-500">
-        {rules.refuel ? "Refuelling permitted." : "No race refuelling."}{" "}
+        {rules.refuel ? "Nachtanken erlaubt." : "Nachtanken im Rennen verboten."}{" "}
         {rules.twoCompounds
-          ? `Dry tyre requirement: ${rules.alternateSets ? `${rules.alternateSets} alternate sets + primary; each ≥2 laps, including green running` : "two different specifications"}.`
+          ? `Trockenreifen-Vorgabe: ${rules.alternateSets ? `${rules.alternateSets} alternate sets + primary; each ≥2 laps, including green running` : "zwei verschiedene Mischungen"}.`
           : ""}{" "}
         {rules.pitWindow
-          ? "Mandatory driver-change window: 25–35 minutes, subject to race-control delay."
+          ? "Pflichtfenster für Fahrerwechsel: 25–35 Minuten, abhängig von Freigaben der Rennleitung."
           : ""}{" "}
         {rules.mandatoryStop && !rules.pitWindow
-          ? `${rules.requiredStops} mandatory stop(s), earliest after lap ${rules.minStopLap}.`
+          ? `${rules.requiredStops} Pflichtstopp(s), frühestens nach Runde ${rules.minStopLap}.`
           : ""}
       </p>
       <p className="mt-2 text-xs text-zinc-400">
@@ -268,7 +268,7 @@ function CrewManager({ flow, onAction }: Props) {
     .slice(0, 100);
   return (
     <article className={card}>
-      <h4 className="font-semibold">Driver crews & co-drivers</h4>
+      <h4 className="font-semibold">Fahrer crews & co-drivers</h4>
       <p className="mt-2 text-sm text-zinc-400">
         Shared-car crew members have employment contracts, salaries and
         championship eligibility. Release and recruit between race weekends.
@@ -277,11 +277,11 @@ function CrewManager({ flow, onAction }: Props) {
         {team.raceCrews.map((crew) => {
           const ids = [
               ...crew.members,
-              ...(crew.coDriverId ? [crew.coDriverId] : []),
+              ...(crew.coFahrerId ? [crew.coFahrerId] : []),
             ],
             vacancy =
               world.playerSeriesId === "RALLY"
-                ? !crew.coDriverId
+                ? !crew.coFahrerId
                 : crew.members.length <
                   crewSizeForSeries(world.playerSeriesId) - 1;
           const candidateId = selected[crew.leadId] ?? candidates[0]?.id;
@@ -289,13 +289,13 @@ function CrewManager({ flow, onAction }: Props) {
             <div key={crew.leadId} className="border-t border-zinc-800 pt-3">
               <p>
                 {!team.drivers.includes(crew.leadId)
-                  ? "Vacant car entry · "
+                  ? "Unbesetztes Fahrzeug · "
                   : ""}
                 {world.people.find((p) => p.id === crew.leadId)?.name}
                 {world.playerSeriesId === "WEC" && ` · ${world.people.find((p) => p.id === crew.leadId)?.rating}`} ·{" "}
                 {world.playerSeriesId === "RALLY"
-                  ? "Co-driver"
-                  : "Support drivers"}
+                  ? "Co-Fahrer"
+                  : "Zusatzfahrer"}
               </p>
               {ids.map((id) => (
                 <p className="mt-2 text-sm" key={id}>
@@ -313,7 +313,7 @@ function CrewManager({ flow, onAction }: Props) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <select
                     className="max-w-full bg-zinc-950 p-2 text-sm"
-                    aria-label={`Crew candidate for ${crew.leadId}`}
+                    aria-label={`Crew-Kandidat für ${crew.leadId}`}
                     value={candidateId ?? ""}
                     onChange={(e) =>
                       setSelected({
@@ -337,7 +337,7 @@ function CrewManager({ flow, onAction }: Props) {
                     }
                     onClick={() =>
                       onAction((s) =>
-                        recruitRaceCrew(s, candidateId, crew.leadId),
+                        recruitRennenCrew(s, candidateId, crew.leadId),
                       )
                     }
                   >
@@ -352,7 +352,7 @@ function CrewManager({ flow, onAction }: Props) {
     </article>
   );
 }
-function RaceReport({ summary }: { summary: RaceSummary }) {
+function RennenReport({ summary }: { summary: RennenSummary }) {
   const [frame, setFrame] = useState(0),
     snap = summary.snapshots[Math.min(frame, summary.snapshots.length - 1)],
     ids = summary.snapshots[0]?.rows.map((r) => r.id) ?? [],
@@ -360,17 +360,17 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
       2,
       ...summary.snapshots.flatMap((s) => s.rows.map((r) => r.position)),
     ),
-    maxLap = Math.max(1, summary.laps);
+    maxRunde = Math.max(1, summary.laps);
   return (
     <article className={card}>
-      <h4 className="font-semibold">Race debrief · {summary.venue}</h4>
+      <h4 className="font-semibold">Rennen debrief · {summary.venue}</h4>
       <p className="mt-2 text-sm text-zinc-400">
         {summary.ruleId} · {summary.laps} laps/stages ·{" "}
-        {summary.wetRace ? "Wet tyres used" : "Dry tyre race"}
+        {summary.wetRennen ? "Regenreifen verwendet" : "Trockenreifenrennen"}
       </p>
       <svg
         role="img"
-        aria-label="Player positions through the race"
+        aria-label="Eigene Positionen im Rennverlauf"
         viewBox="0 0 640 170"
         className="mt-4 w-full rounded-xl bg-zinc-950"
       >
@@ -405,7 +405,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
             Replay · lap/stage {snap.lap}
             <input
               className="ml-4 w-2/3"
-              aria-label="Race replay frame"
+              aria-label="Rennwiederholung"
               type="range"
               min="0"
               max={Math.max(0, summary.snapshots.length - 1)}
@@ -431,7 +431,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
             <div key={e.id}>
               <p className="text-sm font-medium">
                 {e.crew[0]?.name} · grid P{e.grid} · {e.stops} stops ·{" "}
-                {e.finishPoints} race + {e.bonusPoints} bonus points ·{" "}
+                {e.finishPunkte} race + {e.bonusPunkte} bonus points ·{" "}
                 {e.dsq ? "DSQ" : (e.reason ?? time(e.time))}
               </p>
               <p className="mt-1 text-xs text-zinc-400">
@@ -441,7 +441,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
                 {e.crew
                   .map(
                     (d) =>
-                      `${d.name}: ${(d.seconds / 60).toFixed(0)} min${d.eligible ? "" : " (insufficient driving time; no points)"}`,
+                      `${d.name}: ${(d.seconds / 60).toFixed(0)} min${d.eligible ? "" : " (zu geringe Fahrzeit; keine Punkte)"}`,
                   )
                   .join(" · ")}
               </p>
@@ -463,7 +463,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
     </article>
   );
 }
-export function RacePanel({ flow, onAction }: Props) {
+export function RennenPanel({ flow, onAction }: Props) {
   const [playing, setPlaying] = useState(false),
     [reportRound, setReportRound] = useState<number | null>(null),
     c = flow.career!,
@@ -472,7 +472,7 @@ export function RacePanel({ flow, onAction }: Props) {
   useEffect(() => {
     if (!playing || !active || w?.phase !== "RACING" || w.decision) return;
     const timer = setInterval(
-      () => onAction((s) => advanceRace(s, "LAP")),
+      () => onAction((s) => advanceRennen(s, "LAP")),
       650,
     );
     return () => clearInterval(timer);
@@ -480,7 +480,7 @@ export function RacePanel({ flow, onAction }: Props) {
   const cfg = getSeries(c.world?.playerSeriesId ?? "F1"),
     rules = active
       ? raceRules(w!)
-      : getRaceRules(
+      : getRennenRules(
           cfg.id,
           Math.max(0, flow.currentRound - c.seasonStart + 1),
           cfg.calendar[
@@ -490,7 +490,7 @@ export function RacePanel({ flow, onAction }: Props) {
     report = c.races.find((r) => r.round === reportRound) ?? c.races.at(-1);
   return (
     <div className="space-y-5">
-      <h3 className="text-xl font-semibold">Race weekend & strategy</h3>
+      <h3 className="text-xl font-semibold">Rennen weekend & strategy</h3>
       <p className="text-sm text-zinc-400">
         {cfg.name} · {rules.name} ·{" "}
         <a
@@ -510,9 +510,9 @@ export function RacePanel({ flow, onAction }: Props) {
                 {w!.venue} · {w!.session} · {w!.phase}
               </h4>
               <p>
-                {w!.seriesId === "RALLY" ? "Stage" : "Lap"} {w!.lap}/
+                {w!.seriesId === "RALLY" ? "Etappe" : "Lap"} {w!.lap}/
                 {w!.totalLaps} · {time(w!.clockSeconds)} · {w!.flag}
-                {w!.pitClosed ? " · pits CLOSED" : ""}
+                {w!.pitClosed ? " · Boxengasse GESCHLOSSEN" : ""}
               </p>
             </div>
             <p className="mt-2 text-sm text-zinc-400">
@@ -522,7 +522,7 @@ export function RacePanel({ flow, onAction }: Props) {
               {w!.forecast
                 .filter((f) => f.lap > w!.lap)
                 .slice(0, 2)
-                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% rain`)
+                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% Regen`)
                 .join(" · ") || "No remaining forecast update"}
             </p>
             {w!.decision ? (
@@ -534,9 +534,9 @@ export function RacePanel({ flow, onAction }: Props) {
               <button
                 className={button}
                 disabled={w!.phase !== "PRACTICE" || w!.practiceRuns >= 3}
-                onClick={() => onAction(runPractice)}
+                onClick={() => onAction(runTraining)}
               >
-                Practice run {w!.practiceRuns}/3
+                Training run {w!.practiceRuns}/3
               </button>
               <button
                 className={button}
@@ -548,15 +548,15 @@ export function RacePanel({ flow, onAction }: Props) {
               <button
                 className={button}
                 disabled={!["GRID", "RACING"].includes(w!.phase)}
-                onClick={() => onAction((s) => advanceRace(s, "LAP"))}
+                onClick={() => onAction((s) => advanceRennen(s, "LAP"))}
               >
-                {w!.phase === "GRID" ? "Start race" : "Next lap / stage"}
+                {w!.phase === "GRID" ? "Rennen starten" : "Nächste Runde / Etappe"}
               </button>
               <button
                 className={button}
                 onClick={() => {
                   setPlaying(false);
-                  onAction((s) => advanceRace(s, "DECISION"));
+                  onAction((s) => advanceRennen(s, "DECISION"));
                 }}
               >
                 Run to decision
@@ -568,20 +568,20 @@ export function RacePanel({ flow, onAction }: Props) {
                   if (playing && !w!.decision) setPlaying(false);
                   else {
                     if (w!.phase === "GRID" || w!.decision)
-                      onAction((s) => advanceRace(s, "LAP"));
+                      onAction((s) => advanceRennen(s, "LAP"));
                     setPlaying(true);
                   }
                 }}
               >
                 {playing && !w!.decision
-                  ? "Pause autoplay"
-                  : "Autoplay · pause on decisions"}
+                  ? "Automatik pausieren"
+                  : "Automatik · Pause bei Entscheidungen"}
               </button>
               <button
                 className={button}
                 onClick={() => {
                   setPlaying(false);
-                  onAction((s) => advanceRace(s, "FINISH"));
+                  onAction((s) => advanceRennen(s, "FINISH"));
                 }}
               >
                 Simulate remaining weekend
@@ -615,8 +615,8 @@ export function RacePanel({ flow, onAction }: Props) {
                     <th>Entry / driver</th>
                     <th>Gap</th>
                     <th>Lap</th>
-                    <th>Tyres / wear</th>
-                    <th>Fuel</th>
+                    <th>Reifen / wear</th>
+                    <th>Kraftstoff</th>
                     <th>Stops</th>
                     <th>Status</th>
                   </tr>
@@ -632,10 +632,10 @@ export function RacePanel({ flow, onAction }: Props) {
                     >
                       <td className="py-2">{i + 1}</td>
                       <td>
-                        {car.crew[car.activeDriver].name}
+                        {car.crew[car.activeFahrer].name}
                         <span className="block text-xs text-zinc-500">
                           {car.team} ·{" "}
-                          {car.classId === "MAIN" ? "Main class" : car.classId === "HYPERCAR" ? "Hypercar" : car.classId}
+                          {car.classId === "MAIN" ? "Hauptklasse" : car.classId === "HYPERCAR" ? "Hypercar" : car.classId}
                         </span>
                       </td>
                       <td>+{gapToLeader(w!, car).toFixed(1)}s</td>
@@ -652,7 +652,7 @@ export function RacePanel({ flow, onAction }: Props) {
                             ? "BOX"
                             : car.penaltySeconds
                               ? `+${car.penaltySeconds}s`
-                              : "Running"}
+                              : "Im Rennen"}
                       </td>
                     </tr>
                   ))}
@@ -687,7 +687,7 @@ export function RacePanel({ flow, onAction }: Props) {
             </div>
           </article>
           <article className={card}>
-            <h4>Race radio</h4>
+            <h4>Rennen radio</h4>
             <ol className="mt-3 max-h-72 space-y-2 overflow-auto text-xs">
               {w!.events
                 .slice(-40)
@@ -712,7 +712,7 @@ export function RacePanel({ flow, onAction }: Props) {
               <button
                 className={button + (c.strategy === mode ? " bg-sky-950" : "")}
                 key={mode}
-                onClick={() => onAction((s) => setRaceStrategy(s, mode))}
+                onClick={() => onAction((s) => setRennenStrategie(s, mode))}
               >
                 {mode}
               </button>
@@ -720,22 +720,22 @@ export function RacePanel({ flow, onAction }: Props) {
           </div>
           <p className="text-xs text-zinc-500">
             Attack trades tyre life and incident risk for pace; conserve saves
-            tyres and fuel. Race instructions can differ by car.
+            tyres and fuel. Rennen instructions can differ by car.
           </p>
           <CrewManager flow={flow} onAction={onAction} />
         </>
       )}
-      {cfg.id === "WEC" ? <WecStandings world={c.world!} /> : <div className="grid gap-4 lg:grid-cols-2">
+      {cfg.id === "WEC" ? <WecWertung world={c.world!} /> : <div className="grid gap-4 lg:grid-cols-2">
         <article className={card}>
           <h4>
-            {cfg.id === "INDYCAR" ? "Team aggregate" : "Team championship"}
+            {cfg.id === "INDYCAR" ? "Teamgesamtwertung" : "Teamwertung"}
           </h4>
           <table className="mt-3 w-full text-left text-sm">
             <thead>
               <tr>
                 <th>Pos</th>
                 <th>Team</th>
-                <th>Points</th>
+                <th>Punkte</th>
               </tr>
             </thead>
             <tbody>
@@ -750,14 +750,14 @@ export function RacePanel({ flow, onAction }: Props) {
           </table>
         </article>
         <article className={card}>
-          <h4>Driver championship</h4>
+          <h4>Fahrer championship</h4>
           <div className="mt-3 max-h-96 overflow-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr>
                   <th>Pos</th>
-                  <th>Driver</th>
-                  <th>Points</th>
+                  <th>Fahrer</th>
+                  <th>Punkte</th>
                   <th>Wins</th>
                 </tr>
               </thead>
@@ -800,16 +800,16 @@ export function RacePanel({ flow, onAction }: Props) {
                 ))}
             </select>
           </label>
-          <RaceReport key={report.round} summary={report.summary} />
+          <RennenReport key={report.round} summary={report.summary} />
           <article className={card}>
             <h4>Classification · R{report.round}</h4>
             <table className="mt-3 w-full text-left text-sm">
               <thead>
                 <tr>
                   <th>Pos</th>
-                  <th>Driver / entry</th>
+                  <th>Fahrer / entry</th>
                   <th>Team</th>
-                  <th>Points</th>
+                  <th>Punkte</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -827,7 +827,7 @@ export function RacePanel({ flow, onAction }: Props) {
                         ? "DSQ"
                         : r.dnf
                           ? "DNF"
-                          : "Finished"}
+                          : "Beendet"}
                     </td>
                   </tr>
                 ))}
