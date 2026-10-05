@@ -326,7 +326,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 <tr>
                   <th>Pos</th>
                   <th>Fahrer</th>
-                  <th>Points</th>
+                  <th>Punkte</th>
                 </tr>
               </thead>
               <tbody>
@@ -438,7 +438,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               <th>Nation</th>
               <th>Stärke / Potenzial</th>
               <th>Team</th>
-              <th>Salary / Saison</th>
+              <th>Gehalt / Saison</th>
             </tr>
           </thead>
           <tbody>
