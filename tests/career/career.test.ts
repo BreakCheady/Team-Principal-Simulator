@@ -406,6 +406,40 @@ describe("sporting and development simulation", () => {
     ).toHaveLength(1);
     valid(after);
   });
+  it("propagates one race into sporting, contract, finance and political state", () => {
+    const state = flow(16);
+    const contract = state.political.contracts[1];
+    contract.performanceTriggers[0].threshold = 0;
+    const actor = state.political.characters.find(
+      (character) => character.id === contract.characterId,
+    )!;
+    const beforeMomentum = actor.dynamic.momentum;
+    const beforeInstability = actor.dynamic.instability;
+
+    const next = simulateRace(state);
+    const updatedContract = next.political.contracts.find(
+      (item) => item.id === contract.id,
+    )!;
+    const updatedActor = next.political.characters.find(
+      (character) => character.id === contract.characterId,
+    )!;
+
+    expect(next.career!.races).toHaveLength(1);
+    expect(updatedContract.performanceTriggers[0].triggered).toBe(true);
+    expect(
+      next.political.finance.transactions.some(
+        (transaction) =>
+          transaction.category === "PERFORMANCE_BONUS" &&
+          transaction.contractId === contract.id,
+      ),
+    ).toBe(true);
+    expect(
+      updatedActor.dynamic.momentum !== beforeMomentum ||
+        updatedActor.dynamic.instability !== beforeInstability,
+    ).toBe(true);
+    valid(next);
+  });
+
   it("retains historic constructor points after a driver leaves", () => {
     const state = simulateRace(flow(16));
     const before = teamTable(state.career!).find(
