@@ -11,18 +11,18 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function PeoplePowerCentersPanel({ flow, view }: Props) {
+export function PersonalPowerCentersPanel({ flow, view }: Props) {
   if (view === "PEOPLE") {
     return (
           <div className="grid gap-4 md:grid-cols-2">
             {flow.political.characters.map((character) => (
               <article
                 key={character.id}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
               >
                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
                   {label(character.role)}
-                  {character.active === false ? " · LEFT TEAM" : ""}
+                  {character.active === false ? " · TEAM VERLASSEN" : ""}
                 </p>
                 <h3 className="mt-2 text-xl font-semibold">{character.name}</h3>
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
@@ -81,11 +81,11 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                 return (
                   <article
                     key={character.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5"
                   >
                     <p className="text-xs uppercase tracking-[0.14em] text-violet-400">
                       {label(character.role)}
-                      {character.active === false ? " · LEFT TEAM" : ""}
+                      {character.active === false ? " · TEAM VERLASSEN" : ""}
                     </p>
                     <h3 className="mt-2 text-xl font-semibold">
                       {character.name}
