@@ -249,7 +249,7 @@ export function RoundEventsPanel({
               TEAMZENTRALE · LAUFENDE SAISON
             </p>
             <h2 className="mt-1 text-xl font-black">
-              Season {2025 + (roundFlow.career?.season ?? 1)} · Round{" "}
+              Saison {2025 + (roundFlow.career?.season ?? 1)} · Runde{" "}
               {roundFlow.currentRound === 0
                 ? "1 · Vorsaison"
                 : roundFlow.currentRound}
@@ -259,7 +259,7 @@ export function RoundEventsPanel({
               onClick={() => setTab("FINANCE")}
               className="mt-2 text-sm text-emerald-300"
             >
-              Cash €{getCashBalance(roundFlow.political).toFixed(2)}m · Finanzen öffnen
+              Kassenbestand €{getCashBalance(roundFlow.political).toFixed(2)} Mio. · Finanzen öffnen
             </button>
             <p className="mt-2 max-w-2xl text-xs leading-5 text-zinc-500">
               Ereignisse erzeugen Handlungsdruck. Du entscheidest, was Priorität hat; ungelöste Spannungen können zu politischen Konflikten eskalieren.
@@ -279,21 +279,21 @@ export function RoundEventsPanel({
             <button
               type="button"
               onClick={saveGame}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
               Speichern
             </button>
             <button
               type="button"
               onClick={loadGame}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
               Laden
             </button>
             <button
               type="button"
               onClick={resetRounds}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+              className="mm-button"
             >
               Saison zurücksetzen
             </button>
@@ -310,9 +310,9 @@ export function RoundEventsPanel({
                 type="button"
                 onClick={startNextRound}
                 disabled={openIssues.length > 0}
-                className="rounded-xl bg-sky-300 px-5 py-3 font-medium text-sky-950 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+                className="mm-button-primary disabled:opacity-40"
               >
-                Start round {nextRound}
+                Runde {nextRound} starten
               </button>
             ) : (
               <button
