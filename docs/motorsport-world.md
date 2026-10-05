@@ -101,3 +101,17 @@ championship references, calendar length and world/selected-career season consis
 The starting save is below the local-storage budget; recruitment and scouting views
 paginate the large pool instead of rendering every profile at once.
 
+
+
+## Autonomous offseason world
+
+Between seasons, AI teams now run their own deterministic silly season. Expiring driver
+and staff contracts enter a shared market, teams refill vacancies based on skill,
+potential, ambition and team reputation, and young talent can move into stronger series
+when its specialties and minimum-skill requirements allow it. Because released personnel
+are available to every AI team before recruitment begins, one move can create a chain of
+replacement signings.
+
+AI team budgets and reputation also evolve from championship performance plus bounded
+season-to-season variation, representing changing sponsor and owner confidence without
+introducing a second finance model. The player's team remains under player control.
