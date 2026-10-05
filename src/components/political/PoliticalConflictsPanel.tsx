@@ -32,7 +32,7 @@ export function PoliticalKonfliktsPanel({
           <div className="grid gap-4 lg:grid-cols-2">
             {activeKonflikts.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                No active political conflicts.
+                Keine aktiven politischen Konflikte.
               </p>
             ) : (
               activeKonflikts.map((conflict) => {
