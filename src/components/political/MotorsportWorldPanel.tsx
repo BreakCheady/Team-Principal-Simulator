@@ -24,7 +24,7 @@ const aktivitaetsName = (typ: string) => ({
 export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
   const [series, setSeries] = useState(world.playerSeriesId),
     [query, setQuery] = useState(""),
-    [role, setRolle] = useState("ALL"),
+    [role, setRole] = useState("ALL"),
     [page, setPage] = useState(0),
     [selectedPersonId, setSelectedPersonId] = useState<string | null>(null),
     [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
     world.teams.find((t) => t.id === id)?.name ?? "Ohne Vertrag";
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-black">Motorsport-Welt</h3>
+      <h3 className="text-xl font-semibold">Motorsport-Welt</h3>
       {(selectedPerson || selectedTeam) ? (
         <article className="rounded-lg border border-sky-900 bg-sky-950/20 p-5">
           <div className="flex items-start justify-between gap-4">
@@ -164,7 +164,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
         </div>
         {activity.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            Noch keine Meldungen für {series} vorhanden.
+            Noch keine Meldungen für {series} yet.
           </p>
         ) : (
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -238,7 +238,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               >
                 <span className="font-medium">{target.name}</span>
                 <span className="mt-1 block text-xs text-zinc-500">
-                  {target.seriesId} · Stärke {target.skill} · Potenzial {target.potential} · contract S{target.contractEndSeason}
+                  {target.seriesId} · Stärke {target.skill} · Potenzial {target.potential} · Vertrag S{target.contractEndSeason}
                 </span>
               </button>
             ))}
@@ -247,7 +247,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
         <article className="rounded-md border border-zinc-800 p-5">
           <h4 className="font-semibold">Vertragsbeobachtung</h4>
           <p className="mt-1 text-xs text-zinc-500">
-            Fahrer in {series} mit Verträgen in oder nach ihrer letzten Saison.
+            Fahrer in {series}, deren Verträge in oder nach ihrer letzten Saison sind.
           </p>
           <div className="mt-3 space-y-2">
             {contractWatch.length ? contractWatch.map((target) => (
@@ -286,7 +286,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <table className="mt-3 w-full text-left text-sm">
             <thead>
               <tr>
-                <th>Pos.</th>
+                <th>Pos</th>
                 <th>Team</th>
                 <th>Punkte</th>
               </tr>
@@ -324,9 +324,9 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
             <table className="mt-3 w-full text-left text-sm">
               <thead>
                 <tr>
-                  <th>Pos.</th>
+                  <th>Pos</th>
                   <th>Fahrer</th>
-                  <th>Punkte</th>
+                  <th>Points</th>
                 </tr>
               </thead>
               <tbody>
@@ -379,7 +379,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 {t.id === world.playerTeamId ? " · Dein Team" : ""}
               </button>
               <p className="mt-2 text-xs text-zinc-400">
-                Principal: {person(t.principalId)} · Tempo {t.pace} · Reliability{" "}
+                Principal: {person(t.principalId)} · Pace {t.pace} · Reliability{" "}
                 {t.reliability} · Annual budget €{t.budget.toFixed(2)}m
               </p>
               <p className="mt-2 text-sm">
@@ -410,7 +410,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           className="bg-zinc-900 p-3"
           value={role}
           onChange={(e) => {
-            setRolle(e.target.value);
+            setRole(e.target.value);
             setPage(0);
           }}
         >
@@ -436,7 +436,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               <th>Rolle</th>
               <th>Alter</th>
               <th>Nation</th>
-              <th>Stärke / potential</th>
+              <th>Stärke / Potenzial</th>
               <th>Team</th>
               <th>Salary / Saison</th>
             </tr>
