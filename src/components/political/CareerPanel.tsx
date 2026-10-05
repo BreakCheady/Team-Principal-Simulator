@@ -16,7 +16,7 @@ import {
 } from "@/game/career/market";
 import { respondActorRequest } from "@/game/career/actors";
 import { startDevelopment, PROJECTS } from "@/game/career/sport";
-import { startNextSeason } from "@/game/career/career";
+import { startWeiterSaison } from "@/game/career/career";
 import { isReleaseClauseInForce } from "@/game/contracts/contracts";
 
 type Props = {
@@ -24,11 +24,22 @@ type Props = {
   view: "MARKET" | "RACING" | "DEVELOPMENT" | "CAREER";
   onAction: (action: (state: RoundFlowState) => RoundFlowState) => void;
 };
-const card = "rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5";
-const button =
-  "rounded-lg border border-sky-800 px-3 py-2 text-sm text-sky-300 hover:border-sky-500 disabled:opacity-40 disabled:cursor-not-allowed";
-const money = (n: number) => `€${n.toFixed(2)}m`;
-const label = (s: string) => s.replaceAll("_", " ");
+const card = "rounded-lg border border-slate-700 bg-[#111720] p-4";
+const button = "mm-button disabled:opacity-40";
+const money = (n: number) => `€${n.toFixed(2)} Mio.`;
+const label = (s: string) => {
+  const labels: Record<string, string> = {
+    DRIVER_ONE: "Fahrer 1",
+    DRIVER_TWO: "Fahrer 2",
+    TECHNICAL: "Technik",
+    SPORTING: "Sport",
+    ENGINEERING: "Ingenieur",
+    AERO: "Aerodynamik",
+    RELIABILITY: "Zuverlässigkeit",
+    FACILITIES: "Infrastruktur",
+  };
+  return labels[s] ?? s.replaceAll("_", " ");
+};
 function CandidateCard({
   candidate,
   flow,
@@ -59,25 +70,25 @@ function CandidateCard({
     <article className={card}>
       <h4 className="text-lg font-semibold">{candidate.character.name}</h4>
       <p className="mt-2 text-sm text-zinc-400">
-        {label(candidate.seat)} · Skill {candidate.skill} · {candidate.employer}
+        {label(candidate.seat)} · Stärke {candidate.skill} · {candidate.employer === "Free agent" ? "Ohne Vertrag" : candidate.employer}
       </p>
       <p className="mt-2 text-sm">
-        Salary demand {money(candidate.salary)} / season · Signing{" "}
-        {money(candidate.signingFee)} · Buyout {money(candidate.buyout)}
+        Gehaltsforderung {money(candidate.salary)} / season · Signing{" "}
+        {money(candidate.signingFee)} · Ablöse {money(candidate.buyout)}
       </p>
       <p className="mt-2 text-xs text-zinc-500">
         {candidate.seriesId
-          ? `${candidate.seriesId} · ${candidate.age} years · ${candidate.nationality} · Potential ${candidate.potential} · `
+          ? `${candidate.seriesId} · ${candidate.age} Jahre · ${candidate.nationality} · Potenzial ${candidate.potential} · `
           : ""}
         Ambition {candidate.character.personality.ambition} · Compromise{" "}
-        {candidate.character.personality.compromiseWillingness} · Available R
+        {candidate.character.personality.compromiseWillingness} · Verfügbar R
         {candidate.availableFrom}–R{candidate.availableUntil}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
         <label>
-          Seat{" "}
+          Position{" "}
           <select
-            aria-label={`Seat for ${candidate.character.name}`}
+            aria-label={`Position für ${candidate.character.name}`}
             className="bg-zinc-950 p-2"
             value={seat}
             onChange={(e) => setSelected(e.target.value as Seat)}
@@ -89,14 +100,14 @@ function CandidateCard({
                 </option>
               ))
             ) : (
-              <option value={seat}>No vacant seat</option>
+              <option value={seat}>Keine freie Position</option>
             )}
           </select>
         </label>
         <label>
-          Term{" "}
+          Laufzeit{" "}
           <select
-            aria-label={`Term for ${candidate.character.name}`}
+            aria-label={`Laufzeit für ${candidate.character.name}`}
             className="bg-zinc-950 p-2"
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
@@ -109,7 +120,7 @@ function CandidateCard({
               : [12, 24, 36, 48]
             ).map((n) => (
               <option key={n} value={n}>
-                {n} rounds
+                {n} Runden
               </option>
             ))}
           </select>
@@ -120,7 +131,7 @@ function CandidateCard({
             checked={premium}
             onChange={(e) => setPremium(e.target.checked)}
           />
-          20% salary premium
+          20 % Gehaltsaufschlag
         </label>
       </div>
       <button
@@ -132,10 +143,10 @@ function CandidateCard({
           )
         }
       >
-        Offer {money(salary)} / season
+        Angebot: {money(salary)} / season
       </button>
       <p className="mt-2 text-xs text-zinc-500">
-        Offer includes guaranteed salary for the term and a character-held
+        Angebot: includes guaranteed salary for the term and a character-held
         renewal option. Leadership reputation affects consent; all fees and
         commitments must fit the budget.
       </p>
@@ -150,7 +161,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
   const [sort, setSort] = useState("SKILL");
   const [page, setPage] = useState(0);
   const c = flow.career;
-  if (!c) return <p>Load an older save or reset rounds to open career mode.</p>;
+  if (!c) return <p>Load an older save or reset Runden to open career mode.</p>;
   const available = c.candidates
     .filter(
       (p) =>
@@ -171,16 +182,15 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             a.character.name.localeCompare(b.character.name),
     );
   const pages = Math.max(1, Math.ceil(available.length / 24));
-  const currentPage = Math.min(page, pages - 1);
+  const currentSeite = Math.min(page, pages - 1);
   const name = (id: string | null) =>
-    flow.political.characters.find((a) => a.id === id)?.name ?? "Vacant";
+    flow.political.characters.find((a) => a.id === id)?.name ?? "Unbesetzt";
   if (view === "MARKET")
     return (
       <div className="space-y-5">
-        <h3 className="text-xl font-semibold">Driver & staff market</h3>
+        <h3 className="text-xl font-semibold">Fahrer- & Personalmarkt</h3>
         <p className="text-sm text-zinc-400">
-          Vacant seats accept new signings. Transfers need actor consent;
-          departures preserve all remaining guaranteed pay.
+          Freie Positionen können neu besetzt werden. Transfers benötigen die Zustimmung der beteiligten Person; bei Trennungen bleiben garantierte Zahlungen bestehen.
         </p>
         <div className="grid gap-3 md:grid-cols-2">
           {c.seats.map((seat) => {
@@ -195,7 +205,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 {contract ? (
                   <>
                     <p className="mt-2 text-xs text-zinc-400">
-                      Remaining guarantee{" "}
+                      Verbleibende Garantie{" "}
                       {money(
                         Math.max(
                           0,
@@ -212,7 +222,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                         )
                       }
                     >
-                      Terminate & pay remaining guarantee
+                      Vertrag auflösen & Garantie zahlen
                     </button>
                     {contract.releaseClauses
                       .filter(
@@ -234,8 +244,8 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                             )
                           }
                         >
-                          Use team release right ·{" "}
-                          {money(clause.amountMillions)} + guarantee
+                          Ausstiegsrecht des Teams nutzen ·{" "}
+                          {money(clause.amountMillions)} + Garantie
                         </button>
                       ))}
                   </>
@@ -244,7 +254,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             );
           })}
         </div>
-        <h4 className="text-lg font-semibold">Contract warnings</h4>
+        <h4 className="text-lg font-semibold">Vertragswarnungen</h4>
         {flow.political.contracts
           .filter(
             (contract) =>
@@ -259,11 +269,11 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               className="rounded-xl border border-amber-950 bg-amber-950/10 p-4"
             >
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                Contract warning
+                Vertragswarnung
               </p>
               <p className="mt-2 font-medium">{name(contract.characterId)}</p>
               <p className="mt-1 text-sm text-zinc-400">
-                Deal ends after R{contract.endRound} · {Math.max(0, contract.endRound - flow.currentRound)} rounds remaining
+                Vertrag endet nach R{contract.endRound} · {Math.max(0, contract.endRound - flow.currentRound)} Runden remaining
               </p>
             </article>
           ))}
@@ -273,27 +283,26 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             contract.endRound - flow.currentRound <=
               (c.world ? getSeries(c.world.playerSeriesId).rounds : 24),
         ) ? (
-          <p className="text-sm text-zinc-500">No contracts need attention within the next season.</p>
+          <p className="text-sm text-zinc-500">Keine Verträge benötigen innerhalb der nächsten Saison sofortige Aufmerksamkeit.</p>
         ) : null}
-        <h4 className="text-lg font-semibold">Rival offers</h4>
+        <h4 className="text-lg font-semibold">Angebote anderer Teams</h4>
         {c.offers
           .filter((o) => o.status === "OPEN")
           .map((o) => (
             <article key={o.id} className={card}>
               <p className="text-xs font-semibold uppercase tracking-wide text-rose-300">
-                Rival approach
+                Anfrage eines Rivalen
               </p>
               <p className="mt-2">
-                {o.club} wants {name(o.characterId)}
+                {o.club} möchte {name(o.characterId)}
               </p>
               <p className="mt-2 text-sm text-zinc-400">
-                Salary {money(o.salary)} · transfer income {money(o.fee)} ·
-                response by R{o.expiresRound}
+                Gehalt {money(o.salary)} · Ablöseerlös {money(o.fee)} · Antwort bis R{o.expiresRound}
               </p>
               <p className="mt-2 text-xs text-amber-300">
                 {o.clauseId
-                  ? "Active character release right: an unsettled actor can leave independently when the offer expires."
-                  : "No unilateral release right: the team can refuse this move."}
+                  ? "Aktives Ausstiegsrecht der Person: Bei Fristablauf kann sie den Wechsel selbst auslösen."
+                  : "Kein einseitiges Ausstiegsrecht: Das Team kann den Wechsel ablehnen."}
               </p>
               <div className="mt-3 flex gap-3">
                 <button
@@ -302,7 +311,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     onAction((s) => respondTransferOffer(s, o.id, true))
                   }
                 >
-                  Agree transfer
+                  Transfer zustimmen
                 </button>
                 <button
                   className={button}
@@ -310,24 +319,23 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     onAction((s) => respondTransferOffer(s, o.id, false))
                   }
                 >
-                  Refuse · actor pressure +8
+                  Ablehnen · Druck +8
                 </button>
               </div>
             </article>
           ))}
         {!c.offers.some((o) => o.status === "OPEN") ? (
           <p className="text-sm text-zinc-500">
-            No open rival offers. Ambition, transfer interest and contract
-            windows drive approaches.
+            Keine offenen Angebote anderer Teams. Ambition, Wechselinteresse und Vertragsfenster bestimmen neue Anfragen.
           </p>
         ) : null}
         <h4 className="text-lg font-semibold">
-          Available candidates · {available.length}
+          Verfügbare Kandidaten · {available.length}
         </h4>
         <div className="flex flex-wrap gap-3 text-sm">
           <input
-            aria-label="Search driver and staff pool"
-            placeholder="Name, nationality or team"
+            aria-label="Fahrer- und Personalpool durchsuchen"
+            placeholder="Name, Nationalität oder Team"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -336,7 +344,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             className="rounded-lg bg-zinc-900 p-3"
           />
           <select
-            aria-label="Source series"
+            aria-label="Herkunftsserie"
             value={sourceSeries}
             onChange={(e) => {
               setSourceSeries(e.target.value);
@@ -344,7 +352,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             }}
             className="bg-zinc-900 p-3"
           >
-            <option value="ALL">All source series</option>
+            <option value="ALL">Alle Rennserien</option>
             {SERIES.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.id}
@@ -352,7 +360,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             ))}
           </select>
           <select
-            aria-label="Candidate role"
+            aria-label="Rolle"
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
@@ -360,7 +368,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             }}
             className="bg-zinc-900 p-3"
           >
-            <option value="ALL">Drivers & staff</option>
+            <option value="ALL">Fahrer & Personal</option>
             {["DRIVER_ONE", "TECHNICAL", "SPORTING", "ENGINEERING"].map(
               (role) => (
                 <option key={role} value={role}>
@@ -370,7 +378,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             )}
           </select>
           <select
-            aria-label="Sort candidates"
+            aria-label="Sortierung"
             value={sort}
             onChange={(e) => {
               setSort(e.target.value);
@@ -378,9 +386,9 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             }}
             className="bg-zinc-900 p-3"
           >
-            <option value="SKILL">Best skill</option>
-            <option value="SALARY">Lowest salary</option>
-            <option value="AGE">Youngest</option>
+            <option value="SKILL">Höchste Stärke</option>
+            <option value="SALARY">Niedrigstes Gehalt</option>
+            <option value="AGE">Jüngste zuerst</option>
           </select>
           <label className="flex items-center gap-2">
             <input
@@ -391,21 +399,20 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 setPage(0);
               }}
             />
-            Free agents only
+            Nur ohne Vertrag
           </label>
         </div>
         {c.world ? (
           <p className="text-sm text-zinc-400">
-            Global pool:{" "}
-            {c.world.people.filter((p) => p.role === "DRIVER").length} drivers
-            and {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
+            Gesamter Pool:{" "}
+            {c.world.people.filter((p) => p.role === "DRIVER").length} Fahrer und {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
             across nine series. Recruitment here shows people eligible for{" "}
-            {c.world.playerSeriesId}; scout the full world in Motorsport World.
+            {c.world.playerSeriesId} infrage kommen; den gesamten Markt findest du in der Motorsport-Welt.
           </p>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-2">
           {available
-            .slice(currentPage * 24, (currentPage + 1) * 24)
+            .slice(currentSeite * 24, (currentSeite + 1) * 24)
             .map((candidate) => (
               <CandidateCard
                 key={candidate.id}
@@ -418,20 +425,20 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         <div className="flex gap-3">
           <button
             className={button}
-            disabled={currentPage === 0}
-            onClick={() => setPage(currentPage - 1)}
+            disabled={currentSeite === 0}
+            onClick={() => setPage(currentSeite - 1)}
           >
-            Previous
+            Zurück
           </button>
           <span className="py-2 text-sm">
-            Page {currentPage + 1} / {pages}
+            Seite {currentSeite + 1} / {pages}
           </span>
           <button
             className={button}
-            disabled={currentPage === pages - 1}
-            onClick={() => setPage(currentPage + 1)}
+            disabled={currentSeite === pages - 1}
+            onClick={() => setPage(currentSeite + 1)}
           >
-            Next
+            Weiter
           </button>
         </div>
       </div>
@@ -439,11 +446,9 @@ export function CareerPanel({ flow, view, onAction }: Props) {
   if (view === "DEVELOPMENT")
     return (
       <div className="space-y-5">
-        <h3 className="text-xl font-semibold">Development programme</h3>
+        <h3 className="text-xl font-semibold">Entwicklungsprogramm</h3>
         <p className="text-sm text-zinc-400">
-          Car pace {c.car.pace} · reliability {c.car.reliability}. Two parallel
-          slots. Fatigue raises failure risk; a departing project leader adds 25
-          percentage points. Successful work strengthens its sponsor.
+          Fahrzeugtempo {c.car.pace} · Zuverlässigkeit {c.car.Zuverlässigkeit}. Zwei Projekte können parallel laufen. Überlastung erhöht das Fehlerrisiko; verlässt die Projektleitung das Team, steigt das Risiko um 25 Prozentpunkte. Erfolgreiche Arbeit stärkt den verantwortlichen Bereich.
         </p>
         <div className="grid gap-4 md:grid-cols-3">
           {(Object.keys(PROJECTS) as Array<keyof typeof PROJECTS>).map(
@@ -455,16 +460,16 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     PROJECTS[kind].cost *
                       (c.world ? playerTeam(c.world).budget / 120 : 1),
                   )}{" "}
-                  · {PROJECTS[kind].duration} rounds · base risk{" "}
+                  · {PROJECTS[kind].duration} Runden · base risk{" "}
                   {PROJECTS[kind].risk}%
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
                   +{PROJECTS[kind].gain}{" "}
                   {kind === "AERO"
-                    ? "car pace"
+                    ? "Fahrzeugtempo"
                     : kind === "RELIABILITY"
-                      ? "reliability"
-                      : "sporting lead skill"}
+                      ? "Zuverlässigkeit"
+                      : "Stärke Sportleitung"}
                 </p>
                 <button
                   className={button + " mt-3"}
@@ -478,7 +483,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   }
                   onClick={() => onAction((s) => startDevelopment(s, kind))}
                 >
-                  Commission
+                  Projekt starten
                 </button>
               </article>
             ),
@@ -491,7 +496,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             </p>
             <p className="mt-2 text-sm text-zinc-400">
               R{p.startedRound} → R{p.dueRound} · {money(p.cost)} · risk{" "}
-              {p.risk}% · Sponsor: {name(p.sponsorId)}
+              {p.risk}% · Verantwortlich: {name(p.sponsorId)}
             </p>
           </article>
         ))}
@@ -500,34 +505,32 @@ export function CareerPanel({ flow, view, onAction }: Props) {
   if (view === "RACING") return <RacePanel flow={flow} onAction={onAction} />;
   return (
     <div className="space-y-5">
-      <h3 className="text-xl font-semibold">Career & board</h3>
+      <h3 className="text-xl font-semibold">Karriere & Vorstand</h3>
       <article className={card}>
         <p>
-          Season {2025 + c.season} · {c.status} · Board warnings {c.warnings}/2
+          Saison {2025 + c.season} · {c.status} · Vorstandswarnungen {c.warnings}/2
         </p>
         <p className="mt-2 text-sm text-zinc-400">
-          Targets: constructors P{c.targets.teamPosition} · closing cash ≥{" "}
-          {money(c.targets.cash)} · stability ≥ {c.targets.stability}
+          Ziele: Teamwertung P{c.targets.teamPosition} · closing cash ≥{" "}
+          {money(c.targets.cash)} · Stabilität ≥ {c.targets.stability}
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          Board score: sport 35, finances 30, stability 35. Below 60: warning;
-          below 30 or two consecutive warnings: dismissal. Cash below −€
-          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m also
-          ends your tenure. Season prizes scale with constructor rank.
+          Vorstandswertung: Sport 35, Finanzen 30, Stabilität 35. Unter 60 folgt eine Warnung; unter 30 oder nach zwei Warnungen in Folge die Entlassung. Ein Kassenstand unter −€
+          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m beendet die Amtszeit ebenfalls. Die Saisonprämie richtet sich nach dem Rang in der Teamwertung.
         </p>
         {c.status === "REVIEW" ? (
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               className={button}
-              onClick={() => onAction((s) => startNextSeason(s, "CONSOLIDATE"))}
+              onClick={() => onAction((s) => startWeiterSeason(s, "CONSOLIDATE"))}
             >
-              Next season · P5 / €0m / stability 55
+              Weiter season · P5 / €0m / stability 55
             </button>
             <button
               className={button}
-              onClick={() => onAction((s) => startNextSeason(s, "CHALLENGE"))}
+              onClick={() => onAction((s) => startWeiterSeason(s, "CHALLENGE"))}
             >
-              Next season · P2 / €
+              Weiter season · P2 / €
               {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5}m /
               stability 65
             </button>
@@ -535,24 +538,23 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         ) : null}
         {c.status === "DISMISSED" ? (
           <p className="mt-3 text-red-300">
-            Your tenure has ended. Load an earlier save or reset rounds to start
+            Your tenure has ended. Load an earlier save or reset Runden to start
             again.
           </p>
         ) : null}
       </article>
       {c.reviews.map((r) => (
         <article className={card} key={r.season}>
-          Season {2025 + r.season}: {r.verdict} · {r.score}/100
+          Saison {2025 + r.season}: {r.verdict} · {r.score}/100
           <p className="mt-2 text-sm text-zinc-400">
             P{r.teamPosition} · cash {money(r.cash)} · stability{" "}
             {r.stability.toFixed(0)} · prize {money(r.prize)}
           </p>
         </article>
       ))}
-      <h4 className="text-lg font-semibold">Actor initiatives</h4>
+      <h4 className="text-lg font-semibold">Anfragen aus dem Team</h4>
       <p className="text-sm text-zinc-400">
-        Actors pursue goals, recruit allies and create demands independently.
-        Unanswered requests escalate after their deadline.
+        Akteure verfolgen eigene Ziele, suchen Verbündete und stellen selbstständig Forderungen. Unbeantwortete Anfragen eskalieren nach Ablauf der Frist.
       </p>
       {c.requests
         .filter((r) => ["OPEN", "ESCALATED"].includes(r.status))
@@ -562,7 +564,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               {name(r.characterId)} · {r.kind} · {r.status}
             </p>
             <p className="mt-2 text-sm text-zinc-400">
-              {r.summary} Deadline R{r.deadline}.
+              {r.summary} Frist R{r.deadline}.
             </p>
             <div className="mt-3 flex gap-3">
               <button
@@ -572,8 +574,8 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 }
               >
                 {r.kind === "RENEWAL"
-                  ? "Confirm completed renewal"
-                  : "Support / agree"}
+                  ? "Abgeschlossene Verlängerung bestätigen"
+                  : "Unterstützen / zustimmen"}
               </button>
               <button
                 className={button}
@@ -581,12 +583,12 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   onAction((s) => respondActorRequest(s, r.id, false))
                 }
               >
-                Refuse
+                Ablehnen
               </button>
             </div>
           </article>
         ))}
-      <h4 className="text-lg font-semibold">Mutual extensions</h4>
+      <h4 className="text-lg font-semibold">Gemeinsame Verlängerungsoptionen</h4>
       {flow.political.contracts
         .filter((contract) => contract.status === "ACTIVE")
         .flatMap((contract) =>
@@ -596,7 +598,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               <article className={card} key={o.id}>
                 <p>
                   {name(contract.characterId)} · window R{o.exerciseFromRound}–R
-                  {o.exerciseUntilRound} · +{o.extensionRounds} rounds
+                  {o.exerciseUntilRound} · +{o.extensionRounds} Runden
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
                   Actor consent depends on trust, willingness to compromise and
@@ -618,7 +620,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             )),
         )}
       <article className={card}>
-        <h4>Management log</h4>
+        <h4>Management-Protokoll</h4>
         <div className="mt-3 max-h-96 space-y-2 overflow-auto">
           {[...c.log].reverse().map((entry, i) => (
             <p key={i} className="text-sm text-zinc-400">
