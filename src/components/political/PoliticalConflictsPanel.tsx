@@ -1,12 +1,12 @@
 "use client";
 
 import { calculateConflict } from "@/game/political/conflicts";
-import { getConflictEntscheidungs } from "@/game/political/decisions";
+import { getConflictDecisions } from "@/game/political/decisions";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  onConflictEntscheidung: (conflictId: string, decisionId: string) => void;
+  onConflictDecision: (conflictId: string, decisionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -20,7 +20,7 @@ function label(value: string) {
 
 export function PoliticalConflictsPanel({
   flow,
-  onConflictEntscheidung,
+  onConflictDecision,
   onOpenCareer,
 }: Props) {
   const activeConflicts = flow.political.conflicts.filter(
@@ -75,7 +75,7 @@ export function PoliticalConflictsPanel({
                       </div>
                     </div>
                     <p className="mt-4 text-xs text-red-300">
-                      Escalation {format(calculation.escalation)}
+                      Eskalation {format(calculation.escalation)}
                     </p>
                     {conflict.id.startsWith("conflict_request_") ? (
                       <button
@@ -86,14 +86,14 @@ export function PoliticalConflictsPanel({
                         Resolve actor demand in Career
                       </button>
                     ) : null}
-                    {getConflictEntscheidungs(conflict.id).length > 0 ? (
+                    {getConflictDecisions(conflict.id).length > 0 ? (
                       <div className="mt-5 grid gap-2">
-                        {getConflictEntscheidungs(conflict.id).map((decision) => (
+                        {getConflictDecisions(conflict.id).map((decision) => (
                           <button
                             key={decision.id}
                             type="button"
                             onClick={() =>
-                              onConflictEntscheidung(conflict.id, decision.id)
+                              onConflictDecision(conflict.id, decision.id)
                             }
                             className="rounded-md border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
