@@ -56,7 +56,7 @@ export function VerträgePanel({
 
   return (
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Contract room</h3>
+            <h3 className="text-xl font-semibold">Vertragszentrale</h3>
             {flow.issues
               .filter((issue) => issue.category === "CONTRACT")
               .map((issue) => (
@@ -203,7 +203,7 @@ export function VerträgePanel({
                                       }
                                       className="mt-2 rounded-lg border border-emerald-800 px-3 py-2 text-emerald-300 disabled:cursor-not-allowed disabled:border-zinc-800 disabled:text-zinc-600"
                                     >
-                                      Exercise team option
+                                      Teamoption ziehen
                                     </button>
                                     {budget?.reason ? (
                                       <p className="mt-2 text-xs text-amber-300">
@@ -312,7 +312,7 @@ export function VerträgePanel({
                             onClick={() => startVerhandlung(contract.id)}
                             className="rounded-lg border border-emerald-800 px-3 py-2 text-sm text-emerald-300 hover:border-emerald-600"
                           >
-                            Start renewal talks
+                            Verlängerungsgespräche starten
                           </button>
                         ) : (
                           <div className="space-y-4">
