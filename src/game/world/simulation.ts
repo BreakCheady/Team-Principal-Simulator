@@ -275,6 +275,32 @@ function runAiOffseason(world: MotorsportWorld) {
           if (vacantCrew) vacantCrew.leadId = chosen.id;
         } else team.staff.push(chosen.id);
       }
+
+    // A world simulation must never enter a season with an AI structural
+    // vacancy. If the preferred specialty market is exhausted, use the best
+    // remaining free specialist of the exact role as a one-year fallback.
+    for (const role of ["TECHNICAL_DIRECTOR", "SPORTING_DIRECTOR", "RACE_ENGINEER"] as const) {
+      if (
+        team.staff.some(
+          (id) => world.people.find((person) => person.id === id)?.role === role,
+        )
+      )
+        continue;
+      const fallback = world.people
+        .filter((person) => !person.teamId && person.role === role)
+        .sort(
+          (a, b) =>
+            b.skill - a.skill ||
+            b.potential - a.potential ||
+            a.id.localeCompare(b.id),
+        )[0];
+      if (fallback) {
+        fallback.teamId = team.id;
+        fallback.seriesId = team.seriesId;
+        fallback.contractEndSeason = completedSeason + 1;
+        team.staff.push(fallback.id);
+      }
+    }
     }
   }
 }
