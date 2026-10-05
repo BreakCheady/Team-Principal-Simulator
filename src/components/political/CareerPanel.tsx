@@ -85,14 +85,14 @@ function CandidateCard({
         {label(candidate.seat)} · Stärke {candidate.skill} · {candidate.employer === "Free agent" ? "Ohne Vertrag" : candidate.employer}
       </p>
       <p className="mt-2 text-sm">
-        Gehaltsforderung {money(candidate.salary)} / season · Signing{" "}
+        Gehaltsforderung {money(candidate.salary)} / Saison · Handgeld{" "}
         {money(candidate.signingFee)} · Ablöse {money(candidate.buyout)}
       </p>
       <p className="mt-2 text-xs text-zinc-500">
         {candidate.seriesId
           ? `${candidate.seriesId} · ${candidate.age} Jahre · ${candidate.nationality} · Potenzial ${candidate.potential} · `
           : ""}
-        Ambition {candidate.character.personality.ambition} · Compromise{" "}
+        Ambition {candidate.character.personality.ambition} · Kompromissbereitschaft{" "}
         {candidate.character.personality.compromiseWillingness} · Verfügbar R
         {candidate.availableFrom}–R{candidate.availableUntil}
       </p>
