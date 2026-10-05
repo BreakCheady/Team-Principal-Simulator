@@ -7,11 +7,11 @@ import { MotorsportWorldPanel } from "../../src/components/political/MotorsportW
 import { InboxIssuesPanel } from "../../src/components/political/InboxIssuesPanel";
 import { PeoplePowerCentersPanel } from "../../src/components/political/PeoplePowerCentersPanel";
 import { PoliticalConflictsPanel } from "../../src/components/political/PoliticalConflictsPanel";
-import { createCareerFlow, reviewSeason, advanceCareerFlow, startNextSeason } from "../../src/game/career/career";
+import { createCareerFlow, reviewSeason } from "../../src/game/career/career";
 import { advanceActors } from "../../src/game/career/actors";
 import { demoState } from "../../src/game/data/demo-state";
 import { demoRoundEvents } from "../../src/game/data/demo-round-events";
-import { createNewCareer } from "../../src/game/world/start";
+import { createWorld } from "../../src/game/world/world";
 
 describe("career HQ rendering", () => {
   it("renders market offers, development, race tables and actionable actor requests", () => {
@@ -107,15 +107,40 @@ describe("career HQ rendering", () => {
   });
 
   it("renders paddock news from persistent world activity", () => {
-    let flow = createNewCareer("F1");
-    while (!flow.complete) flow = advanceCareerFlow(flow, []);
-    flow = startNextSeason(flow);
+    const world = createWorld("F1");
+    const person = world.people.find((item) => item.role === "DRIVER")!;
+    const team = world.teams.find((item) => item.seriesId === "F1")!;
+    world.activity = [
+      {
+        id: "activity_test_signing",
+        season: 1,
+        seriesId: "F1",
+        type: "SIGNING",
+        personId: person.id,
+        fromTeamId: null,
+        toTeamId: team.id,
+        headline: `${team.name} signs ${person.name}`,
+        detail: `${person.name} joins ${team.name} for the new season.`,
+      },
+      {
+        id: "activity_test_trend",
+        season: 1,
+        seriesId: "F1",
+        type: "TEAM_TREND",
+        personId: null,
+        fromTeamId: team.id,
+        toTeamId: team.id,
+        headline: `${team.name} gains momentum`,
+        detail: "Budget and reputation improve after a strong season.",
+      },
+    ];
     const html = renderToStaticMarkup(
-      createElement(MotorsportWorldPanel, { world: flow.career!.world! }),
+      createElement(MotorsportWorldPanel, { world }),
     );
     expect(html).toContain("Paddock News");
     expect(html).toContain("TEAM TREND");
-    expect(html).toMatch(/SIGNING|PROMOTION|STAFF MOVE/);
+    expect(html).toContain("SIGNING");
+    expect(html).toContain(person.name);
   });
 
 });
