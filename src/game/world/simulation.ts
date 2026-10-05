@@ -142,6 +142,60 @@ export function advanceWorld(flow: RoundFlowState) {
     points: r.points,
     dnf: r.dnf,
   }));
+  const rumorMilestones = new Set([
+    Math.max(1, Math.floor(cfg.rounds * 0.33)),
+    Math.max(1, Math.floor(cfg.rounds * 0.66)),
+  ]);
+  if (rumorMilestones.has(selected.completedRounds)) {
+    w.activity ??= [];
+    const rumorId = `activity_s${w.season}_r${selected.completedRounds}_rumor_${w.playerSeriesId}`;
+    if (!w.activity.some((item) => item.id === rumorId)) {
+      const candidate = w.people
+        .filter(
+          (person) =>
+            person.role === "DRIVER" &&
+            person.teamId &&
+            person.teamId !== w.playerTeamId &&
+            person.contractEndSeason <= w.season &&
+            person.specialties.includes(w.playerSeriesId),
+        )
+        .sort(
+          (a, b) =>
+            b.potential - a.potential ||
+            b.skill - a.skill ||
+            a.id.localeCompare(b.id),
+        )[0];
+      if (candidate) {
+        const currentTeam = w.teams.find((team) => team.id === candidate.teamId)!;
+        const destination = w.teams
+          .filter(
+            (team) =>
+              team.seriesId === w.playerSeriesId &&
+              team.id !== currentTeam.id &&
+              team.id !== w.playerTeamId,
+          )
+          .sort(
+            (a, b) =>
+              b.reputation - a.reputation ||
+              b.budget - a.budget ||
+              a.id.localeCompare(b.id),
+          )[0];
+        if (destination)
+          w.activity.push({
+            id: rumorId,
+            season: w.season,
+            seriesId: w.playerSeriesId,
+            type: "RUMOR",
+            personId: candidate.id,
+            fromTeamId: currentTeam.id,
+            toTeamId: destination.id,
+            headline: `${candidate.name} linked with ${destination.name}`,
+            detail: `Paddock sources are connecting ${candidate.name} with ${destination.name} as the contract at ${currentTeam.name} approaches its end.`,
+          });
+      }
+    }
+  }
+
   const progress = selected.completedRounds / cfg.rounds;
   for (const other of SERIES)
     if (other.id !== w.playerSeriesId) {
