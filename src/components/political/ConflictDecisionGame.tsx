@@ -94,15 +94,13 @@ export function ConflictDecisionGame({
     <main className="mx-auto min-h-screen max-w-6xl p-6 md:p-10">
       <header className="mb-10">
         <p className="text-sm uppercase tracking-[0.25em] text-zinc-500">
-          Vanguard Racing · Round {round}
+          Vanguard Racing · Runde {round}
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">
           Team Principal Simulator
         </h1>
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Your decision changes relationships, momentum and institutional
-          precedent. Winning the argument is not the same as winning the
-          politics.
+          Deine Entscheidung verändert Beziehungen, Dynamik und institutionelle Präzedenzfälle. Einen Streit zu gewinnen ist nicht dasselbe, wie die Politik im Team zu gewinnen.
         </p>
       </header>
 
@@ -112,7 +110,7 @@ export function ConflictDecisionGame({
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-400">
-                  {isResolved ? "Resolved conflict" : "Active conflict"}
+                  {isResolved ? "Gelöster Konflikt" : "Aktiver Konflikt"}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
                   {conflict.type.replaceAll("_", " ")}
@@ -121,7 +119,7 @@ export function ConflictDecisionGame({
               <div className="flex gap-2">
                 {calculation ? (
                   <span className="rounded-full border border-red-900 bg-red-950/40 px-3 py-1 text-sm text-red-300">
-                    Escalation {format(calculation.escalation)}
+                    Eskalation {format(calculation.escalation)}
                   </span>
                 ) : null}
                 {conflict.outcome ? (
@@ -145,25 +143,25 @@ export function ConflictDecisionGame({
                       key={faction.id}
                       className="rounded-xl border border-zinc-800 bg-black/20 p-5"
                     >
-                      <p className="text-sm text-zinc-500">Faction</p>
+                      <p className="text-sm text-zinc-500">Lager</p>
                       <h3 className="mt-1 text-xl font-medium">
                         {nameById.get(faction.leaderCharacterId)}
                       </h3>
                       <dl className="mt-5 space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Strength</dt>
+                          <dt className="text-zinc-500">Stärke</dt>
                           <dd>{format(calculated.strength)}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Success chance</dt>
+                          <dt className="text-zinc-500">Erfolgschance</dt>
                           <dd>{format(calculated.successChance)}%</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Political cost</dt>
+                          <dt className="text-zinc-500">Politische Kosten</dt>
                           <dd>{calculated.politicalCost}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Legitimacy</dt>
+                          <dt className="text-zinc-500">Legitimität</dt>
                           <dd>{faction.legitimacy}</dd>
                         </div>
                       </dl>
@@ -173,8 +171,7 @@ export function ConflictDecisionGame({
               </div>
             ) : (
               <div className="mt-8 rounded-xl border border-zinc-800 bg-black/20 p-5 text-sm text-zinc-400">
-                Pre-decision strength, success chance and escalation are hidden
-                after resolution. The result below is now the authoritative state.
+                Stärke, Erfolgschance und Eskalation vor der Entscheidung werden nach der Auflösung ausgeblendet. Das unten stehende Ergebnis ist nun maßgeblich.
               </div>
             )}
 
@@ -203,7 +200,7 @@ export function ConflictDecisionGame({
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-400">
-                    Decision consequences
+                    Folgen der Entscheidung
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">
                     {decisionResult.title}
@@ -214,7 +211,7 @@ export function ConflictDecisionGame({
                   onClick={resetScenario}
                   className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-500"
                 >
-                  Reset scenario
+                  Szenario zurücksetzen
                 </button>
               </div>
 
@@ -252,7 +249,7 @@ export function ConflictDecisionGame({
 
         <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
-            Political actors
+            Politische Akteure
           </p>
           <div className="mt-5 space-y-4">
             {gameState.characters.map((character) => (
@@ -275,19 +272,19 @@ export function ConflictDecisionGame({
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-zinc-500">Internal</p>
+                    <p className="text-zinc-500">Intern</p>
                     <p className="mt-1 text-sm">
                       {character.power.internalInfluence}
                     </p>
                   </div>
                   <div>
-                    <p className="text-zinc-500">Sporting</p>
+                    <p className="text-zinc-500">Sportlich</p>
                     <p className="mt-1 text-sm">
                       {character.power.sportingLeverage}
                     </p>
                   </div>
                   <div>
-                    <p className="text-zinc-500">Owner</p>
+                    <p className="text-zinc-500">Eigentümer</p>
                     <p className="mt-1 text-sm">
                       {character.power.ownerAccess}
                     </p>
@@ -299,22 +296,22 @@ export function ConflictDecisionGame({
 
           <div className="mt-6 rounded-xl border border-zinc-800 bg-black/20 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
-              Technical authority precedent
+              Präzedenzfall technische Autorität
             </p>
             {gameState.precedents
               .filter((item) => item.id === "precedent_technical_authority")
               .map((precedent) => (
                 <dl key={precedent.id} className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Strength</dt>
+                    <dt className="text-zinc-500">Stärke</dt>
                     <dd>{precedent.strength}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Applications</dt>
+                    <dt className="text-zinc-500">Anwendungen</dt>
                     <dd>{precedent.applications}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Violations</dt>
+                    <dt className="text-zinc-500">Verstöße</dt>
                     <dd>{precedent.violations}</dd>
                   </div>
                 </dl>
