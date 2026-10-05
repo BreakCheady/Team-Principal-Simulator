@@ -466,10 +466,10 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 <p className="mt-2 text-xs text-zinc-500">
                   +{PROJECTS[kind].gain}{" "}
                   {kind === "AERO"
-                    ? "car pace"
+                    ? "Fahrzeugtempo"
                     : kind === "RELIABILITY"
                       ? "reliability"
-                      : "sporting lead skill"}
+                      : "Stärke Sportleitung"}
                 </p>
                 <button
                   className={button + " mt-3"}
