@@ -194,6 +194,20 @@ function runAiOffseason(world: MotorsportWorld) {
       continue;
     const team = world.teams.find((item) => item.id === person.teamId);
     if (!team) continue;
+    if (
+      person.role === "DRIVER" &&
+      !team.drivers.includes(person.id) &&
+      team.raceCrews?.some(
+        (crew) =>
+          crew.members.includes(person.id) || crew.coDriverId === person.id,
+      )
+    ) {
+      // Shared-car support drivers remain on rolling one-year deals for now;
+      // the silly season replaces the stable entry lead without corrupting
+      // persistent WEC/Rally crew identities.
+      person.contractEndSeason = completedSeason + 1;
+      continue;
+    }
     if (person.role === "DRIVER")
       team.drivers = team.drivers.filter((id) => id !== person.id);
     else team.staff = team.staff.filter((id) => id !== person.id);
@@ -238,7 +252,8 @@ function runAiOffseason(world: MotorsportWorld) {
               p.role === role &&
               p.specialties.includes(team.seriesId) &&
               (role !== "DRIVER" || p.skill >= cfg.minDriverSkill) &&
-              !(team.classId === "HYPERCAR" && p.rating === "BRONZE"),
+              !(team.classId === "HYPERCAR" && p.rating === "BRONZE") &&
+              !(team.classId === "LMGT3" && p.rating !== "BRONZE"),
           )
           .map((p) => ({ p, score: offseasonCandidateScore(world, team, p) }))
           .sort((a, b) => b.score - a.score || a.p.id.localeCompare(b.p.id));
@@ -250,8 +265,15 @@ function runAiOffseason(world: MotorsportWorld) {
         chosen.salary = Number(
           Math.max(chosen.salary, cfg.budget * (role === "DRIVER" ? 0.035 : 0.008) * (0.6 + chosen.skill / 100)).toFixed(4),
         );
-        if (role === "DRIVER") team.drivers.push(chosen.id);
-        else team.staff.push(chosen.id);
+        if (role === "DRIVER") {
+          team.drivers.push(chosen.id);
+          const vacantCrew = team.raceCrews?.find(
+            (crew) =>
+              world.people.find((person) => person.id === crew.leadId)?.teamId !==
+              team.id,
+          );
+          if (vacantCrew) vacantCrew.leadId = chosen.id;
+        } else team.staff.push(chosen.id);
       }
     }
   }
