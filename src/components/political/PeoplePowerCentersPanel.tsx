@@ -92,23 +92,23 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                     </h3>
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="text-zinc-500">Internal influence</p>
+                        <p className="text-zinc-500">Interner Einfluss</p>
                         <p className="mt-1">
                           {character.power.internalEinfluss}
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Owner access</p>
+                        <p className="text-zinc-500">Zugang zum Eigentümer</p>
                         <p className="mt-1">{character.power.ownerAccess}</p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Commercial backing</p>
+                        <p className="text-zinc-500">Kommerzielle Unterstützung</p>
                         <p className="mt-1">
                           {character.power.commercialBacking}
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Live issues</p>
+                        <p className="text-zinc-500">Aktive Themen</p>
                         <p className="mt-1">{liveIssues.length}</p>
                       </div>
                     </div>
