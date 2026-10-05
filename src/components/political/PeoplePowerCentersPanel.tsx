@@ -11,7 +11,7 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function TeammitgliederPowerCentersPanel({ flow, view }: Props) {
+export function PeoplePowerCentersPanel({ flow, view }: Props) {
   if (view === "PEOPLE") {
     return (
           <div className="grid gap-4 md:grid-cols-2">
@@ -98,7 +98,7 @@ export function TeammitgliederPowerCentersPanel({ flow, view }: Props) {
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Eigentümerzugang</p>
+                        <p className="text-zinc-500">Owner access</p>
                         <p className="mt-1">{character.power.ownerAccess}</p>
                       </div>
                       <div>
