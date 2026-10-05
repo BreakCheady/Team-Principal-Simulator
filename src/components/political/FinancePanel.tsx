@@ -67,7 +67,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
       ) : null}
 
       <article className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
-        <h3 className="text-lg font-semibold">Round cash flow</h3>
+        <h3 className="text-lg font-semibold">Cashflow der Runde</h3>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {[
             ["Sponsoreneinnahmen", finance.sponsorIncomeMillionsPerRound],
@@ -94,7 +94,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-lg border border-zinc-800 p-5">
-          <h3 className="font-semibold">Request emergency owner funding</h3>
+          <h3 className="font-semibold">Notfallfinanzierung anfragen</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Receive {money(getOwnerFundingAmount(state))} once when cash falls
             below €8m. Your reputation falls by 8, owner trust in you by 10, and
@@ -113,7 +113,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
           ) : null}
         </article>
         <article className="rounded-lg border border-zinc-800 p-5">
-          <h3 className="font-semibold">Cut operating costs</h3>
+          <h3 className="font-semibold">Betriebskosten senken</h3>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             Reduce future operating costs by 20% to{" "}
             {money(
@@ -140,7 +140,7 @@ export function FinancePanel({ state, round, onAction }: Props) {
       </div>
 
       <article className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
-        <h3 className="text-lg font-semibold">Account ledger</h3>
+        <h3 className="text-lg font-semibold">Kontobuch</h3>
         <p className="mt-2 text-xs text-zinc-500">
           Opening cash {money(finance.openingBalanceMillions)} after round{" "}
           {finance.openedAfterRound}
