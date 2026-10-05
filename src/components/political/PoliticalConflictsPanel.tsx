@@ -1,12 +1,12 @@
 "use client";
 
-import { calculateConflict } from "@/game/political/conflicts";
-import { getConflictDecisions } from "@/game/political/decisions";
+import { calculateKonflikt } from "@/game/political/conflicts";
+import { getKonfliktEntscheidungs } from "@/game/political/decisions";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  onConflictDecision: (conflictId: string, decisionId: string) => void;
+  onKonfliktEntscheidung: (conflictId: string, decisionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -18,25 +18,25 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function PoliticalConflictsPanel({
+export function PoliticalKonfliktsPanel({
   flow,
-  onConflictDecision,
+  onKonfliktEntscheidung,
   onOpenCareer,
 }: Props) {
-  const activeConflicts = flow.political.conflicts.filter(
+  const activeKonflikts = flow.political.conflicts.filter(
     (conflict) =>
       conflict.status === "ACTIVE" || conflict.status === "ESCALATED",
   );
 
   return (
           <div className="grid gap-4 lg:grid-cols-2">
-            {activeConflicts.length === 0 ? (
+            {activeKonflikts.length === 0 ? (
               <p className="text-sm text-zinc-500">
                 No active political conflicts.
               </p>
             ) : (
-              activeConflicts.map((conflict) => {
-                const calculation = calculateConflict(
+              activeKonflikts.map((conflict) => {
+                const calculation = calculateKonflikt(
                   flow.political,
                   conflict,
                 );
@@ -64,18 +64,18 @@ export function PoliticalConflictsPanel({
                       <div className="rounded-xl border border-zinc-800 p-3">
                         <p>{leaderA?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionA.strength)}
+                          Stärke {format(calculation.factionA.strength)}
                         </p>
                       </div>
                       <div className="rounded-xl border border-zinc-800 p-3">
                         <p>{leaderB?.name}</p>
                         <p className="mt-1 text-zinc-500">
-                          Strength {format(calculation.factionB.strength)}
+                          Stärke {format(calculation.factionB.strength)}
                         </p>
                       </div>
                     </div>
                     <p className="mt-4 text-xs text-red-300">
-                      Escalation {format(calculation.escalation)}
+                      Eskalation {format(calculation.escalation)}
                     </p>
                     {conflict.id.startsWith("conflict_request_") ? (
                       <button
@@ -83,17 +83,17 @@ export function PoliticalConflictsPanel({
                         onClick={() => onOpenCareer()}
                         className="mt-3 text-sm text-sky-300"
                       >
-                        Resolve actor demand in Career
+                        Forderung in Karriere bearbeiten
                       </button>
                     ) : null}
-                    {getConflictDecisions(conflict.id).length > 0 ? (
+                    {getKonfliktEntscheidungs(conflict.id).length > 0 ? (
                       <div className="mt-5 grid gap-2">
-                        {getConflictDecisions(conflict.id).map((decision) => (
+                        {getKonfliktEntscheidungs(conflict.id).map((decision) => (
                           <button
                             key={decision.id}
                             type="button"
                             onClick={() =>
-                              onConflictDecision(conflict.id, decision.id)
+                              onKonfliktEntscheidung(conflict.id, decision.id)
                             }
                             className="rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-left text-sm transition hover:border-amber-700"
                           >
