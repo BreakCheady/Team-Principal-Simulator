@@ -177,6 +177,15 @@ function offseasonCandidateScore(
   );
 }
 
+function addWorldActivity(
+  world: MotorsportWorld,
+  activity: NonNullable<MotorsportWorld["activity"]>[number],
+) {
+  world.activity ??= [];
+  world.activity.push(activity);
+  if (world.activity.length > 300) world.activity.splice(0, world.activity.length - 300);
+}
+
 function runAiOffseason(world: MotorsportWorld) {
   const completedSeason = world.season;
   const playerId = world.playerTeamId;
@@ -211,6 +220,17 @@ function runAiOffseason(world: MotorsportWorld) {
     if (person.role === "DRIVER")
       team.drivers = team.drivers.filter((id) => id !== person.id);
     else team.staff = team.staff.filter((id) => id !== person.id);
+    addWorldActivity(world, {
+      id: `activity_s${completedSeason}_expiry_${person.id}`,
+      season: completedSeason,
+      seriesId: team.seriesId,
+      type: "CONTRACT_EXPIRED",
+      personId: person.id,
+      fromTeamId: team.id,
+      toTeamId: null,
+      headline: `${person.name} enters the market`,
+      detail: `${person.name}'s ${person.role.replaceAll("_", " ").toLowerCase()} contract with ${team.name} expired after season ${completedSeason}.`,
+    });
     person.teamId = null;
   }
 
@@ -226,6 +246,8 @@ function runAiOffseason(world: MotorsportWorld) {
     const cfg = getSeries(team.seriesId);
     const position = championshipPosition.get(team.id) ?? cfg.teamNames.length;
     const performance = 1 - (position - 1) / Math.max(1, cfg.teamNames.length - 1);
+    const oldBudget = team.budget;
+    const oldReputation = team.reputation;
 
     // Sponsor/owner confidence changes the resources available next season.
     const budgetSwing = 0.96 + performance * 0.08 + (worldRandom(world) - 0.5) * 0.04;
@@ -234,6 +256,20 @@ function runAiOffseason(world: MotorsportWorld) {
       35,
       Math.min(98, Math.round(team.reputation + (performance - 0.5) * 6 + (worldRandom(world) - 0.5) * 4)),
     );
+    const budgetDelta = team.budget - oldBudget;
+    const reputationDelta = team.reputation - oldReputation;
+    if (Math.abs(budgetDelta) >= Math.max(0.25, oldBudget * 0.015) || Math.abs(reputationDelta) >= 2)
+      addWorldActivity(world, {
+        id: `activity_s${completedSeason}_trend_${team.id}`,
+        season: completedSeason,
+        seriesId: team.seriesId,
+        type: "TEAM_TREND",
+        personId: null,
+        fromTeamId: team.id,
+        toTeamId: team.id,
+        headline: `${team.name} ${budgetDelta >= 0 ? "gains" : "loses"} momentum`,
+        detail: `Season ${completedSeason} P${position}: budget ${budgetDelta >= 0 ? "+" : ""}€${budgetDelta.toFixed(2)}m and reputation ${reputationDelta >= 0 ? "+" : ""}${reputationDelta}.`,
+      });
 
     const needs = new Map<(typeof rosterRoles)[number], number>([
       ["DRIVER", Math.max(0, cfg.driversPerTeam - team.drivers.length)],
@@ -259,12 +295,35 @@ function runAiOffseason(world: MotorsportWorld) {
           .sort((a, b) => b.score - a.score || a.p.id.localeCompare(b.p.id));
         const chosen = candidates[0]?.p;
         if (!chosen) continue;
+        const sourceSeries = chosen.seriesId;
         chosen.teamId = team.id;
         chosen.seriesId = team.seriesId;
         chosen.contractEndSeason = completedSeason + 1 + Math.floor(worldRandom(world) * 3);
         chosen.salary = Number(
           Math.max(chosen.salary, cfg.budget * (role === "DRIVER" ? 0.035 : 0.008) * (0.6 + chosen.skill / 100)).toFixed(4),
         );
+        addWorldActivity(world, {
+          id: `activity_s${completedSeason}_signing_${team.id}_${chosen.id}`,
+          season: completedSeason,
+          seriesId: team.seriesId,
+          type:
+            role !== "DRIVER"
+              ? "STAFF_MOVE"
+              : sourceSeries !== team.seriesId
+                ? "PROMOTION"
+                : "SIGNING",
+          personId: chosen.id,
+          fromTeamId: null,
+          toTeamId: team.id,
+          headline:
+            role === "DRIVER"
+              ? `${team.name} signs ${chosen.name}`
+              : `${chosen.name} joins ${team.name}`,
+          detail:
+            role === "DRIVER" && sourceSeries !== team.seriesId
+              ? `${chosen.name} steps from ${sourceSeries} into ${team.seriesId} on a deal through season ${chosen.contractEndSeason}.`
+              : `${chosen.name} joins ${team.name} through season ${chosen.contractEndSeason}.`,
+        });
         if (role === "DRIVER") {
           team.drivers.push(chosen.id);
           const vacantCrew = team.raceCrews?.find(
@@ -300,6 +359,17 @@ function runAiOffseason(world: MotorsportWorld) {
         fallback.seriesId = team.seriesId;
         fallback.contractEndSeason = completedSeason + 1;
         team.staff.push(fallback.id);
+        addWorldActivity(world, {
+          id: `activity_s${completedSeason}_fallback_${team.id}_${fallback.id}`,
+          season: completedSeason,
+          seriesId: team.seriesId,
+          type: "STAFF_MOVE",
+          personId: fallback.id,
+          fromTeamId: null,
+          toTeamId: team.id,
+          headline: `${team.name} fills a key staff vacancy`,
+          detail: `${fallback.name} joins as ${role.replaceAll("_", " ").toLowerCase()} on a one-season deal.`,
+        });
       }
     }
   }
