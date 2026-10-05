@@ -25,9 +25,9 @@ export function respondActorRequest(
   let next = careerCopy(source);
   const request = next.career.requests.find((r) => r.id === requestId);
   if (!request || !["OPEN", "ESCALATED"].includes(request.status))
-    throw new Error("Request is already closed.");
+    throw new Error("Die Anfrage ist bereits geschlossen.");
   if (!next.career.activeActorIds.includes(request.characterId))
-    throw new Error("Actor has left the team.");
+    throw new Error("Die Person hat das Team verlassen.");
   const actor = next.political.characters.find(
     (c) => c.id === request.characterId,
   )!;
@@ -52,7 +52,7 @@ export function respondActorRequest(
       contract.endRound <= (request.contractEndRound ?? request.round)
     )
       throw new Error(
-        "Renew the contract in the Contract Room before promising job security.",
+        "Verlängere den Vertrag in der Vertragszentrale, bevor du Arbeitsplatzsicherheit zusagst.",
       );
   } else if (support) {
     if (request.kind === "STAFF") {
@@ -65,7 +65,7 @@ export function respondActorRequest(
         round: Math.max(1, next.currentRound),
         category: "OPERATING_COST",
         amountMillions: Number((0.5 * economicScale).toFixed(6)),
-        description: "Staff retention and recovery support",
+        description: "Unterstützung für Personalbindung und Erholung",
       });
     }
     const updatedActor = next.political.characters.find(
@@ -130,7 +130,7 @@ export function respondActorRequest(
   }
   logCareer(
     next,
-    `${actor.name}: ${support ? "request supported; authority and obligations adjusted" : "request refused; trust falls and pressure increases"}.`,
+    `${actor.name}: ${support ? "Anfrage unterstützt; Autorität und Verpflichtungen angepasst" : "Anfrage abgelehnt; Vertrauen sinkt und Druck steigt"}.`,
   );
   return next;
 }
@@ -432,7 +432,7 @@ export function advanceActors(source: RoundFlowState): RoundFlowState {
           id,
           0,
           0,
-          "Contract expired; the seat is vacant",
+          "Vertrag ausgelaufen; die Position ist frei",
           true,
         ) as typeof next;
       }
