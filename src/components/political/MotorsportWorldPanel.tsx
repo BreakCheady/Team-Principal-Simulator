@@ -359,7 +359,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 }}
               >
                 {t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}
-                {t.id === world.playerTeamId ? " · Your team" : ""}
+                {t.id === world.playerTeamId ? " · Dein Team" : ""}
               </button>
               <p className="mt-2 text-xs text-zinc-400">
                 Principal: {person(t.principalId)} · Pace {t.pace} · Reliability{" "}
