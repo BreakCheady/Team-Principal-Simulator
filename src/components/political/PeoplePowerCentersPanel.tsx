@@ -11,7 +11,7 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function PersonalPowerCentersPanel({ flow, view }: Props) {
+export function PeoplePowerCentersPanel({ flow, view }: Props) {
   if (view === "PEOPLE") {
     return (
           <div className="grid gap-4 md:grid-cols-2">
@@ -31,13 +31,13 @@ export function PersonalPowerCentersPanel({ flow, view }: Props) {
                     <dd className="mt-1">{character.dynamic.momentum}</dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Fatigue</dt>
+                    <dt className="text-zinc-500">Politische Ermüdung</dt>
                     <dd className="mt-1">
                       {character.dynamic.politicalFatigue}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Instability</dt>
+                    <dt className="text-zinc-500">Instabilität</dt>
                     <dd className="mt-1">{character.dynamic.instability}</dd>
                   </div>
                   <div>
