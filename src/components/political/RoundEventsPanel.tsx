@@ -14,7 +14,7 @@ import { HqDashboard } from "@/components/political/HqDashboard";
 import { getCashBalance } from "@/game/finance/finances";
 import type { IssueDefinition } from "@/game/issues/issues";
 import type { PoliticalCoreState } from "@/game/political/types";
-import { decodeSpeichern, encodeSpeichern } from "@/game/save/save-game";
+import { decodeSave, encodeSave } from "@/game/save/save-game";
 import {
   exerciseRoundContractOption,
   getNextRound,
@@ -164,7 +164,7 @@ export function RoundEventsPanel({
     try {
       window.localStorage.setItem(
         SAVE_KEY,
-        encodeSpeichern<RoundFlowState>("ROUND_FLOW", roundFlow),
+        encodeSave<RoundFlowState>("ROUND_FLOW", roundFlow),
       );
       setSpeichernMessage("Spiel lokal gespeichert.");
     } catch (error) {
@@ -187,7 +187,7 @@ export function RoundEventsPanel({
         return;
       }
 
-      const save = decodeSpeichern<RoundFlowState>(raw, "ROUND_FLOW");
+      const save = decodeSave<RoundFlowState>(raw, "ROUND_FLOW");
       setRoundFlow(save.state);
       setSpeichernMessage("Spielstand geladen.");
       setTab("HOME");
