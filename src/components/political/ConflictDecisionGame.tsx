@@ -108,11 +108,11 @@ export function ConflictDecisionGame({
 
       <section className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
         <div className="space-y-6">
-          <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+          <article className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-400">
-                  {isResolved ? "Resolved conflict" : "Active conflict"}
+                  {isResolved ? "Gelöster Konflikt" : "Aktiver Konflikt"}
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold">
                   {conflict.type.replaceAll("_", " ")}
@@ -143,27 +143,27 @@ export function ConflictDecisionGame({
                   return (
                     <div
                       key={faction.id}
-                      className="rounded-xl border border-zinc-800 bg-black/20 p-5"
+                      className="rounded-md border border-zinc-800 bg-black/20 p-5"
                     >
-                      <p className="text-sm text-zinc-500">Faction</p>
+                      <p className="text-sm text-zinc-500">Fraktion</p>
                       <h3 className="mt-1 text-xl font-medium">
                         {nameById.get(faction.leaderCharacterId)}
                       </h3>
                       <dl className="mt-5 space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Strength</dt>
+                          <dt className="text-zinc-500">Stärke</dt>
                           <dd>{format(calculated.strength)}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Success chance</dt>
+                          <dt className="text-zinc-500">Erfolgschance</dt>
                           <dd>{format(calculated.successChance)}%</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Political cost</dt>
+                          <dt className="text-zinc-500">Politische Kosten</dt>
                           <dd>{calculated.politicalCost}</dd>
                         </div>
                         <div className="flex justify-between">
-                          <dt className="text-zinc-500">Legitimacy</dt>
+                          <dt className="text-zinc-500">Legitimität</dt>
                           <dd>{faction.legitimacy}</dd>
                         </div>
                       </dl>
@@ -172,7 +172,7 @@ export function ConflictDecisionGame({
                 })}
               </div>
             ) : (
-              <div className="mt-8 rounded-xl border border-zinc-800 bg-black/20 p-5 text-sm text-zinc-400">
+              <div className="mt-8 rounded-md border border-zinc-800 bg-black/20 p-5 text-sm text-zinc-400">
                 Pre-decision strength, success chance and escalation are hidden
                 after resolution. The result below is now the authoritative state.
               </div>
@@ -185,7 +185,7 @@ export function ConflictDecisionGame({
                   type="button"
                   disabled={isResolved}
                   onClick={() => chooseDecision(option.id)}
-                  className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-4 text-left transition hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-md border border-zinc-700 bg-zinc-950 px-4 py-4 text-left transition hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <span className="block font-medium text-zinc-100">
                     {option.label}
@@ -199,7 +199,7 @@ export function ConflictDecisionGame({
           </article>
 
           {decisionResult ? (
-            <article className="rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-6">
+            <article className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-400">
@@ -226,7 +226,7 @@ export function ConflictDecisionGame({
                 {decisionResult.changes.map((change, index) => (
                   <div
                     key={`${change.subject}-${change.metric}-${index}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-black/20 p-4"
+                    className="flex items-center justify-between gap-4 rounded-md border border-zinc-800 bg-black/20 p-4"
                   >
                     <div>
                       <p className="font-medium">{change.subject}</p>
@@ -250,7 +250,7 @@ export function ConflictDecisionGame({
           ) : null}
         </div>
 
-        <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+        <aside className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
             Political actors
           </p>
@@ -258,7 +258,7 @@ export function ConflictDecisionGame({
             {gameState.characters.map((character) => (
               <div
                 key={character.id}
-                className="rounded-xl border border-zinc-800 bg-black/20 p-4"
+                className="rounded-md border border-zinc-800 bg-black/20 p-4"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -275,19 +275,19 @@ export function ConflictDecisionGame({
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-zinc-500">Internal</p>
+                    <p className="text-zinc-500">Intern</p>
                     <p className="mt-1 text-sm">
                       {character.power.internalInfluence}
                     </p>
                   </div>
                   <div>
-                    <p className="text-zinc-500">Sporting</p>
+                    <p className="text-zinc-500">Sport</p>
                     <p className="mt-1 text-sm">
                       {character.power.sportingLeverage}
                     </p>
                   </div>
                   <div>
-                    <p className="text-zinc-500">Owner</p>
+                    <p className="text-zinc-500">Eigentümer</p>
                     <p className="mt-1 text-sm">
                       {character.power.ownerAccess}
                     </p>
@@ -297,7 +297,7 @@ export function ConflictDecisionGame({
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-zinc-800 bg-black/20 p-4">
+          <div className="mt-6 rounded-md border border-zinc-800 bg-black/20 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
               Technical authority precedent
             </p>
@@ -306,15 +306,15 @@ export function ConflictDecisionGame({
               .map((precedent) => (
                 <dl key={precedent.id} className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Strength</dt>
+                    <dt className="text-zinc-500">Stärke</dt>
                     <dd>{precedent.strength}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Applications</dt>
+                    <dt className="text-zinc-500">Anwendungen</dt>
                     <dd>{precedent.applications}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-zinc-500">Violations</dt>
+                    <dt className="text-zinc-500">Verstöße</dt>
                     <dd>{precedent.violations}</dd>
                   </div>
                 </dl>
