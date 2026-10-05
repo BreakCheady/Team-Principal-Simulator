@@ -67,7 +67,7 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                   ].includes(character.role),
               )
               .map((character) => {
-                const activeDruckmittel = flow.political.leverages.filter(
+                const activeLeverages = flow.political.leverages.filter(
                   (leverage) =>
                     leverage.ownerCharacterId === character.id &&
                     leverage.active,
@@ -92,13 +92,13 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                     </h3>
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="text-zinc-500">Internal influence</p>
+                        <p className="text-zinc-500">Interner Einfluss</p>
                         <p className="mt-1">
-                          {character.power.internalEinfluss}
+                          {character.power.internalInfluence}
                         </p>
                       </div>
                       <div>
-                        <p className="text-zinc-500">Owner access</p>
+                        <p className="text-zinc-500">Eigentümerzugang</p>
                         <p className="mt-1">{character.power.ownerAccess}</p>
                       </div>
                       <div>
@@ -112,9 +112,9 @@ export function PeoplePowerCentersPanel({ flow, view }: Props) {
                         <p className="mt-1">{liveIssues.length}</p>
                       </div>
                     </div>
-                    {activeDruckmittel.length > 0 ? (
+                    {activeLeverages.length > 0 ? (
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {activeDruckmittel.map((leverage) => (
+                        {activeLeverages.map((leverage) => (
                           <span
                             key={leverage.id}
                             className="rounded-full border border-violet-900 px-2.5 py-1 text-xs text-violet-300"
