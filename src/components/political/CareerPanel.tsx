@@ -16,7 +16,7 @@ import {
 } from "@/game/career/market";
 import { respondActorRequest } from "@/game/career/actors";
 import { startDevelopment, PROJECTS } from "@/game/career/sport";
-import { startWeiterSaison } from "@/game/career/career";
+import { startNextSeason } from "@/game/career/career";
 import { isReleaseClauseInForce } from "@/game/contracts/contracts";
 
 type Props = {
@@ -143,12 +143,10 @@ function CandidateCard({
           )
         }
       >
-        Angebot: {money(salary)} / season
+        Angebot {money(salary)} / Saison
       </button>
       <p className="mt-2 text-xs text-zinc-500">
-        Angebot: includes guaranteed salary for the term and a character-held
-        renewal option. Leadership reputation affects consent; all fees and
-        commitments must fit the budget.
+        Das Angebot enthält ein garantiertes Gehalt für die Laufzeit und eine Verlängerungsoption der Person. Deine Führungsreputation beeinflusst die Zustimmung; alle Kosten müssen ins Budget passen.
       </p>
     </article>
   );
@@ -161,7 +159,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
   const [sort, setSort] = useState("SKILL");
   const [page, setPage] = useState(0);
   const c = flow.career;
-  if (!c) return <p>Load an older save or reset Runden to open career mode.</p>;
+  if (!c) return <p>Lade einen älteren Spielstand oder setze die Saison zurück, um den Karrieremodus zu öffnen.</p>;
   const available = c.candidates
     .filter(
       (p) =>
@@ -245,7 +243,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                           }
                         >
                           Ausstiegsrecht des Teams nutzen ·{" "}
-                          {money(clause.amountMillions)} + Garantie
+                          {money(clause.amountMillions)} + guarantee
                         </button>
                       ))}
                   </>
@@ -266,14 +264,14 @@ export function CareerPanel({ flow, view, onAction }: Props) {
           .map((contract) => (
             <article
               key={contract.id}
-              className="rounded-xl border border-amber-950 bg-amber-950/10 p-4"
+              className="rounded-md border border-amber-950 bg-amber-950/10 p-4"
             >
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
                 Vertragswarnung
               </p>
               <p className="mt-2 font-medium">{name(contract.characterId)}</p>
               <p className="mt-1 text-sm text-zinc-400">
-                Vertrag endet nach R{contract.endRound} · {Math.max(0, contract.endRound - flow.currentRound)} Runden remaining
+                Vertrag endet nach R{contract.endRound} · {Math.max(0, contract.endRound - flow.currentRound)} Runden verbleibend
               </p>
             </article>
           ))}
@@ -294,10 +292,11 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                 Anfrage eines Rivalen
               </p>
               <p className="mt-2">
-                {o.club} möchte {name(o.characterId)}
+                {o.club} wants {name(o.characterId)}
               </p>
               <p className="mt-2 text-sm text-zinc-400">
-                Gehalt {money(o.salary)} · Ablöseerlös {money(o.fee)} · Antwort bis R{o.expiresRound}
+                Gehalt {money(o.salary)} · Ablöseerlös {money(o.fee)} ·
+                Antwort bis R{o.expiresRound}
               </p>
               <p className="mt-2 text-xs text-amber-300">
                 {o.clauseId
@@ -405,9 +404,10 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         {c.world ? (
           <p className="text-sm text-zinc-400">
             Gesamter Pool:{" "}
-            {c.world.people.filter((p) => p.role === "DRIVER").length} Fahrer und {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
+            {c.world.people.filter((p) => p.role === "DRIVER").length} drivers
+            and {c.world.people.filter((p) => p.role !== "DRIVER").length} staff
             across nine series. Recruitment here shows people eligible for{" "}
-            {c.world.playerSeriesId} infrage kommen; den gesamten Markt findest du in der Motorsport-Welt.
+            {c.world.playerSeriesId}; scout the full world in Motorsport World.
           </p>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-2">
@@ -448,7 +448,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
       <div className="space-y-5">
         <h3 className="text-xl font-semibold">Entwicklungsprogramm</h3>
         <p className="text-sm text-zinc-400">
-          Fahrzeugtempo {c.car.pace} · Zuverlässigkeit {c.car.Zuverlässigkeit}. Zwei Projekte können parallel laufen. Überlastung erhöht das Fehlerrisiko; verlässt die Projektleitung das Team, steigt das Risiko um 25 Prozentpunkte. Erfolgreiche Arbeit stärkt den verantwortlichen Bereich.
+          Fahrzeugtempo {c.car.pace} · Zuverlässigkeit {c.car.reliability}. Zwei Projekte können parallel laufen. Überlastung erhöht das Fehlerrisiko; verlässt die Projektleitung das Team, steigt das Risiko um 25 Prozentpunkte.
         </p>
         <div className="grid gap-4 md:grid-cols-3">
           {(Object.keys(PROJECTS) as Array<keyof typeof PROJECTS>).map(
@@ -460,16 +460,16 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                     PROJECTS[kind].cost *
                       (c.world ? playerTeam(c.world).budget / 120 : 1),
                   )}{" "}
-                  · {PROJECTS[kind].duration} Runden · base risk{" "}
+                  · {PROJECTS[kind].duration} rounds · base risk{" "}
                   {PROJECTS[kind].risk}%
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
                   +{PROJECTS[kind].gain}{" "}
                   {kind === "AERO"
-                    ? "Fahrzeugtempo"
+                    ? "car pace"
                     : kind === "RELIABILITY"
-                      ? "Zuverlässigkeit"
-                      : "Stärke Sportleitung"}
+                      ? "reliability"
+                      : "sporting lead skill"}
                 </p>
                 <button
                   className={button + " mt-3"}
@@ -496,7 +496,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             </p>
             <p className="mt-2 text-sm text-zinc-400">
               R{p.startedRound} → R{p.dueRound} · {money(p.cost)} · risk{" "}
-              {p.risk}% · Verantwortlich: {name(p.sponsorId)}
+              {p.risk}% · Sponsor: {name(p.sponsorId)}
             </p>
           </article>
         ))}
@@ -508,29 +508,31 @@ export function CareerPanel({ flow, view, onAction }: Props) {
       <h3 className="text-xl font-semibold">Karriere & Vorstand</h3>
       <article className={card}>
         <p>
-          Saison {2025 + c.season} · {c.status} · Vorstandswarnungen {c.warnings}/2
+          Season {2025 + c.season} · {c.status} · Vorstandswarnungen {c.warnings}/2
         </p>
         <p className="mt-2 text-sm text-zinc-400">
           Ziele: Teamwertung P{c.targets.teamPosition} · closing cash ≥{" "}
           {money(c.targets.cash)} · Stabilität ≥ {c.targets.stability}
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          Vorstandswertung: Sport 35, Finanzen 30, Stabilität 35. Unter 60 folgt eine Warnung; unter 30 oder nach zwei Warnungen in Folge die Entlassung. Ein Kassenstand unter −€
-          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m beendet die Amtszeit ebenfalls. Die Saisonprämie richtet sich nach dem Rang in der Teamwertung.
+          Board score: sport 35, finances 30, stability 35. Below 60: warning;
+          below 30 or two consecutive warnings: dismissal. Cash below −€
+          {c.world ? (playerTeam(c.world).budget * 0.2).toFixed(2) : 25}m also
+          ends your tenure. Season prizes scale with constructor rank.
         </p>
         {c.status === "REVIEW" ? (
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               className={button}
-              onClick={() => onAction((s) => startWeiterSeason(s, "CONSOLIDATE"))}
+              onClick={() => onAction((s) => startNextSeason(s, "CONSOLIDATE"))}
             >
-              Weiter season · P5 / €0m / stability 55
+              Next season · P5 / €0m / stability 55
             </button>
             <button
               className={button}
-              onClick={() => onAction((s) => startWeiterSeason(s, "CHALLENGE"))}
+              onClick={() => onAction((s) => startNextSeason(s, "CHALLENGE"))}
             >
-              Weiter season · P2 / €
+              Next season · P2 / €
               {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5}m /
               stability 65
             </button>
@@ -538,14 +540,13 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         ) : null}
         {c.status === "DISMISSED" ? (
           <p className="mt-3 text-red-300">
-            Your tenure has ended. Load an earlier save or reset Runden to start
-            again.
+            Deine Amtszeit ist beendet. Lade einen früheren Spielstand oder setze die Saison zurück.
           </p>
         ) : null}
       </article>
       {c.reviews.map((r) => (
         <article className={card} key={r.season}>
-          Saison {2025 + r.season}: {r.verdict} · {r.score}/100
+          Season {2025 + r.season}: {r.verdict} · {r.score}/100
           <p className="mt-2 text-sm text-zinc-400">
             P{r.teamPosition} · cash {money(r.cash)} · stability{" "}
             {r.stability.toFixed(0)} · prize {money(r.prize)}
@@ -583,7 +584,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   onAction((s) => respondActorRequest(s, r.id, false))
                 }
               >
-                Ablehnen
+                Refuse
               </button>
             </div>
           </article>
@@ -598,7 +599,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
               <article className={card} key={o.id}>
                 <p>
                   {name(contract.characterId)} · window R{o.exerciseFromRound}–R
-                  {o.exerciseUntilRound} · +{o.extensionRounds} Runden
+                  {o.exerciseUntilRound} · +{o.extensionRounds} rounds
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
                   Actor consent depends on trust, willingness to compromise and
