@@ -34,9 +34,9 @@ type Props = {
 const card = "rounded-lg border border-slate-700 bg-[#111720] p-4",
   button = "mm-button disabled:opacity-40";
 const reifenName = (compound: string) => ({
-  SOFT: "Soft",
-  MEDIUM: "Medium",
-  HARD: "Hard",
+  SOFT: "Weich",
+  MEDIUM: "Mittel",
+  HARD: "Hart",
   INTERMEDIATE: "Intermediates",
   WET: "Regenreifen",
   PRIME: "Prime",
@@ -330,7 +330,7 @@ function CrewManager({ flow, onAction }: Props) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <select
                     className="max-w-full bg-zinc-950 p-2 text-sm"
-                    aria-label={`Crew candidate for ${crew.leadId}`}
+                    aria-label={`Fahrerkandidat für ${crew.leadId}`}
                     value={candidateId ?? ""}
                     onChange={(e) =>
                       setSelected({
@@ -458,7 +458,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
                 {e.crew
                   .map(
                     (d) =>
-                      `${d.name}: ${(d.seconds / 60).toFixed(0)} min${d.eligible ? "" : " (insufficient driving time; no points)"}`,
+                      `${d.name}: ${(d.seconds / 60).toFixed(0)} min${d.eligible ? "" : " (zu wenig Fahrzeit; keine Punkte)"}`,
                   )
                   .join(" · ")}
               </p>
@@ -539,7 +539,7 @@ export function RacePanel({ flow, onAction }: Props) {
               {w!.forecast
                 .filter((f) => f.lap > w!.lap)
                 .slice(0, 2)
-                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% rain`)
+                .map((f) => `L${f.lap}: ${f.chance.toFixed(0)}% Regen`)
                 .join(" · ") || "Keine weitere Wetteränderung angekündigt"}
             </p>
             {w!.decision ? (
@@ -774,7 +774,7 @@ export function RacePanel({ flow, onAction }: Props) {
                 <tr>
                   <th>Pos</th>
                   <th>Fahrer</th>
-                  <th>Points</th>
+                  <th>Punkte</th>
                   <th>Siege</th>
                 </tr>
               </thead>
@@ -826,7 +826,7 @@ export function RacePanel({ flow, onAction }: Props) {
                   <th>Pos</th>
                   <th>Fahrer / Fahrzeug</th>
                   <th>Team</th>
-                  <th>Points</th>
+                  <th>Punkte</th>
                   <th>Status</th>
                 </tr>
               </thead>
