@@ -108,6 +108,7 @@ export const WorldActivitySchema = z
       "PROMOTION",
       "STAFF_MOVE",
       "TEAM_TREND",
+      "RUMOR",
     ]),
     personId: EntityIdSchema.nullable(),
     fromTeamId: EntityIdSchema.nullable(),

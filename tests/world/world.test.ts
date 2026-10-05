@@ -424,5 +424,32 @@ describe("motorsport world", () => {
     valid(restored);
   }, 60000);
 
+  it("creates deterministic midseason transfer rumors for expiring rival talent", () => {
+    let flow = createNewCareer("F4");
+    const world = flow.career!.world!;
+    const rival = world.people
+      .filter(
+        (person) =>
+          person.role === "DRIVER" &&
+          person.teamId &&
+          person.teamId !== world.playerTeamId &&
+          person.specialties.includes("F4"),
+      )
+      .sort((a, b) => b.potential - a.potential || b.skill - a.skill)[0];
+    rival.contractEndSeason = world.season;
+
+    const milestone = Math.max(1, Math.floor(getSeries("F4").rounds * 0.33));
+    while (flow.currentRound < milestone) flow = advanceCareerFlow(flow, []);
+
+    const rumor = flow.career!.world!.activity?.find(
+      (item) => item.type === "RUMOR" && item.seriesId === "F4",
+    );
+    expect(rumor).toBeDefined();
+    expect(rumor?.personId).toBeTruthy();
+    expect(rumor?.toTeamId).toBeTruthy();
+    expect(rumor?.headline).toContain("linked with");
+    valid(flow);
+  }, 30000);
+
 });
 

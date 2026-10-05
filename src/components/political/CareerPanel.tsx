@@ -244,12 +244,46 @@ export function CareerPanel({ flow, view, onAction }: Props) {
             );
           })}
         </div>
+        <h4 className="text-lg font-semibold">Contract warnings</h4>
+        {flow.political.contracts
+          .filter(
+            (contract) =>
+              contract.status === "ACTIVE" &&
+              contract.endRound - flow.currentRound <=
+                (c.world ? getSeries(c.world.playerSeriesId).rounds : 24),
+          )
+          .sort((a, b) => a.endRound - b.endRound)
+          .map((contract) => (
+            <article
+              key={contract.id}
+              className="rounded-xl border border-amber-950 bg-amber-950/10 p-4"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                Contract warning
+              </p>
+              <p className="mt-2 font-medium">{name(contract.characterId)}</p>
+              <p className="mt-1 text-sm text-zinc-400">
+                Deal ends after R{contract.endRound} · {Math.max(0, contract.endRound - flow.currentRound)} rounds remaining
+              </p>
+            </article>
+          ))}
+        {!flow.political.contracts.some(
+          (contract) =>
+            contract.status === "ACTIVE" &&
+            contract.endRound - flow.currentRound <=
+              (c.world ? getSeries(c.world.playerSeriesId).rounds : 24),
+        ) ? (
+          <p className="text-sm text-zinc-500">No contracts need attention within the next season.</p>
+        ) : null}
         <h4 className="text-lg font-semibold">Rival offers</h4>
         {c.offers
           .filter((o) => o.status === "OPEN")
           .map((o) => (
             <article key={o.id} className={card}>
-              <p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-rose-300">
+                Rival approach
+              </p>
+              <p className="mt-2">
                 {o.club} wants {name(o.characterId)}
               </p>
               <p className="mt-2 text-sm text-zinc-400">
