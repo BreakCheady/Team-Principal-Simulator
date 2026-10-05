@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { CareerPanel } from "../../src/components/political/CareerPanel";
 import { RoundEventsPanel } from "../../src/components/political/RoundEventsPanel";
 import { MotorsportWorldPanel } from "../../src/components/political/MotorsportWorldPanel";
+import { MotorsportGame } from "../../src/components/political/MotorsportGame";
+import Home from "../../src/app/page";
 import { InboxIssuesPanel } from "../../src/components/political/InboxIssuesPanel";
 import { PeoplePowerCentersPanel } from "../../src/components/political/PeoplePowerCentersPanel";
 import { PoliticalConflictsPanel } from "../../src/components/political/PoliticalConflictsPanel";
@@ -54,6 +56,8 @@ describe("career HQ rendering", () => {
         afterRound: 15,
       }),
     );
+    expect(html).toContain("HQ Overview");
+    expect(html).toContain("Next race weekend");
     for (const text of [
       "Career",
       "Championship",
@@ -150,6 +154,18 @@ describe("career HQ rendering", () => {
     expect(html).toContain("View team");
     expect(html).toContain("Breaking");
     expect(html).toContain(person.name);
+  });
+
+  it("renders the public website and separate career entry experience", () => {
+    const website = renderToStaticMarkup(createElement(Home));
+    expect(website).toContain("Win the race.");
+    expect(website).toContain("Keep the team.");
+    expect(website).toContain('href="/game"');
+
+    const game = renderToStaticMarkup(createElement(MotorsportGame));
+    expect(game).toContain("Choose your paddock.");
+    expect(game).toContain("Choose series");
+    expect(game).toContain("Choose team");
   });
 
 });
