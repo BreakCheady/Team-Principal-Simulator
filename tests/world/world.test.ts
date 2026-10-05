@@ -393,5 +393,36 @@ describe("motorsport world", () => {
     valid(a);
   }, 120000);
 
+  it("records and persists visible paddock activity across an AI offseason", () => {
+    let flow = createNewCareer("F1");
+    expect(flow.career!.world!.activity ?? []).toEqual([]);
+    while (!flow.complete) flow = advanceCareerFlow(flow, []);
+    flow = startNextSeason(flow);
+
+    const activity = flow.career!.world!.activity ?? [];
+    expect(activity.length).toBeGreaterThan(0);
+    expect(
+      activity.some((item) =>
+        ["SIGNING", "PROMOTION", "STAFF_MOVE"].includes(item.type),
+      ),
+    ).toBe(true);
+    expect(activity.some((item) => item.type === "TEAM_TREND")).toBe(true);
+    expect(
+      activity.every(
+        (item) =>
+          item.headline.length > 0 &&
+          item.detail.length > 0 &&
+          item.season === 1,
+      ),
+    ).toBe(true);
+
+    const restored = decodeSave<RoundFlowState>(
+      encodeSave("ROUND_FLOW", flow),
+      "ROUND_FLOW",
+    ).state;
+    expect(restored.career!.world!.activity).toEqual(activity);
+    valid(restored);
+  }, 60000);
+
 });
 

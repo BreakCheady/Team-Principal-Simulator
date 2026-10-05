@@ -96,6 +96,28 @@ export const WorldSeriesStateSchema = z
     qualifying: z.array(QualifyingSchema).optional(),
   })
   .strict();
+
+export const WorldActivitySchema = z
+  .object({
+    id: EntityIdSchema,
+    season: z.number().int().min(1),
+    seriesId: SeriesIdSchema,
+    type: z.enum([
+      "CONTRACT_EXPIRED",
+      "SIGNING",
+      "PROMOTION",
+      "STAFF_MOVE",
+      "TEAM_TREND",
+    ]),
+    personId: EntityIdSchema.nullable(),
+    fromTeamId: EntityIdSchema.nullable(),
+    toTeamId: EntityIdSchema.nullable(),
+    headline: z.string().min(1),
+    detail: z.string().min(1),
+  })
+  .strict();
+export type WorldActivity = z.infer<typeof WorldActivitySchema>;
+
 export const WorldSchema = z
   .object({
     version: z.literal(1),
@@ -106,6 +128,7 @@ export const WorldSchema = z
     people: z.array(WorldPersonSchema),
     teams: z.array(WorldTeamSchema),
     series: z.array(WorldSeriesStateSchema),
+    activity: z.array(WorldActivitySchema).optional(),
     history: z.array(
       z
         .object({
