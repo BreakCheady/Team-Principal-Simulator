@@ -13,6 +13,17 @@ import {
   worldCandidates,
 } from "./world";
 import type { MotorsportWorld } from "./schemas";
+
+function roleLabel(role: string) {
+  const labels: Record<string, string> = {
+    DRIVER: "Fahrer",
+    TECHNICAL_DIRECTOR: "Technischer Direktor",
+    SPORTING_DIRECTOR: "Sportdirektor",
+    RACE_ENGINEER: "Renningenieur",
+    TEAM_PRINCIPAL: "Teamchef",
+  };
+  return labels[role] ?? role.replaceAll("_", " ").toLowerCase();
+}
 function worldRace(
   world: MotorsportWorld,
   seriesId: MotorsportWorld["playerSeriesId"],
@@ -189,8 +200,8 @@ export function advanceWorld(flow: RoundFlowState) {
             personId: candidate.id,
             fromTeamId: currentTeam.id,
             toTeamId: destination.id,
-            headline: `${candidate.name} linked with ${destination.name}`,
-            detail: `Paddock sources are connecting ${candidate.name} with ${destination.name} as the contract at ${currentTeam.name} approaches its end.`,
+            headline: `${candidate.name} mit ${destination.name} in Verbindung gebracht`,
+            detail: `Im Fahrerlager wird ${candidate.name} mit ${destination.name} in Verbindung gebracht, während der Vertrag bei ${currentTeam.name} ausläuft.`,
           });
       }
     }
@@ -282,7 +293,7 @@ function runAiOffseason(world: MotorsportWorld) {
       personId: person.id,
       fromTeamId: team.id,
       toTeamId: null,
-      headline: `${person.name} enters the market`,
+      headline: `${person.name} ist auf dem Markt`,
       detail: `${person.name}'s ${person.role.replaceAll("_", " ").toLowerCase()} contract with ${team.name} expired after season ${completedSeason}.`,
     });
     person.teamId = null;
@@ -321,8 +332,8 @@ function runAiOffseason(world: MotorsportWorld) {
         personId: null,
         fromTeamId: team.id,
         toTeamId: team.id,
-        headline: `${team.name} ${budgetDelta >= 0 ? "gains" : "loses"} momentum`,
-        detail: `Season ${completedSeason} P${position}: budget ${budgetDelta >= 0 ? "+" : ""}€${budgetDelta.toFixed(2)}m and reputation ${reputationDelta >= 0 ? "+" : ""}${reputationDelta}.`,
+        headline: `${team.name} ${budgetDelta >= 0 ? "gewinnt" : "verliert"} an Dynamik`,
+        detail: `Saison ${completedSeason}, P${position}: Budget ${budgetDelta >= 0 ? "+" : ""}€${budgetDelta.toFixed(2)}m und Ruf ${reputationDelta >= 0 ? "+" : ""}${reputationDelta}.`,
       });
 
     const needs = new Map<(typeof rosterRoles)[number], number>([
@@ -371,12 +382,12 @@ function runAiOffseason(world: MotorsportWorld) {
           toTeamId: team.id,
           headline:
             role === "DRIVER"
-              ? `${team.name} signs ${chosen.name}`
-              : `${chosen.name} joins ${team.name}`,
+              ? `${team.name} verpflichtet ${chosen.name}`
+              : `${chosen.name} wechselt zu ${team.name}`,
           detail:
             role === "DRIVER" && sourceSeries !== team.seriesId
-              ? `${chosen.name} steps from ${sourceSeries} into ${team.seriesId} on a deal through season ${chosen.contractEndSeason}.`
-              : `${chosen.name} joins ${team.name} through season ${chosen.contractEndSeason}.`,
+              ? `${chosen.name} steigt von ${sourceSeries} in die ${team.seriesId} auf und unterschreibt bis Saison ${chosen.contractEndSeason}.`
+              : `${chosen.name} wechselt zu ${team.name} und unterschreibt bis Saison ${chosen.contractEndSeason}.`,
         });
         if (role === "DRIVER") {
           team.drivers.push(chosen.id);
@@ -421,8 +432,8 @@ function runAiOffseason(world: MotorsportWorld) {
           personId: fallback.id,
           fromTeamId: null,
           toTeamId: team.id,
-          headline: `${team.name} fills a key staff vacancy`,
-          detail: `${fallback.name} joins as ${role.replaceAll("_", " ").toLowerCase()} on a one-season deal.`,
+          headline: `${team.name} besetzt eine wichtige Personalstelle`,
+          detail: `${fallback.name} kommt als ${roleLabel(role)} mit einem Vertrag über eine Saison.`,
         });
       }
     }
