@@ -3,10 +3,28 @@ import { useState } from "react";
 import type { MotorsportWorld } from "@/game/world/schemas";
 import { WecStandings } from "./WecStandings";
 import { SERIES, getSeries } from "@/game/world/series";
+const rollenName = (rolle: string) => ({
+  DRIVER: "Fahrer",
+  TEAM_PRINCIPAL: "Teamchef",
+  TECHNICAL_DIRECTOR: "Technischer Direktor",
+  SPORTING_DIRECTOR: "Sportdirektor",
+  RACE_ENGINEER: "Renningenieur",
+  ENGINEER: "Ingenieur",
+}[rolle] ?? rolle.replaceAll("_", " "));
+
+const aktivitaetsName = (typ: string) => ({
+  CONTRACT_EXPIRED: "Vertrag ausgelaufen",
+  SIGNING: "Verpflichtung",
+  PROMOTION: "Aufstieg",
+  STAFF_MOVE: "Personalwechsel",
+  TEAM_TREND: "Teamentwicklung",
+  RUMOR: "Gerücht",
+}[typ] ?? typ.replaceAll("_", " "));
+
 export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
   const [series, setSeries] = useState(world.playerSeriesId),
     [query, setQuery] = useState(""),
-    [role, setRole] = useState("ALL"),
+    [role, setRolle] = useState("ALL"),
     [page, setPage] = useState(0),
     [selectedPersonId, setSelectedPersonId] = useState<string | null>(null),
     [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -39,8 +57,8 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
       )
       .sort(
         (a, b) =>
-          Number(a.contractEndSeason > world.season) -
-            Number(b.contractEndSeason > world.season) ||
+          Number(a.contractEndSaison > world.season) -
+            Number(b.contractEndSaison > world.season) ||
           b.potential - a.potential ||
           b.skill - a.skill ||
           a.name.localeCompare(b.name),
@@ -53,33 +71,33 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           item.role === "DRIVER" &&
           world.teams.find((team) => team.id === item.teamId)?.seriesId ===
             series &&
-          item.contractEndSeason <= world.season,
+          item.contractEndSaison <= world.season,
       )
       .sort((a, b) => b.skill - a.skill)
       .slice(0, 5);
   const person = (id: string) =>
     world.people.find((p) => p.id === id)?.name ?? id;
   const team = (id: string | null) =>
-    world.teams.find((t) => t.id === id)?.name ?? "Free agent";
+    world.teams.find((t) => t.id === id)?.name ?? "Ohne Vertrag";
   return (
-    <div className="space-y-5">
-      <h3 className="text-xl font-semibold">Motorsport World</h3>
+    <div className="space-y-3">
+      <h3 className="text-lg font-black">Motorsport-Welt</h3>
       {(selectedPerson || selectedTeam) ? (
-        <article className="rounded-2xl border border-sky-900 bg-sky-950/20 p-5">
+        <article className="rounded-lg border border-sky-900 bg-sky-950/20 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-sky-400">Profile</p>
+              <p className="text-xs uppercase tracking-wide text-sky-400">Profil</p>
               {selectedPerson ? (
                 <>
                   <h3 className="mt-1 text-xl font-semibold">{selectedPerson.name}</h3>
                   <p className="mt-2 text-sm text-zinc-300">
-                    {selectedPerson.role.replaceAll("_", " ")} · {selectedPerson.age} · {selectedPerson.nationality}
+                    {rollenName(selectedPerson.role)} · {selectedPerson.age} · {selectedPerson.nationality}
                   </p>
                   <p className="mt-2 text-sm text-zinc-400">
-                    Skill {selectedPerson.skill} · Potential {selectedPerson.potential} · Ambition {selectedPerson.ambition} · Contract through S{selectedPerson.contractEndSeason}
+                    Stärke {selectedPerson.skill} · Potenzial {selectedPerson.potential} · Ambition {selectedPerson.ambition} · Vertrag bis S{selectedPerson.contractEndSeason}
                   </p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    Employer: {team(selectedPerson.teamId)} · Salary €{selectedPerson.salary.toFixed(3)}m / season
+                    Team: {team(selectedPerson.teamId)} · Gehalt €{selectedPerson.salary.toFixed(3)}m / Saison
                   </p>
                 </>
               ) : null}
@@ -90,10 +108,10 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                     {selectedTeam.seriesId}{selectedTeam.classId ? ` · ${selectedTeam.classId}` : ""} · Reputation {selectedTeam.reputation}
                   </p>
                   <p className="mt-2 text-sm text-zinc-400">
-                    Pace {selectedTeam.pace} · Reliability {selectedTeam.reliability} · Budget €{selectedTeam.budget.toFixed(2)}m
+                    Tempo {selectedTeam.pace} · Zuverlässigkeit {selectedTeam.reliability} · Budget €{selectedTeam.budget.toFixed(2)}m
                   </p>
                   <p className="mt-2 text-sm text-zinc-500">
-                    Drivers: {selectedTeam.drivers.map(person).join(", ")}
+                    Fahrer: {selectedTeam.drivers.map(person).join(", ")}
                   </p>
                 </>
               ) : null}
@@ -105,7 +123,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 setSelectedTeamId(null);
               }}
             >
-              Close
+              Schließen
             </button>
           </div>
         </article>
@@ -115,8 +133,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
       <p className="text-sm text-zinc-400">
         {world.teams.length} fictional teams ·{" "}
         {world.people.filter((p) => p.role === "DRIVER").length} drivers ·{" "}
-        {world.people.filter((p) => p.role !== "DRIVER").length} staff · Nine
-        championships progress alongside your career.
+        {world.people.filter((p) => p.role !== "DRIVER").length} Mitarbeiter · Neun Meisterschaften entwickeln sich parallel zu deiner Karriere.
       </p>
       <div className="flex flex-wrap gap-2">
         {SERIES.map((s) => (
@@ -133,40 +150,40 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           </button>
         ))}
       </div>
-      <article className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-5">
+      <article className="rounded-md border border-zinc-800 bg-zinc-950/40 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h4 className="font-semibold">Paddock News</h4>
+            <h4 className="font-semibold">Paddock-Nachrichten</h4>
             <p className="mt-1 text-xs text-zinc-500">
-              Transfers, contract expiries, talent promotions and team momentum.
+              Transfers, auslaufende Verträge, Talentaufstiege und die Entwicklung der Teams.
             </p>
           </div>
           <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400">
-            Season {world.season}
+            Saison {world.season}
           </span>
         </div>
         {activity.length === 0 ? (
           <p className="mt-4 text-sm text-zinc-500">
-            No world activity recorded for {series} yet.
+            Noch keine Meldungen für {series} vorhanden.
           </p>
         ) : (
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {activity.map((item, activityIndex) => (
               <div
                 key={item.id}
-                className="rounded-xl border border-zinc-800 bg-black/20 p-4"
+                className="rounded-md border border-zinc-800 bg-black/20 p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   {activityIndex < 3 && item.type !== "TEAM_TREND" ? (
                     <span className="rounded-full border border-rose-900 bg-rose-950/40 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-300">
-                      Breaking
+                      Eilmeldung
                     </span>
                   ) : null}
                   <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[11px] uppercase tracking-wide text-sky-300">
-                    {item.type.replaceAll("_", " ")}
+                    {aktivitaetsName(item.type)}
                   </span>
                   <span className="text-[11px] text-zinc-500">
-                    Season {item.season}
+                    Saison {item.season}
                   </span>
                 </div>
                 <p className="mt-2 font-medium">{item.headline}</p>
@@ -182,7 +199,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                         setSelectedTeamId(null);
                       }}
                     >
-                      View person
+                      Person ansehen
                     </button>
                   ) : null}
                   {item.toTeamId ? (
@@ -193,7 +210,7 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                         setSelectedPersonId(null);
                       }}
                     >
-                      View team
+                      Team ansehen
                     </button>
                   ) : null}
                 </div>
@@ -204,10 +221,10 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
       </article>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border border-zinc-800 p-5">
+        <article className="rounded-md border border-zinc-800 p-5">
           <div className="flex items-center justify-between gap-3">
-            <h4 className="font-semibold">Transfer Radar</h4>
-            <span className="text-xs text-zinc-500">Top targets</span>
+            <h4 className="font-semibold">Transfer-Radar</h4>
+            <span className="text-xs text-zinc-500">Top-Kandidaten</span>
           </div>
           <div className="mt-3 space-y-3">
             {transferRadar.map((target) => (
@@ -221,16 +238,16 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               >
                 <span className="font-medium">{target.name}</span>
                 <span className="mt-1 block text-xs text-zinc-500">
-                  {target.seriesId} · Skill {target.skill} · Potential {target.potential} · contract S{target.contractEndSeason}
+                  {target.seriesId} · Stärke {target.skill} · Potenzial {target.potential} · contract S{target.contractEndSeason}
                 </span>
               </button>
             ))}
           </div>
         </article>
-        <article className="rounded-xl border border-zinc-800 p-5">
-          <h4 className="font-semibold">Contract Watch</h4>
+        <article className="rounded-md border border-zinc-800 p-5">
+          <h4 className="font-semibold">Vertragsbeobachtung</h4>
           <p className="mt-1 text-xs text-zinc-500">
-            Drivers in {series} whose deals are at or beyond their final season.
+            Fahrer in {series} mit Verträgen in oder nach ihrer letzten Saison.
           </p>
           <div className="mt-3 space-y-2">
             {contractWatch.length ? contractWatch.map((target) => (
@@ -244,34 +261,34 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
               >
                 <span className="text-sm font-medium">{target.name}</span>
                 <span className="block text-xs text-amber-300">
-                  Contract warning · ends S{target.contractEndSeason}
+                  Vertragswarnung · endet S{target.contractEndSeason}
                 </span>
               </button>
             )) : (
-              <p className="text-sm text-zinc-500">No immediate expiry pressure.</p>
+              <p className="text-sm text-zinc-500">Keine unmittelbar auslaufenden Verträge.</p>
             )}
           </div>
         </article>
       </div>
 
-      <article className="rounded-xl border border-zinc-800 p-5">
+      <article className="rounded-md border border-zinc-800 p-5">
         <h4 className="font-semibold">
-          {cfg.name} · {table.completedRounds}/{cfg.rounds} races
+          {cfg.name} · {table.completedRounds}/{cfg.rounds} Rennen
         </h4>
         <p className="mt-2 text-sm text-zinc-400">{cfg.description}</p>
         <p className="mt-2 text-xs text-zinc-500">
-          {series === "WEC" ? "WEC 2026 calendar and class structure; fictional budgets, teams and drivers." : "Fictional game calendars, budgets and rosters. Formula 4, GT and rally fields are game-defined."}
+          {series === "WEC" ? "WEC-Kalender und Klassenstruktur; Budgets, Teams und Fahrer sind fiktiv." : "Fiktive Spielkalender, Budgets und Kader. Die Felder in Formel 4, GT und Rallye sind spieldefiniert."}
         </p>
       </article>
       {series === "WEC" ? <WecStandings world={world} /> : <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border border-zinc-800 p-5">
-          <h4>Team championship</h4>
+        <article className="rounded-md border border-zinc-800 p-5">
+          <h4>Teamwertung</h4>
           <table className="mt-3 w-full text-left text-sm">
             <thead>
               <tr>
-                <th>Pos</th>
+                <th>Pos.</th>
                 <th>Team</th>
-                <th>Points</th>
+                <th>Punkte</th>
               </tr>
             </thead>
             <tbody>
@@ -301,15 +318,15 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
             </tbody>
           </table>
         </article>
-        <article className="rounded-xl border border-zinc-800 p-5">
-          <h4>Driver championship</h4>
+        <article className="rounded-md border border-zinc-800 p-5">
+          <h4>Fahrerwertung</h4>
           <div className="max-h-80 overflow-auto">
             <table className="mt-3 w-full text-left text-sm">
               <thead>
                 <tr>
-                  <th>Pos</th>
-                  <th>Driver</th>
-                  <th>Points</th>
+                  <th>Pos.</th>
+                  <th>Fahrer</th>
+                  <th>Punkte</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,14 +359,14 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           </div>
         </article>
       </div>}
-      <h4 className="text-lg font-semibold">Teams & personnel</h4>
+      <h4 className="text-lg font-semibold">Teams & Personal</h4>
       <div className="grid gap-3 lg:grid-cols-2">
         {world.teams
           .filter((t) => t.seriesId === series)
           .map((t) => (
             <article
               key={t.id}
-              className="rounded-xl border border-zinc-800 p-4"
+              className="rounded-md border border-zinc-800 p-4"
             >
               <button
                 className="text-left font-semibold hover:text-sky-300"
@@ -359,14 +376,14 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
                 }}
               >
                 {t.name}{t.classId ? ` · ${t.classId === "HYPERCAR" ? "Hypercar" : "LMGT3"}` : ""}
-                {t.id === world.playerTeamId ? " · Your team" : ""}
+                {t.id === world.playerTeamId ? " · Dein Team" : ""}
               </button>
               <p className="mt-2 text-xs text-zinc-400">
-                Principal: {person(t.principalId)} · Pace {t.pace} · Reliability{" "}
+                Principal: {person(t.principalId)} · Tempo {t.pace} · Reliability{" "}
                 {t.reliability} · Annual budget €{t.budget.toFixed(2)}m
               </p>
               <p className="mt-2 text-sm">
-                Drivers: {t.drivers.map(person).join(", ") || "Vacant"}
+                Fahrer: {t.drivers.map(person).join(", ") || "Vacant"}
               </p>
               <p className="mt-2 text-xs text-zinc-500">
                 Staff: {t.staff.map(person).join(", ")}
@@ -379,25 +396,25 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
       </h4>
       <div className="flex flex-wrap gap-3">
         <input
-          aria-label="Search world people"
+          aria-label="Personal durchsuchen"
           className="rounded-lg bg-zinc-900 p-3"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
             setPage(0);
           }}
-          placeholder="Name or nationality"
+          placeholder="Name oder Nationalität"
         />
         <select
-          aria-label="World personnel role"
+          aria-label="Personalrolle"
           className="bg-zinc-900 p-3"
           value={role}
           onChange={(e) => {
-            setRole(e.target.value);
+            setRolle(e.target.value);
             setPage(0);
           }}
         >
-          <option value="ALL">All roles</option>
+          <option value="ALL">Alle Rollen</option>
           {[
             "DRIVER",
             "TECHNICAL_DIRECTOR",
@@ -416,12 +433,12 @@ export function MotorsportWorldPanel({ world }: { world: MotorsportWorld }) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Role</th>
-              <th>Age</th>
+              <th>Rolle</th>
+              <th>Alter</th>
               <th>Nation</th>
-              <th>Skill / potential</th>
-              <th>Employer</th>
-              <th>Salary / season</th>
+              <th>Stärke / potential</th>
+              <th>Team</th>
+              <th>Salary / Saison</th>
             </tr>
           </thead>
           <tbody>
