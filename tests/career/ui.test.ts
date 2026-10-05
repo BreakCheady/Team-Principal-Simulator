@@ -3,6 +3,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CareerPanel } from "../../src/components/political/CareerPanel";
 import { RoundEventsPanel } from "../../src/components/political/RoundEventsPanel";
+import { InboxIssuesPanel } from "../../src/components/political/InboxIssuesPanel";
+import { PeoplePowerCentersPanel } from "../../src/components/political/PeoplePowerCentersPanel";
+import { PoliticalConflictsPanel } from "../../src/components/political/PoliticalConflictsPanel";
 import { createCareerFlow, reviewSeason } from "../../src/game/career/career";
 import { advanceActors } from "../../src/game/career/actors";
 import { demoState } from "../../src/game/data/demo-state";
@@ -56,4 +59,49 @@ describe("career HQ rendering", () => {
     ])
       expect(html).toContain(text);
   });
+  it("renders extracted HQ workspaces independently", () => {
+    const flow = createCareerFlow(demoState, demoRoundEvents, 15);
+
+    const inbox = renderToStaticMarkup(
+      createElement(InboxIssuesPanel, {
+        flow,
+        issueDefinitions: [],
+        view: "INBOX",
+        onIssueAction: () => {},
+        onOpenCareer: () => {},
+      }),
+    );
+    expect(inbox).toContain("Start the next round");
+
+    const issues = renderToStaticMarkup(
+      createElement(InboxIssuesPanel, {
+        flow,
+        issueDefinitions: [],
+        view: "ISSUES",
+        onIssueAction: () => {},
+        onOpenCareer: () => {},
+      }),
+    );
+    expect(issues).toContain("No issues recorded yet");
+
+    const people = renderToStaticMarkup(
+      createElement(PeoplePowerCentersPanel, { flow, view: "PEOPLE" }),
+    );
+    expect(people).toContain("Momentum");
+
+    const centers = renderToStaticMarkup(
+      createElement(PeoplePowerCentersPanel, { flow, view: "CENTERS" }),
+    );
+    expect(centers).toContain("Internal influence");
+
+    const conflicts = renderToStaticMarkup(
+      createElement(PoliticalConflictsPanel, {
+        flow,
+        onConflictDecision: () => {},
+        onOpenCareer: () => {},
+      }),
+    );
+    expect(conflicts.length).toBeGreaterThan(20);
+  });
+
 });
