@@ -16,7 +16,7 @@ import {
 } from "@/game/career/market";
 import { respondActorRequest } from "@/game/career/actors";
 import { startDevelopment, PROJECTS } from "@/game/career/sport";
-import { startWeiterSeason } from "@/game/career/career";
+import { startNextSeason } from "@/game/career/career";
 import { isReleaseClauseInForce } from "@/game/contracts/contracts";
 
 type Props = {
@@ -164,7 +164,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
   const [sort, setSort] = useState("SKILL");
   const [page, setPage] = useState(0);
   const c = flow.career;
-  if (!c) return <p>Load an older save or reset Runden to open career mode.</p>;
+  if (!c) return <p>Lade einen älteren Spielstand oder setze die Runden zurück, um den Karrieremodus zu öffnen.</p>;
   const available = c.candidates
     .filter(
       (p) =>
@@ -528,15 +528,15 @@ export function CareerPanel({ flow, view, onAction }: Props) {
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               className={button}
-              onClick={() => onAction((s) => startWeiterSeason(s, "CONSOLIDATE"))}
+              onClick={() => onAction((s) => startNextSeason(s, "CONSOLIDATE"))}
             >
-              Weiter season · P5 / €0m / stability 55
+              Nächste Saison · P5 / €0m / Stabilität 55
             </button>
             <button
               className={button}
-              onClick={() => onAction((s) => startWeiterSeason(s, "CHALLENGE"))}
+              onClick={() => onAction((s) => startNextSeason(s, "CHALLENGE"))}
             >
-              Weiter season · P2 / €
+              Nächste Saison · P2 / €
               {c.world ? (playerTeam(c.world).budget * 0.04).toFixed(2) : 5}m /
               stability 65
             </button>
@@ -544,8 +544,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
         ) : null}
         {c.status === "DISMISSED" ? (
           <p className="mt-3 text-red-300">
-            Your tenure has ended. Load an earlier save or reset Runden to start
-            again.
+            Deine Amtszeit ist beendet. Lade einen früheren Spielstand oder setze die Runden zurück, um neu zu beginnen.
           </p>
         ) : null}
       </article>
@@ -607,8 +606,7 @@ export function CareerPanel({ flow, view, onAction }: Props) {
                   {o.exerciseUntilRound} · +{o.extensionRounds} Runden
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
-                  Actor consent depends on trust, willingness to compromise and
-                  instability. The team must have budget approval.
+                  Die Zustimmung hängt von Vertrauen, Kompromissbereitschaft und Instabilität ab. Das Team benötigt die Budgetfreigabe.
                 </p>
                 <button
                   className={button + " mt-3"}
