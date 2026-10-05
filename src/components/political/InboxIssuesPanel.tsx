@@ -1,13 +1,13 @@
 "use client";
 
-import type { IssueDefinition } from "@/game/issues/issues";
+import type { ThemaDefinition } from "@/game/issues/issues";
 import type { RoundFlowState } from "@/game/season/round-flow";
 
 type Props = {
   flow: RoundFlowState;
-  issueDefinitions: IssueDefinition[];
+  issueDefinitions: ThemaDefinition[];
   view: "INBOX" | "ISSUES";
-  onIssueAction: (issueId: string, actionId: string) => void;
+  onThemaAktion: (issueId: string, actionId: string) => void;
   onOpenCareer: () => void;
 };
 
@@ -15,16 +15,16 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
-export function InboxIssuesPanel({
+export function InboxThemasPanel({
   flow,
   issueDefinitions,
   view,
-  onIssueAction,
+  onThemaAktion,
   onOpenCareer,
 }: Props) {
   const latest = flow.history.at(-1) ?? null;
-  const inboxIssues = [...flow.issues].sort((a, b) => {
-    const priority = { OPEN: 0, WATCHING: 1, ESCALATED: 2, RESOLVED: 3 };
+  const inboxThemas = [...flow.issues].sort((a, b) => {
+    const priority = { OFFEN: 0, BEOBACHTUNG: 1, ESKALIERT: 2, ERLEDIGT: 3 };
     return priority[a.status] - priority[b.status] || b.round - a.round;
   });
 
@@ -32,18 +32,18 @@ export function InboxIssuesPanel({
     return (
           <div className="space-y-3">
             {flow.issues.length === 0 ? (
-              <p className="text-sm text-zinc-500">No issues recorded yet.</p>
+              <p className="text-sm text-zinc-500">Noch keine Themen erfasst.</p>
             ) : (
               flow.issues.map((issue) => (
                 <article
                   key={issue.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
+                  className="rounded-md border border-zinc-800 bg-zinc-900/50 p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-medium">{issue.title}</p>
                       <p className="mt-1 text-xs text-zinc-500">
-                        Round {issue.round} · {issue.category}
+                        Runde {issue.round} · {issue.category}
                       </p>
                     </div>
                     <span className="text-xs text-zinc-400">
@@ -60,26 +60,26 @@ export function InboxIssuesPanel({
   return (
           <div className="space-y-5">
             {flow.career?.requests.some((r) =>
-              ["OPEN", "ESCALATED"].includes(r.status),
+              ["OFFEN", "ESKALIERT"].includes(r.status),
             ) ? (
               <button
                 type="button"
-                className="rounded-xl border border-amber-800 p-4 text-left text-sm text-amber-300"
+                className="rounded-md border border-amber-800 p-4 text-left text-sm text-amber-300"
                 onClick={() => onOpenCareer()}
               >
-                Actor initiatives require attention · Open Career
+                Anfragen aus dem Team benötigen Aufmerksamkeit · Karriere öffnen
               </button>
             ) : null}
             {latest ? (
-              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+              <article className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-5">
                 <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
-                  Round {latest.round} report
+                  Runde {latest.round} · Bericht
                 </p>
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                   {latest.events.map((event) => (
                     <div
                       key={event.eventId}
-                      className="rounded-xl border border-zinc-800 bg-black/20 p-4"
+                      className="rounded-md border border-zinc-800 bg-black/20 p-4"
                     >
                       <p className="text-xs uppercase tracking-[0.14em] text-sky-400">
                         {label(event.type)}
@@ -110,17 +110,17 @@ export function InboxIssuesPanel({
                 </div>
               </article>
             ) : (
-              <article className="rounded-2xl border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
+              <article className="rounded-lg border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
                 Start the next round to receive the first inbox items.
               </article>
             )}
 
-            {inboxIssues.length === 0 ? (
-              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
+            {inboxThemas.length === 0 ? (
+              <article className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-6 text-sm text-zinc-500">
                 Inbox clear. No management issues require attention.
               </article>
             ) : (
-              inboxIssues.map((issue) => {
+              inboxThemas.map((issue) => {
                 const definition = issueDefinitions.find(
                   (item) => item.id === issue.definitionId,
                 );
@@ -131,7 +131,7 @@ export function InboxIssuesPanel({
                 return (
                   <article
                     key={issue.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6"
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-6"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
@@ -167,15 +167,15 @@ export function InboxIssuesPanel({
                       {issue.summary}
                     </p>
 
-                    {(issue.status === "OPEN" || issue.status === "WATCHING") &&
+                    {(issue.status === "OFFEN" || issue.status === "BEOBACHTUNG") &&
                     definition ? (
                       <div className="mt-6 grid gap-3 lg:grid-cols-3">
                         {definition.actions.map((action) => (
                           <button
                             key={action.id}
                             type="button"
-                            onClick={() => onIssueAction(issue.id, action.id)}
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 p-4 text-left transition hover:border-sky-700"
+                            onClick={() => onThemaAktion(issue.id, action.id)}
+                            className="rounded-md border border-zinc-700 bg-zinc-950 p-4 text-left transition hover:border-sky-700"
                           >
                             <span className="block font-medium">
                               {action.label}
@@ -201,14 +201,14 @@ export function InboxIssuesPanel({
                       </div>
                     ) : null}
 
-                    {issue.selectedActionId ? (
-                      <div className="mt-5 rounded-xl border border-zinc-800 bg-black/20 p-4 text-sm">
+                    {issue.selectedAktionId ? (
+                      <div className="mt-5 rounded-md border border-zinc-800 bg-black/20 p-4 text-sm">
                         <p className="text-zinc-400">
-                          Your action: {label(issue.selectedActionId)}
+                          Your action: {label(issue.selectedAktionId)}
                         </p>
-                        {issue.npcActions.at(-1) ? (
+                        {issue.npcAktions.at(-1) ? (
                           <p className="mt-2 text-violet-300">
-                            NPC response: {issue.npcActions.at(-1)?.label}
+                            NPC response: {issue.npcAktions.at(-1)?.label}
                           </p>
                         ) : null}
                         {issue.spawnedConflictId ? (
