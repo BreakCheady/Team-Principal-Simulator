@@ -276,7 +276,7 @@ function CrewManager({ flow, onAction }: Props) {
     .slice(0, 100);
   return (
     <article className={card}>
-      <h4 className="font-semibold">Driver crews & co-drivers</h4>
+      <h4 className="font-semibold">Fahrerbesatzungen & Co-Fahrer</h4>
       <p className="mt-2 text-sm text-zinc-400">
         Shared-car crew members have employment contracts, salaries and
         championship eligibility. Release and recruit between race weekends.
@@ -297,13 +297,13 @@ function CrewManager({ flow, onAction }: Props) {
             <div key={crew.leadId} className="border-t border-zinc-800 pt-3">
               <p>
                 {!team.drivers.includes(crew.leadId)
-                  ? "Vacant car entry · "
+                  ? "Unbesetztes Fahrzeug · "
                   : ""}
                 {world.people.find((p) => p.id === crew.leadId)?.name}
                 {world.playerSeriesId === "WEC" && ` · ${world.people.find((p) => p.id === crew.leadId)?.rating}`} ·{" "}
                 {world.playerSeriesId === "RALLY"
-                  ? "Co-driver"
-                  : "Support drivers"}
+                  ? "Co-Fahrer"
+                  : "Zusatzfahrer"}
               </p>
               {ids.map((id) => (
                 <p className="mt-2 text-sm" key={id}>
@@ -374,11 +374,11 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
       <h4 className="font-semibold">Race debrief · {summary.venue}</h4>
       <p className="mt-2 text-sm text-zinc-400">
         {summary.ruleId} · {summary.laps} laps/stages ·{" "}
-        {summary.wetRace ? "Wet tyres used" : "Dry tyre race"}
+        {summary.wetRace ? "Regenreifen verwendet" : "Trockenreifenrennen"}
       </p>
       <svg
         role="img"
-        aria-label="Player positions through the race"
+        aria-label="Eigene Positionen im Rennverlauf"
         viewBox="0 0 640 170"
         className="mt-4 w-full rounded-xl bg-zinc-950"
       >
@@ -413,7 +413,7 @@ function RaceReport({ summary }: { summary: RaceSummary }) {
             Replay · lap/stage {snap.lap}
             <input
               className="ml-4 w-2/3"
-              aria-label="Race replay frame"
+              aria-label="Rennwiederholung"
               type="range"
               min="0"
               max={Math.max(0, summary.snapshots.length - 1)}
@@ -495,10 +495,10 @@ export function RacePanel({ flow, onAction }: Props) {
             Math.max(0, flow.currentRound - c.seasonStart + 1) % cfg.rounds
           ]?.kind ?? "FEATURE",
         ),
-    report = c.Rennen.find((r) => r.round === reportRound) ?? c.Rennen.at(-1);
+    report = c.races.find((r) => r.round === reportRound) ?? c.races.at(-1);
   return (
     <div className="space-y-5">
-      <h3 className="text-xl font-semibold">Race weekend & strategy</h3>
+      <h3 className="text-xl font-semibold">Rennwochenende & Strategie</h3>
       <p className="text-sm text-zinc-400">
         {cfg.name} · {rules.name} ·{" "}
         <a
@@ -736,7 +736,7 @@ export function RacePanel({ flow, onAction }: Props) {
       {cfg.id === "WEC" ? <WecStandings world={c.world!} /> : <div className="grid gap-4 lg:grid-cols-2">
         <article className={card}>
           <h4>
-            {cfg.id === "INDYCAR" ? "Team aggregate" : "Team championship"}
+            {cfg.id === "INDYCAR" ? "Teamgesamtwertung" : "Teamwertung"}
           </h4>
           <table className="mt-3 w-full text-left text-sm">
             <thead>
