@@ -32,7 +32,7 @@ export function InboxIssuesPanel({
     return (
           <div className="space-y-3">
             {flow.issues.length === 0 ? (
-              <p className="text-sm text-zinc-500">No issues recorded yet.</p>
+              <p className="text-sm text-zinc-500">Noch keine Themen erfasst.</p>
             ) : (
               flow.issues.map((issue) => (
                 <article
